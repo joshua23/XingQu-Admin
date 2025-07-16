@@ -1,0 +1,57 @@
+name: xinqu_app
+description: 星趣App - 故事分享平台
+
+# 应用版本信息
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # UI相关依赖
+  cupertino_icons: ^1.0.6  # iOS风格图标
+  font_awesome_flutter: ^10.6.0  # FontAwesome图标库
+  
+  # 网络请求
+  http: ^1.1.0
+  dio: ^5.3.2
+  
+  # 数据库和后端服务
+  supabase_flutter: ^2.3.4
+  
+  # 状态管理
+  provider: ^6.1.1
+  
+  # 本地存储
+  shared_preferences: ^2.2.2
+  
+  # 图片相关
+  cached_network_image: ^3.3.0
+  
+  # 动画
+  lottie: ^2.7.0
+  
+  # 工具类
+  intl: ^0.18.1  # 国际化支持
+  flutter_launcher_icons: ^0.14.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+# Flutter相关配置
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/logo.png
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logo.png"
+  adaptive_icon_background: "#000000"
+  adaptive_icon_foreground: "assets/images/logo.png" 
