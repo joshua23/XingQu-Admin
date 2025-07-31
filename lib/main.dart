@@ -26,6 +26,7 @@ import 'pages/story_share_page.dart';
 import 'pages/login_error_page.dart';
 import 'pages/ai_chat_settings_page.dart';
 import 'pages/character_create_page.dart';
+import 'pages/test_database_page.dart';
 import 'models/story.dart';
 import 'providers/auth_provider.dart';
 
@@ -154,6 +155,7 @@ class XinQuApp extends StatelessWidget {
       '/story_search': (context) => const StorySearchPage(),
       '/ai_chat_settings': (context) => const AiChatSettingsPage(),
       '/character_create': (context) => const CharacterCreatePage(),
+      '/test_database': (context) => const TestDatabasePage(),
       // 注意：故事评论和分享页面需要传递参数，在onGenerateRoute中处理
     };
   }
