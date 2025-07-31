@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../theme/app_theme.dart';
 import '../widgets/status_bar.dart';
 import '../services/auth_service.dart';
@@ -11,6 +13,7 @@ import '../widgets/glowing_logo.dart';
 import 'wechat_auth_page.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../services/sms_service.dart';
 
 /// 登录页面Widget
 /// 实现手机号验证码登录和微信登录功能
@@ -39,6 +42,14 @@ class _LoginPageState extends State<LoginPage> {
 
   // 认证服务实例
   final AuthService _authService = AuthService();
+
+  // 短信服务实例
+  final AliyunSmsService _smsService = AliyunSmsService();
+
+  // 验证码存储（开发模式下本地存储，生产需服务器端）
+  String? _sentCode;
+  // 临时验证码（用于测试）
+  String? _tempCode;
 
   @override
   void dispose() {
@@ -226,7 +237,7 @@ class _LoginPageState extends State<LoginPage> {
         SizedBox(
           height: 44,
           child: OutlinedButton(
-            onPressed: _isCodeRequested ? null : _onGetCode,
+            onPressed: _isCodeRequested ? null : () => _onGetCode(context),
             style: OutlinedButton.styleFrom(
               side: BorderSide(color: AppColors.primary, width: 1.5),
               shape: RoundedRectangleBorder(
@@ -305,7 +316,7 @@ class _LoginPageState extends State<LoginPage> {
       width: double.infinity,
       height: 48,
       child: ElevatedButton(
-        onPressed: canLogin ? _onLogin : null,
+        onPressed: canLogin ? () => _onLogin(context) : null,
         style: ButtonStyle(
           backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
             if (!canLogin || states.contains(MaterialState.disabled)) {
@@ -422,32 +433,67 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  /// 获取验证码
-  /// 开发环境下本地模拟，无需真实短信
-  Future<void> _onGetCode() async {
-    // 校验手机号格式，格式不正确则提示并阻止发送
-    final String phone = _phoneController.text;
-    if (!_formKey.currentState!.validate()) {
-      setState(() {
-        _errorMessage = _validatePhone(phone);
-      });
+  /// 获取验证码 - 直接调用 Edge Function 发送 OTP
+  /// [context] BuildContext 用于 UI 更新
+  Future<void> _onGetCode(BuildContext context) async {
+    final String? phone = _phoneController.text;
+    debugPrint('📱 尝试发送验证码到: $phone');
+    
+    // 只验证手机号，不验证验证码字段
+    if (phone == null || phone.isEmpty) {
+      debugPrint('❌ 手机号为空');
+      setState(() { _errorMessage = '请输入手机号'; });
       return;
     }
-    setState(() {
-      _isCodeRequested = true;
-      _countdownSeconds = 60;
-    });
-    // 开始倒计时
-    _startCountdown();
-    // 显示模拟提示
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('【开发模式】验证码已模拟发送，无需真实短信'),
-          backgroundColor: AppColors.primary,
-          duration: Duration(seconds: 2),
-        ),
+    
+    // 验证手机号格式
+    final phoneError = _validatePhone(phone);
+    if (phoneError != null) {
+      debugPrint('❌ 手机号格式错误: $phoneError');
+      setState(() { _errorMessage = phoneError; });
+      return;
+    }
+
+    try {
+      debugPrint('🚀 直接调用 Edge Function...');
+      
+      // 生成6位随机验证码
+      final String code = (100000 + (DateTime.now().millisecondsSinceEpoch % 900000)).toString();
+      
+      // 调用 Edge Function
+      final response = await http.post(
+        Uri.parse('https://wqdpqhfqrxvssxifpmvt.supabase.co/functions/v1/send-aliyun-sms'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndxZHBxaGZxcnh2c3N4aWZwbXZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIxNDI5NDYsImV4cCI6MjA2NzcxODk0Nn0.ua0dh3XH3Zt2VPB7UchtSdYzUenDHPejzyMm76k7o6w',
+        },
+        body: jsonEncode({
+          'phone': '+86$phone',
+          'code': code,
+        }),
       );
+
+      if (response.statusCode == 200) {
+        debugPrint('✅ Edge Function 调用成功');
+        // 临时存储验证码用于测试
+        _tempCode = code;
+        
+        setState(() {
+          _isCodeRequested = true;
+          _countdownSeconds = 60;
+        });
+        _startCountdown();
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('验证码已发送'), duration: Duration(seconds: 2)),
+          );
+        }
+      } else {
+        throw Exception('Edge Function 返回错误: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('❌ 验证码发送失败: $e');
+      setState(() { _errorMessage = '验证码发送失败: $e'; });
     }
   }
 
@@ -468,51 +514,65 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
-  /// 执行登录
-  /// 开发环境下本地模拟，任意6位数字验证码均可通过
-  Future<void> _onLogin() async {
-    // 校验协议勾选
-    if (!_isAgreed) {
-      setState(() {
-        _errorMessage = '请先勾选用户协议和隐私政策';
-      });
-      return;
-    }
-    // 校验表单
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+  /// 执行登录 - 验证 OTP 并登录
+  /// [context] BuildContext 用于导航和 UI 更新
+  Future<void> _onLogin(BuildContext context) async {
+    if (!_isAgreed || !_formKey.currentState!.validate()) return;
+
+    final String? code = _codeController.text;
+    final String? phone = _phoneController.text;
+    if (code == null || phone == null) return;
+
     try {
-      // 显示加载状态
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(),
-        ),
+        builder: (_) => const Center(child: CircularProgressIndicator()),
       );
-      // 本地模拟登录：任意6位数字验证码均视为成功
-      await Future.delayed(const Duration(seconds: 1));
-      if (mounted) {
-        Navigator.of(context).pop();
-        // 登录成功后全局Provider同步
+
+      // 临时验证码检查（开发模式）
+      if (_tempCode != null && code == _tempCode) {
+        debugPrint('✅ 临时验证码验证成功');
+        if (context.mounted) Navigator.pop(context);
+        
         await Provider.of<AuthProvider>(context, listen: false).login();
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const HomePage(),
-          ),
+        if (context.mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const HomePage()),
+          );
+        }
+        return;
+      }
+
+      // 尝试 Supabase 验证（如果配置正确）
+      try {
+        final AuthResponse response = await Supabase.instance.client.auth.verifyOTP(
+          phone: phone,
+          token: code,
+          type: OtpType.sms,
         );
+
+        if (context.mounted) Navigator.pop(context);
+
+        if (response.user != null) {
+          await Provider.of<AuthProvider>(context, listen: false).login();
+          if (context.mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const HomePage()),
+            );
+          }
+        } else {
+          setState(() { _errorMessage = '验证码无效'; });
+        }
+      } catch (e) {
+        debugPrint('❌ Supabase 验证失败: $e');
+        setState(() { _errorMessage = '验证码无效或已过期'; });
       }
-    } catch (e, stack) {
-      if (mounted) {
-        Navigator.of(context).pop();
-      }
-      setState(() {
-        _errorMessage = '登录失败，请重试';
-      });
-      // 打印异常和堆栈，便于调试
-      print('登录异常: $e');
-      print(stack);
+    } catch (e) {
+      if (context.mounted) Navigator.pop(context);
+      setState(() { _errorMessage = '登录失败: $e'; });
     }
   }
 
