@@ -1,0 +1,201 @@
+import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../config/supabase_config.dart';
+
+/// Supabase连接测试服务
+/// 用于验证Supabase连接的有效性和基本功能
+class SupabaseTestService {
+  // Supabase客户端实例
+  final SupabaseClient _client = Supabase.instance.client;
+
+  /// 测试Supabase连接有效性
+  /// 返回连接测试结果
+  Future<Map<String, dynamic>> testConnection() async {
+    try {
+      debugPrint('🔍 开始测试Supabase连接...');
+      
+      // 测试1: 检查客户端是否初始化
+      if (_client == null) {
+        return {
+          'success': false,
+          'error': 'Supabase客户端未初始化',
+          'details': '客户端实例为空'
+        };
+      }
+
+      // 测试2: 检查URL和密钥配置
+      final url = Supabase.instance.client.supabaseUrl;
+      final hasAnonKey = Supabase.instance.client.supabaseKey.isNotEmpty;
+      
+      debugPrint('📍 Supabase URL: $url');
+      debugPrint('🔑 匿名密钥已配置: $hasAnonKey');
+
+      // 测试3: 尝试简单的数据库查询（测试权限）
+      try {
+        // 尝试查询用户表（即使为空也应该能连接）
+        await _client
+            .from(SupabaseTables.users)
+            .select('id')
+            .limit(1);
+        
+        debugPrint('✅ 数据库连接测试成功');
+      } catch (e) {
+        debugPrint('⚠️ 数据库连接测试失败: $e');
+        // 这可能是权限问题，但不影响基本连接
+      }
+
+      // 测试4: 检查认证状态
+      final currentUser = _client.auth.currentUser;
+      debugPrint('👤 当前用户: ${currentUser?.id ?? '未登录'}');
+
+      // 测试5: 检查存储桶访问权限
+      try {
+        final buckets = await _client.storage.listBuckets();
+        debugPrint('📦 可访问的存储桶: ${buckets.length}个');
+      } catch (e) {
+        debugPrint('⚠️ 存储桶访问测试失败: $e');
+      }
+
+      return {
+        'success': true,
+        'url': url,
+        'hasAnonKey': hasAnonKey,
+        'currentUser': currentUser?.id,
+        'message': 'Supabase连接测试完成'
+      };
+
+    } catch (e) {
+      debugPrint('❌ Supabase连接测试失败: $e');
+      return {
+        'success': false,
+        'error': e.toString(),
+        'details': '连接测试过程中发生异常'
+      };
+    }
+  }
+
+  /// 测试数据库表访问权限
+  /// 返回各表的访问状态
+  Future<Map<String, bool>> testTableAccess() async {
+    final results = <String, bool>{};
+    
+    try {
+      // 测试用户表
+      try {
+        await _client.from(SupabaseTables.users).select('id').limit(1);
+        results['users'] = true;
+      } catch (e) {
+        results['users'] = false;
+        debugPrint('❌ 用户表访问失败: $e');
+      }
+
+      // 测试故事表
+      try {
+        await _client.from(SupabaseTables.stories).select('id').limit(1);
+        results['stories'] = true;
+      } catch (e) {
+        results['stories'] = false;
+        debugPrint('❌ 故事表访问失败: $e');
+      }
+
+      // 测试标签表
+      try {
+        await _client.from(SupabaseTables.tags).select('id').limit(1);
+        results['tags'] = true;
+      } catch (e) {
+        results['tags'] = false;
+        debugPrint('❌ 标签表访问失败: $e');
+      }
+
+      // 测试评论表
+      try {
+        await _client.from(SupabaseTables.comments).select('id').limit(1);
+        results['comments'] = true;
+      } catch (e) {
+        results['comments'] = false;
+        debugPrint('❌ 评论表访问失败: $e');
+      }
+
+      // 测试点赞表
+      try {
+        await _client.from(SupabaseTables.likes).select('id').limit(1);
+        results['likes'] = true;
+      } catch (e) {
+        results['likes'] = false;
+        debugPrint('❌ 点赞表访问失败: $e');
+      }
+
+      // 测试关注表
+      try {
+        await _client.from(SupabaseTables.follows).select('id').limit(1);
+        results['follows'] = true;
+      } catch (e) {
+        results['follows'] = false;
+        debugPrint('❌ 关注表访问失败: $e');
+      }
+
+    } catch (e) {
+      debugPrint('❌ 表访问测试失败: $e');
+    }
+
+    return results;
+  }
+
+  /// 测试存储桶访问权限
+  /// 返回存储桶访问状态
+  Future<Map<String, bool>> testStorageAccess() async {
+    final results = <String, bool>{};
+    
+    try {
+      // 测试头像存储桶
+      try {
+        await _client.storage.from(SupabaseStorage.avatarsBucket).list();
+        results['avatars'] = true;
+        debugPrint('✅ 头像存储桶访问成功');
+      } catch (e) {
+        results['avatars'] = false;
+        debugPrint('❌ 头像存储桶访问失败: $e');
+      }
+
+      // 测试故事图片存储桶
+      try {
+        await _client.storage.from(SupabaseStorage.storyImagesBucket).list();
+        results['story-images'] = true;
+        debugPrint('✅ 故事图片存储桶访问成功');
+      } catch (e) {
+        results['story-images'] = false;
+        debugPrint('❌ 故事图片存储桶访问失败: $e');
+      }
+
+    } catch (e) {
+      debugPrint('❌ 存储桶访问测试失败: $e');
+    }
+
+    return results;
+  }
+
+  /// 执行完整的Supabase功能测试
+  /// 返回详细的测试报告
+  Future<Map<String, dynamic>> runFullTest() async {
+    debugPrint('🚀 开始执行完整的Supabase功能测试...');
+    
+    final connectionTest = await testConnection();
+    final tableAccessTest = await testTableAccess();
+    final storageAccessTest = await testStorageAccess();
+
+    final report = {
+      'connection': connectionTest,
+      'tableAccess': tableAccessTest,
+      'storageAccess': storageAccessTest,
+      'timestamp': DateTime.now().toIso8601String(),
+    };
+
+    // 打印测试报告
+    debugPrint('📊 Supabase测试报告:');
+    debugPrint('连接状态: ${connectionTest['success'] ? '✅ 成功' : '❌ 失败'}');
+    debugPrint('表访问状态: ${tableAccessTest.values.where((v) => v).length}/${tableAccessTest.length} 个表可访问');
+    debugPrint('存储桶访问状态: ${storageAccessTest.values.where((v) => v).length}/${storageAccessTest.length} 个存储桶可访问');
+
+    return report;
+  }
+} 
