@@ -1,120 +1,174 @@
 import 'package:flutter/material.dart';
 
-/// 应用颜色配置类
-/// 包含所有应用中使用的颜色常量
+/// 应用颜色配置类 - 基于星趣品牌视觉识别系统设计规范
+/// 严格按照设计文档的颜色系统和使用比例
 class AppColors {
   // 私有构造函数，防止实例化
   AppColors._();
 
-  // 基础色彩
-  static const Color primary = Color(0xFFF5DFAF); // 金色主色调
-  static const Color primaryDark = Color(0xFFE5CF9F); // 深金色
-  static const Color accent = Color(0xFFFF4D67); // 红色强调色
-  static const Color secondary = Color(0xFF4251F5); // 蓝色辅助色
+  // 主色 (使用比例70% + 15%)
+  static const Color background = Color(0xFF000000);     // 极夜黑 - 主背景色
+  static const Color primary = Color(0xFFF5DFAF);        // 浅米色 - 品牌识别色
 
-  // 背景色彩
-  static const Color background = Color(0xFF000000); // 黑色背景
-  static const Color surface = Color(0xFF1E1E1E); // 卡片表面色
+  // 强调色 (使用比例10% + 5%)  
+  static const Color accent = Color(0xFFFFC542);         // 琥珀黄 - 点赞、通知、重要操作
+  static const Color highlight = Color(0xFFAAB2C8);      // 浅灰蓝 - 按钮高亮、链接
+
+  // 功能色
+  static const Color success = Color(0xFFB7C68B);        // 浅橄榄绿 - 成功状态
+  static const Color warning = Color(0xFFFFC542);        // 琥珀黄 - 警告状态
+  static const Color error = Color(0xFFFF5757);          // 错误红 - 错误状态
+
+  // 中性色
+  static const Color textPrimary = Color(0xFFFFFFFF);    // 文字高亮
+  static const Color textSecondary = Color(0xFFCFCFCF);  // 文本普通
+  static const Color cardBackground = Color(0xFF1E1E1E); // 卡片底色
+  
+  // 扩展色彩
+  static const Color surface = Color(0xFF1E1E1E);        // 表面色
   static const Color surfaceVariant = Color(0xFF2A2A2A); // 变体表面色
-
-  // 文字色彩
-  static const Color textPrimary = Color(0xFFF5DFAF); // 主要文字色
-  static const Color textSecondary = Color(0xFFCFCFCF); // 次要文字色
-  static const Color textTertiary = Color(0xFF999999); // 三级文字色
-  static const Color textHint = Color(0xFF666666); // 提示文字色
-  static const Color textError = Color(0xFFFF5757); // 错误文字色
+  static const Color textTertiary = Color(0xFF999999);   // 三级文字色
+  static const Color textHint = Color(0xFF666666);       // 提示文字色
+  static const Color wechat = Color(0xFF07C160);         // 微信绿
 
   // 边框和分割线
-  static const Color border = Color(0x1AF5DFAF); // 边框色（透明度10%）
-  static const Color divider = Color(0x33F5DFAF); // 分割线色（透明度20%）
+  static const Color border = Color(0x1AF5DFAF);         // 边框色（透明度10%）
+  static const Color divider = Color(0x33F5DFAF);        // 分割线色（透明度20%）
 
-  // 功能色彩
-  static const Color success = Color(0xFF39D98A); // 成功色
-  static const Color warning = Color(0xFFFFB946); // 警告色
-  static const Color error = Color(0xFFFF5757); // 错误色
-  static const Color wechat = Color(0xFF07C160); // 微信绿
-
-  // 渐变色
+  // 品牌渐变色
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFF4251F5), Color(0xFF6366F1)],
+    colors: [Color(0xFFF5DFAF), Color(0xFFFFC542)],      // 浅米色到琥珀黄
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
+  
+  static const LinearGradient accentGradient = LinearGradient(
+    colors: [Color(0xFFFFC542), Color(0xFFAAB2C8)],      // 琥珀黄到浅灰蓝
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+  );
 }
 
-/// 应用文字样式配置类
-/// 包含所有应用中使用的文字样式
+/// 应用文字样式配置类 - 基于星趣品牌视觉识别系统设计规范
+/// 严格按照设计文档的字体系统和排版规范
 class AppTextStyles {
   // 私有构造函数，防止实例化
   AppTextStyles._();
 
-  // 基础字体配置
-  // static const String fontFamily = 'PingFang';
+  // 基础字体配置 - 思源黑体(Noto Sans SC) + HarmonyOS Sans SC
+  // static const String fontFamilyChinese = 'Noto Sans SC';
+  // static const String fontFamilyTitle = 'HarmonyOS Sans SC';
 
-  // 标题样式
+  // 标题样式 (HarmonyOS Sans SC Bold)
   static const TextStyle h1 = TextStyle(
-    fontSize: 28,
-    fontWeight: FontWeight.w700,
+    fontSize: 24,
+    fontWeight: FontWeight.bold,
     color: AppColors.textPrimary,
-    height: 1.2,
+    height: 1.4,
+    letterSpacing: 0.02,
   );
 
   static const TextStyle h2 = TextStyle(
-    fontSize: 24,
-    fontWeight: FontWeight.w600,
+    fontSize: 20,
+    fontWeight: FontWeight.bold,
     color: AppColors.textPrimary,
-    height: 1.3,
+    height: 1.4,
+    letterSpacing: 0.02,
   );
 
   static const TextStyle h3 = TextStyle(
-    fontSize: 20,
-    fontWeight: FontWeight.w600,
-    color: AppColors.textPrimary,
-    height: 1.4,
-  );
-
-  static const TextStyle h4 = TextStyle(
     fontSize: 18,
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
     height: 1.4,
+    letterSpacing: 0.02,
   );
 
-  // 正文样式
-  static const TextStyle body = TextStyle(
+  static const TextStyle h4 = TextStyle(
     fontSize: 16,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
-    height: 1.5,
+    height: 1.4,
+    letterSpacing: 0.02,
   );
 
+  // 正文样式 (思源黑体 Regular)
   static const TextStyle body1 = TextStyle(
     fontSize: 16,
-    fontWeight: FontWeight.w400,
-    color: AppColors.textPrimary,
-    height: 1.5,
+    fontWeight: FontWeight.normal,
+    color: AppColors.textSecondary,
+    height: 1.4,
+    letterSpacing: 0.02,
   );
 
   static const TextStyle body2 = TextStyle(
     fontSize: 14,
-    fontWeight: FontWeight.w400,
+    fontWeight: FontWeight.normal,
     color: AppColors.textSecondary,
-    height: 1.6,
+    height: 1.4,
+    letterSpacing: 0.02,
+  );
+
+  // 说明文字 (12sp)
+  static const TextStyle caption = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.normal,
+    color: AppColors.textSecondary,
+    height: 1.4,
+    letterSpacing: 0.02,
   );
 
   // 按钮样式
   static const TextStyle button = TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.w600,
-    height: 1.2,
+    color: AppColors.background,
+    height: 1.4,
+    letterSpacing: 0.02,
   );
 
-  // 说明文字样式
-  static const TextStyle caption = TextStyle(
-    fontSize: 12,
-    fontWeight: FontWeight.w400,
+  static const TextStyle buttonSmall = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+    color: AppColors.background,
+    height: 1.4,
+    letterSpacing: 0.02,
+  );
+
+  // 输入框样式
+  static const TextStyle input = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.normal,
+    color: AppColors.textPrimary,
+    height: 1.4,
+    letterSpacing: 0.02,
+  );
+
+  static const TextStyle inputHint = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.normal,
     color: AppColors.textHint,
     height: 1.4,
+    letterSpacing: 0.02,
+  );
+
+  // 链接样式
+  static const TextStyle link = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w500,
+    color: AppColors.highlight,
+    height: 1.4,
+    letterSpacing: 0.02,
+    decoration: TextDecoration.underline,
+  );
+
+  // 品牌样式 - 星趣标志文字
+  static const TextStyle brand = TextStyle(
+    fontSize: 32,
+    fontWeight: FontWeight.bold,
+    color: AppColors.primary,
+    height: 1.2,
+    letterSpacing: 2.0,
   );
 }
 
