@@ -41,3 +41,5 @@ post_install do |installer|
     flutter_additional_ios_build_settings(target)
   end
 end
+
+# pod 'WechatOpenSDK', '~> 1.8.7.1'  # 暂时注释掉微信 SDK

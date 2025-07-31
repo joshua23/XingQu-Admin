@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>搜索 - 星趣App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: #000000;
+            color: #F5DFAF;
+            line-height: 1.6;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 状态栏 */
+        .status-bar {
+            height: 47px;
+            background: #000000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #F5DFAF;
+        }
+
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-right {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* 搜索栏 */
+        .search-header {
+            height: 56px;
+            background: #1E1E1E;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 12px;
+            border-bottom: 1px solid #333;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: #F5DFAF;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: background-color 0.3s;
+        }
+
+        .back-btn:hover {
+            background-color: rgba(245, 223, 175, 0.1);
+        }
+
+        .search-input-container {
+            flex: 1;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            background: #2A2A2A;
+            border: 1px solid #4251F5;
+            border-radius: 20px;
+            padding: 10px 16px 10px 40px;
+            color: #F5DFAF;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .search-input:focus {
+            border-color: #FF4D67;
+        }
+
+        .search-input::placeholder {
+            color: #CFCFCF;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #CFCFCF;
+            font-size: 16px;
+        }
+
+        .clear-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #CFCFCF;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+            transition: background-color 0.3s;
+            display: none;
+        }
+
+        .clear-btn:hover {
+            background-color: rgba(207, 207, 207, 0.1);
+        }
+
+        .search-btn {
+            background: linear-gradient(45deg, #4251F5, #FF4D67);
+            border: none;
+            color: #FFFFFF;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(66, 81, 245, 0.3);
+        }
+
+        .search-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(66, 81, 245, 0.4);
+        }
+
+        .search-btn:active {
+            transform: translateY(0);
+        }
+
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 103px);
+            overflow-y: auto;
+        }
+
+        /* 搜索建议 */
+        .search-suggestions {
+            background: #1E1E1E;
+            border-bottom: 1px solid #333;
+            padding: 8px 0;
+            display: none;
+        }
+
+        .suggestion-item {
+            padding: 12px 20px;
+            color: #CFCFCF;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: background-color 0.3s;
+        }
+
+        .suggestion-item:hover {
+            background-color: #2A2A2A;
+            color: #F5DFAF;
+        }
+
+        .suggestion-icon {
+            color: #4251F5;
+            font-size: 14px;
+        }
+
+        /* 搜索历史 */
+        .search-history {
+            padding: 20px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #F5DFAF;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .clear-history-btn {
+            background: none;
+            border: none;
+            color: #CFCFCF;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .clear-history-btn:hover {
+            background-color: rgba(207, 207, 207, 0.1);
+            color: #F5DFAF;
+        }
+
+        .history-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 30px;
+        }
+
+        .history-item {
+            background: #2A2A2A;
+            border: 1px solid #4251F5;
+            border-radius: 16px;
+            padding: 6px 12px;
+            font-size: 14px;
+            color: #F5DFAF;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .history-item:hover {
+            background: #333333;
+            border-color: #FF4D67;
+        }
+
+        .history-item .remove-btn {
+            background: none;
+            border: none;
+            color: #CFCFCF;
+            font-size: 12px;
+            cursor: pointer;
+            padding: 2px;
+            border-radius: 50%;
+            transition: background-color 0.3s;
+        }
+
+        .history-item .remove-btn:hover {
+            background-color: rgba(207, 207, 207, 0.2);
+            color: #FF4D67;
+        }
+
+        /* 热门搜索 */
+        .hot-searches {
+            padding: 0 20px 20px;
+        }
+
+        .hot-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .hot-item {
+            background: linear-gradient(45deg, #4251F5, #FF4D67);
+            border: none;
+            border-radius: 16px;
+            padding: 8px 14px;
+            font-size: 14px;
+            color: #FFFFFF;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(66, 81, 245, 0.2);
+        }
+
+        .hot-item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(66, 81, 245, 0.3);
+        }
+
+        .hot-item::before {
+            content: '🔥';
+            font-size: 12px;
+        }
+
+        /* 搜索结果 */
+        .search-results {
+            padding: 20px;
+            display: none;
+        }
+
+        .result-item {
+            background: #1E1E1E;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid transparent;
+        }
+
+        .result-item:hover {
+            background: #2A2A2A;
+            border-color: #4251F5;
+            transform: translateY(-1px);
+        }
+
+        .result-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #F5DFAF;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result-type {
+            background: #4251F5;
+            color: #FFFFFF;
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .result-desc {
+            font-size: 14px;
+            color: #CFCFCF;
+            line-height: 1.4;
+            margin-bottom: 10px;
+        }
+
+        .result-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 12px;
+            color: #CFCFCF;
+        }
+
+        .result-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #CFCFCF;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-text {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .empty-desc {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        /* 加载状态 */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #CFCFCF;
+        }
+
+        .loading-spinner {
+            font-size: 24px;
+            color: #4251F5;
+            animation: spin 1s linear infinite;
+            margin-bottom: 12px;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* 滚动条样式 */
+        .main-content::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .main-content::-webkit-scrollbar-track {
+            background: #1E1E1E;
+        }
+
+        .main-content::-webkit-scrollbar-thumb {
+            background: #4251F5;
+            border-radius: 2px;
+        }
+
+        .main-content::-webkit-scrollbar-thumb:hover {
+            background: #FF4D67;
+        }
+
+        /* 高亮搜索关键词 */
+        .highlight {
+            background: #FF4D67;
+            color: #FFFFFF;
+            padding: 1px 3px;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 状态栏 -->
+    <div class="status-bar">
+        <div class="status-left">
+            <span>9:41</span>
+        </div>
+        <div class="status-right">
+            <span>•••</span>
+            <span>📶</span>
+            <span>🔋</span>
+        </div>
+    </div>
+
+    <!-- 搜索栏 -->
+    <div class="search-header">
+        <button class="back-btn" onclick="goBack()">
+            ←
+        </button>
+        <div class="search-input-container">
+            <div class="search-icon">🔍</div>
+            <input type="text" class="search-input" id="searchInput" placeholder="搜索角色、故事、作者..." />
+            <button class="clear-btn" id="clearBtn" onclick="clearSearch()">×</button>
+        </div>
+        <button class="search-btn" onclick="performSearch()">搜索</button>
+    </div>
+
+    <!-- 搜索建议 -->
+    <div class="search-suggestions" id="searchSuggestions">
+        <div class="suggestion-item" onclick="selectSuggestion('AI助理')">
+            <div class="suggestion-icon">🔍</div>
+            <span>AI助理</span>
+        </div>
+        <div class="suggestion-item" onclick="selectSuggestion('奇幻冒险')">
+            <div class="suggestion-icon">🔍</div>
+            <span>奇幻冒险</span>
+        </div>
+        <div class="suggestion-item" onclick="selectSuggestion('二次元角色')">
+            <div class="suggestion-icon">🔍</div>
+            <span>二次元角色</span>
+        </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="main-content" id="mainContent">
+        <!-- 搜索历史 -->
+        <div class="search-history" id="searchHistory">
+            <div class="section-title">
+                <span>搜索历史</span>
+                <button class="clear-history-btn" onclick="clearHistory()">清空</button>
+            </div>
+            <div class="history-list" id="historyList">
+                <div class="history-item" onclick="searchFromHistory('星若助理')">
+                    <span>星若助理</span>
+                    <button class="remove-btn" onclick="removeHistoryItem(event, '星若助理')">×</button>
+                </div>
+                <div class="history-item" onclick="searchFromHistory('动漫角色')">
+                    <span>动漫角色</span>
+                    <button class="remove-btn" onclick="removeHistoryItem(event, '动漫角色')">×</button>
+                </div>
+                <div class="history-item" onclick="searchFromHistory('聊天机器人')">
+                    <span>聊天机器人</span>
+                    <button class="remove-btn" onclick="removeHistoryItem(event, '聊天机器人')">×</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 热门搜索 -->
+        <div class="hot-searches" id="hotSearches">
+            <div class="section-title">
+                <span>热门搜索</span>
+            </div>
+            <div class="hot-list">
+                <button class="hot-item" onclick="searchFromHot('AI助理')">AI助理</button>
+                <button class="hot-item" onclick="searchFromHot('二次元')">二次元</button>
+                <button class="hot-item" onclick="searchFromHot('角色扮演')">角色扮演</button>
+                <button class="hot-item" onclick="searchFromHot('语言学习')">语言学习</button>
+                <button class="hot-item" onclick="searchFromHot('智能体')">智能体</button>
+                <button class="hot-item" onclick="searchFromHot('FM音频')">FM音频</button>
+            </div>
+        </div>
+
+        <!-- 搜索结果 -->
+        <div class="search-results" id="searchResults">
+            <div class="section-title">
+                <span>搜索结果</span>
+            </div>
+            <!-- 搜索结果将动态生成 -->
+        </div>
+
+        <!-- 空状态 -->
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <div class="empty-icon">🔍</div>
+            <div class="empty-text">没有找到相关内容</div>
+            <div class="empty-desc">试试其他关键词或查看热门搜索</div>
+        </div>
+
+        <!-- 加载状态 -->
+        <div class="loading" id="loading" style="display: none;">
+            <div class="loading-spinner">⟳</div>
+            <div>正在搜索...</div>
+        </div>
+    </div>
+
+    <script>
+        let searchHistory = ['星若助理', '动漫角色', '聊天机器人'];
+        let currentSearchTerm = '';
+
+        /**
+         * 返回上一页
+         */
+        function goBack() {
+            window.history.back();
+        }
+
+        /**
+         * 清空搜索输入
+         */
+        function clearSearch() {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.value = '';
+            searchInput.focus();
+            toggleClearButton();
+            hideSuggestions();
+        }
+
+        /**
+         * 执行搜索
+         */
+        function performSearch() {
+            const searchInput = document.getElementById('searchInput');
+            const searchTerm = searchInput.value.trim();
+            
+            if (!searchTerm) {
+                alert('请输入搜索关键词');
+                return;
+            }
+            
+            currentSearchTerm = searchTerm;
+            addToHistory(searchTerm);
+            showSearchResults(searchTerm);
+        }
+
+        /**
+         * 显示搜索结果
+         */
+        function showSearchResults(searchTerm) {
+            document.getElementById('searchHistory').style.display = 'none';
+            document.getElementById('hotSearches').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'none';
+            hideSuggestions();
+            
+            const loading = document.getElementById('loading');
+            loading.style.display = 'block';
+            
+            setTimeout(() => {
+                loading.style.display = 'none';
+                const results = generateSearchResults(searchTerm);
+                displaySearchResults(results, searchTerm);
+            }, 1000);
+        }
+
+        /**
+         * 生成搜索结果（模拟）
+         */
+        function generateSearchResults(searchTerm) {
+            const mockResults = [
+                {
+                    type: 'AI角色',
+                    title: '星若智能助理',
+                    desc: '专业的AI助理，可以帮助您处理日常事务、回答问题、提供建议...',
+                    author: '官方',
+                    users: '12.5k',
+                    rating: '4.8'
+                },
+                {
+                    type: 'AI角色',
+                    title: '二次元少女小樱',
+                    desc: '可爱的二次元角色，喜欢和用户聊天交流，擅长各种话题...',
+                    author: '动漫创作者',
+                    users: '8.3k',
+                    rating: '4.7'
+                },
+                {
+                    type: '智能体',
+                    title: '英语学习助手',
+                    desc: '专业的英语学习智能体，提供口语练习、语法指导、词汇学习...',
+                    category: '教育',
+                    users: '15.2k',
+                    rating: '4.9'
+                }
+            ];
+            
+            return mockResults.filter(result => 
+                result.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                result.desc.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+
+        /**
+         * 显示搜索结果
+         */
+        function displaySearchResults(results, searchTerm) {
+            const searchResults = document.getElementById('searchResults');
+            searchResults.style.display = 'block';
+            
+            if (results.length === 0) {
+                document.getElementById('emptyState').style.display = 'block';
+                searchResults.style.display = 'none';
+                return;
+            }
+            
+            const existingResults = searchResults.querySelectorAll('.result-item');
+            existingResults.forEach(item => item.remove());
+            
+            results.forEach(result => {
+                const resultItem = document.createElement('div');
+                resultItem.className = 'result-item';
+                resultItem.onclick = () => openResult(result);
+                
+                const highlightedTitle = highlightSearchTerm(result.title, searchTerm);
+                const highlightedDesc = highlightSearchTerm(result.desc, searchTerm);
+                
+                resultItem.innerHTML = `
+                    <div class="result-title">
+                        <span class="result-type">${result.type}</span>
+                        ${highlightedTitle}
+                    </div>
+                    <div class="result-desc">${highlightedDesc}</div>
+                    <div class="result-meta">
+                        <span>👤 ${result.author || result.category}</span>
+                        <span>👥 ${result.users} 用户</span>
+                        <span>⭐ ${result.rating}</span>
+                    </div>
+                `;
+                
+                searchResults.appendChild(resultItem);
+            });
+        }
+
+        /**
+         * 高亮搜索关键词
+         */
+        function highlightSearchTerm(text, searchTerm) {
+            const regex = new RegExp(`(${searchTerm})`, 'gi');
+            return text.replace(regex, '<span class="highlight">$1</span>');
+        }
+
+        /**
+         * 打开搜索结果
+         */
+        function openResult(result) {
+            alert(`打开${result.type}：${result.title}`);
+        }
+
+        /**
+         * 添加到搜索历史
+         */
+        function addToHistory(searchTerm) {
+            searchHistory = searchHistory.filter(item => item !== searchTerm);
+            searchHistory.unshift(searchTerm);
+            if (searchHistory.length > 10) {
+                searchHistory = searchHistory.slice(0, 10);
+            }
+            updateHistoryDisplay();
+        }
+
+        /**
+         * 更新历史记录显示
+         */
+        function updateHistoryDisplay() {
+            const historyList = document.getElementById('historyList');
+            historyList.innerHTML = '';
+            
+            searchHistory.forEach(item => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                historyItem.innerHTML = `
+                    <span onclick="searchFromHistory('${item}')">${item}</span>
+                    <button class="remove-btn" onclick="removeHistoryItem(event, '${item}')">×</button>
+                `;
+                historyList.appendChild(historyItem);
+            });
+        }
+
+        /**
+         * 从历史记录搜索
+         */
+        function searchFromHistory(searchTerm) {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.value = searchTerm;
+            performSearch();
+        }
+
+        /**
+         * 从热门搜索
+         */
+        function searchFromHot(searchTerm) {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.value = searchTerm;
+            performSearch();
+        }
+
+        /**
+         * 移除历史记录项
+         */
+        function removeHistoryItem(event, searchTerm) {
+            event.stopPropagation();
+            searchHistory = searchHistory.filter(item => item !== searchTerm);
+            updateHistoryDisplay();
+        }
+
+        /**
+         * 清空搜索历史
+         */
+        function clearHistory() {
+            if (confirm('确定要清空搜索历史吗？')) {
+                searchHistory = [];
+                updateHistoryDisplay();
+            }
+        }
+
+        /**
+         * 选择搜索建议
+         */
+        function selectSuggestion(suggestion) {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.value = suggestion;
+            performSearch();
+        }
+
+        /**
+         * 显示搜索建议
+         */
+        function showSuggestions() {
+            const searchInput = document.getElementById('searchInput');
+            const suggestions = document.getElementById('searchSuggestions');
+            
+            if (searchInput.value.trim()) {
+                suggestions.style.display = 'block';
+            } else {
+                suggestions.style.display = 'none';
+            }
+        }
+
+        /**
+         * 隐藏搜索建议
+         */
+        function hideSuggestions() {
+            document.getElementById('searchSuggestions').style.display = 'none';
+        }
+
+        /**
+         * 切换清空按钮显示
+         */
+        function toggleClearButton() {
+            const searchInput = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('clearBtn');
+            
+            if (searchInput.value.trim()) {
+                clearBtn.style.display = 'block';
+            } else {
+                clearBtn.style.display = 'none';
+            }
+        }
+
+        /**
+         * 返回初始状态
+         */
+        function showInitialState() {
+            document.getElementById('searchHistory').style.display = 'block';
+            document.getElementById('hotSearches').style.display = 'block';
+            document.getElementById('searchResults').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            
+            searchInput.addEventListener('input', function() {
+                toggleClearButton();
+                showSuggestions();
+            });
+            
+            searchInput.addEventListener('focus', function() {
+                showSuggestions();
+            });
+            
+            searchInput.addEventListener('blur', function() {
+                setTimeout(hideSuggestions, 200);
+            });
+            
+            searchInput.addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') {
+                    performSearch();
+                }
+            });
+            
+            document.addEventListener('click', function(event) {
+                const suggestions = document.getElementById('searchSuggestions');
+                if (!suggestions.contains(event.target) && event.target !== searchInput) {
+                    hideSuggestions();
+                }
+            });
+            
+            searchInput.focus();
+        });
+    </script>
+</body>
+</html> 

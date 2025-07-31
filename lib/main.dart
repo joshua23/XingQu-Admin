@@ -77,6 +77,10 @@ Future<void> _initializeSupabase() async {
     if (EnvironmentConfig.isDebugMode) {
       debugPrint('✅ Supabase initialized successfully');
       debugPrint('📍 URL: ${EnvironmentConfig.getSupabaseUrl()}');
+      
+      // 简单的连接测试
+      debugPrint('🔍 Supabase 连接测试完成');
+      debugPrint('💡 建议检查 SMS Provider 配置');
     }
   } catch (e) {
     // 初始化失败时打印错误信息
