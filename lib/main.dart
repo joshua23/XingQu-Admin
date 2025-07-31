@@ -8,6 +8,8 @@ import 'pages/home_page.dart';
 import 'pages/home_refactored.dart';
 import 'pages/main_page_refactored.dart';
 import 'config/supabase_config.dart';
+import 'services/supabase_service.dart';
+import 'services/api_service.dart';
 import 'pages/ai_chat_page.dart';
 import 'pages/messages_page.dart';
 import 'pages/profile_page.dart';
@@ -36,8 +38,8 @@ void main() async {
   // 设置系统UI样式
   await _configureSystemUI();
 
-  // 初始化Supabase
-  await _initializeSupabase();
+  // 初始化后端服务
+  await _initializeBackendServices();
 
   // 启动应用
   runApp(const XinQuApp());
