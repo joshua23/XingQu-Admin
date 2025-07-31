@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'theme/app_theme.dart';
 import 'pages/login_page.dart';
 import 'pages/home_page.dart';
+import 'pages/home_refactored.dart';
 import 'config/supabase_config.dart';
 import 'pages/ai_chat_page.dart';
 import 'pages/messages_page.dart';
@@ -133,7 +134,8 @@ class XinQuApp extends StatelessWidget {
   Map<String, WidgetBuilder> _buildRoutes() {
     return {
       '/login': (context) => const LoginPage(),
-      '/home': (context) => const HomePage(),
+      '/home': (context) => const HomeRefactored(), // 使用重构后的首页
+      '/home_original': (context) => const HomePage(), // 保留原首页作为备用
       '/splash': (context) => const SplashPage(),
       '/ai_chat': (context) => const AiChatPage(),
       '/messages': (context) => const MessagesPage(),
