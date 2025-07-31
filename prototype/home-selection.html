@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>星趣 - 精选页</title>
+    <link rel="stylesheet" href="common-styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css" rel="stylesheet">
+    <style>
+        /* iPhone 15 Pro外观样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            background: #000000;
+            font-family: 'HarmonyOS Sans SC', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            overflow: hidden;
+        }
+
+        /* iPhone 15 Pro 机身容器 */
+        .iphone-container {
+            position: relative;
+            width: 393px;
+            height: 852px;
+            margin: 40px auto;
+            background: #1f1f1f;
+            border-radius: 55px;
+            padding: 8px;
+            box-shadow: 
+                0 0 0 2px #333333,
+                0 8px 30px rgba(0, 0, 0, 0.8),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+        }
+
+        /* iPhone 15 Pro 屏幕 */
+        .iphone-screen {
+            width: 100%;
+            height: 100%;
+            background: #000000;
+            border-radius: 47px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Dynamic Island */
+        .dynamic-island {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 126px;
+            height: 37px;
+            background: #000000;
+            border-radius: 18px;
+            z-index: 1000;
+            border: 0.5px solid #333;
+        }
+
+        /* 物理按键 */
+        .power-button {
+            position: absolute;
+            right: -3px;
+            top: 200px;
+            width: 4px;
+            height: 80px;
+            background: #333333;
+            border-radius: 2px 0 0 2px;
+        }
+
+        .volume-up {
+            position: absolute;
+            left: -3px;
+            top: 160px;
+            width: 4px;
+            height: 50px;
+            background: #333333;
+            border-radius: 0 2px 2px 0;
+        }
+
+        .volume-down {
+            position: absolute;
+            left: -3px;
+            top: 220px;
+            width: 4px;
+            height: 50px;
+            background: #333333;
+            border-radius: 0 2px 2px 0;
+        }
+
+        .action-button {
+            position: absolute;
+            left: -3px;
+            top: 100px;
+            width: 4px;
+            height: 40px;
+            background: #333333;
+            border-radius: 0 2px 2px 0;
+        }
+
+        /* iOS状态栏 */
+        .status-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 54px;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px 0 24px;
+            font-size: 17px;
+            font-weight: 600;
+            color: #FFFFFF;
+            z-index: 999;
+        }
+
+        .status-left {
+            font-size: 17px;
+            margin-top: 8px;
+        }
+
+        .status-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 17px;
+            margin-top: 8px;
+        }
+
+        .battery {
+            width: 27px;
+            height: 13px;
+            border: 1px solid #FFFFFF;
+            border-radius: 3px;
+            position: relative;
+            margin-left: 2px;
+        }
+
+        .battery::after {
+            content: '';
+            position: absolute;
+            right: -4px;
+            top: 4px;
+            width: 2px;
+            height: 5px;
+            background: #FFFFFF;
+            border-radius: 0 1px 1px 0;
+        }
+
+        .battery-fill {
+            background: #34C759;
+            height: 100%;
+            width: 80%;
+            border-radius: 2px;
+        }
+
+        .notification-badge {
+            background-color: #ff3b30;
+            color: white;
+            border-radius: 10px;
+            padding: 1px 6px;
+            font-size: 10px;
+            margin-left: 2px;
+        }
+
+        /* 应用内容区域 */
+        .app-container {
+            position: absolute;
+            top: 54px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #000000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 首页顶部Tab导航 */
+        .home-tab-nav {
+            background: rgba(0, 0, 0, 0.95);
+            padding: 0 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            z-index: 90;
+        }
+
+        .home-tab-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 8px;
+            padding: 12px 0;
+        }
+
+        .home-tab-item {
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 8px 16px;
+            border-radius: 6px;
+        }
+
+        .home-tab-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .home-tab-text {
+            color: #8E8E93;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .home-tab-item.active .home-tab-text {
+            color: #FFFFFF;
+        }
+
+        .home-tab-indicator {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 2px;
+            background: #FFFFFF;
+            border-radius: 1px;
+        }
+
+        /* 精选页内容 */
+        .selection-page {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: #000000;
+        }
+
+        .page-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+        }
+
+        /* 顶部导航区域 */
+        .top-nav-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 16px;
+        }
+
+        .nav-icons {
+            display: flex;
+            gap: 16px;
+        }
+
+        .nav-icon {
+            color: #FFFFFF;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-icon:hover {
+            color: #FFC542;
+        }
+
+        /* 角色信息区 */
+        .profile-section {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .character-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #F5DFAF, #FFC542);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000000;
+            font-weight: bold;
+            font-size: 20px;
+            font-family: 'HarmonyOS Sans SC', sans-serif;
+        }
+
+        .character-info {
+            flex: 1;
+        }
+
+        .character-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #FFFFFF;
+            margin-bottom: 4px;
+        }
+
+        .character-stats {
+            font-size: 12px;
+            color: #AAB2C8;
+        }
+
+        .action-buttons {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .follow-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #AAB2C8;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .follow-btn:hover {
+            color: #FFC542;
+        }
+
+        .message-count {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 14px;
+            color: #AAB2C8;
+        }
+
+        /* 主要内容展示区 */
+        .main-showcase {
+            position: relative;
+            height: 280px;
+            background: linear-gradient(180deg, #1a1a2e, #16213e);
+            overflow: hidden;
+            border-radius: 0;
+            margin: 0;
+        }
+
+        .character-display {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 70% 30%, rgba(245, 223, 175, 0.15), transparent 60%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .character-display::after {
+            content: "✨";
+            font-size: 100px;
+            color: rgba(245, 223, 175, 0.1);
+            letter-spacing: -5px;
+        }
+
+        .character-details {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
+        }
+
+        .character-description {
+            font-size: 16px;
+            color: #FFFFFF;
+            margin-bottom: 12px;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .character-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .character-tag {
+            background: linear-gradient(135deg, rgba(245, 223, 175, 0.2), rgba(255, 197, 66, 0.1));
+            color: #F5DFAF;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            border: 1px solid rgba(245, 223, 175, 0.3);
+        }
+
+        .character-note {
+            font-size: 12px;
+            color: #AAB2C8;
+            font-style: italic;
+        }
+
+        /* 对话交互区 */
+        .conversation-area {
+            padding: 16px;
+        }
+
+        .message-bubble {
+            background: rgba(28, 28, 30, 0.8);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .message-sender {
+            font-size: 13px;
+            color: #F5DFAF;
+            font-weight: 600;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: #AAB2C8;
+        }
+
+        .message-text {
+            font-size: 15px;
+            color: #FFFFFF;
+            line-height: 1.5;
+        }
+
+        /* 输入控制区 */
+        .input-section {
+            padding: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.95);
+        }
+
+        .input-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .control-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(245, 223, 175, 0.2), rgba(255, 197, 66, 0.1));
+            border: 1px solid rgba(245, 223, 175, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #F5DFAF;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: linear-gradient(135deg, rgba(245, 223, 175, 0.3), rgba(255, 197, 66, 0.2));
+            transform: scale(1.05);
+        }
+
+        .input-field {
+            flex: 1;
+            height: 40px;
+            background: rgba(28, 28, 30, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #AAB2C8;
+            font-size: 14px;
+        }
+
+        /* 快捷回复 */
+        .quick-replies {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            margin-bottom: 12px;
+        }
+
+        .quick-replies::-webkit-scrollbar {
+            display: none;
+        }
+
+        .quick-reply {
+            background: rgba(28, 28, 30, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 16px;
+            border-radius: 18px;
+            white-space: nowrap;
+            font-size: 14px;
+            color: #FFFFFF;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quick-reply:hover {
+            background: rgba(245, 223, 175, 0.2);
+            border-color: rgba(245, 223, 175, 0.3);
+            color: #F5DFAF;
+        }
+
+        /* 功能菜单 */
+        .function-menu {
+            display: flex;
+            justify-content: space-around;
+            padding: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.95);
+        }
+
+        .menu-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .menu-item:hover {
+            transform: translateY(-2px);
+        }
+
+        .menu-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(28, 28, 30, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #F5DFAF;
+            font-size: 18px;
+        }
+
+        .menu-label {
+            font-size: 11px;
+            color: #AAB2C8;
+            text-align: center;
+        }
+
+        /* 底部Tab导航 */
+        .bottom-tab {
+            background: rgba(0, 0, 0, 0.95);
+            padding: 8px 20px 20px 20px;
+            border-top: 1px solid #1C1C1E;
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 8px;
+            border-radius: 12px;
+            min-width: 60px;
+        }
+
+        .tab-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .tab-item.active {
+            background: rgba(255, 197, 66, 0.1);
+        }
+
+        .tab-icon {
+            font-size: 20px;
+            color: #8E8E93;
+            transition: all 0.3s ease;
+        }
+
+        .tab-item.active .tab-icon {
+            color: #FFC542;
+            transform: scale(1.1);
+        }
+
+        .tab-label {
+            font-size: 12px;
+            color: #8E8E93;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .tab-item.active .tab-label {
+            color: #FFC542;
+        }
+
+        /* 创作中心特殊样式 */
+        .tab-item.creation-center {
+            padding: 8px;
+        }
+
+        .tab-item.creation-center .tab-icon {
+            font-size: 28px;
+            margin-bottom: 0;
+            color: #FFC542;
+            background: linear-gradient(135deg, #FFC542, #FFE135);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* 滚动条样式 */
+        .page-content::-webkit-scrollbar {
+            width: 2px;
+        }
+
+        .page-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .page-content::-webkit-scrollbar-thumb {
+            background: rgba(245, 223, 175, 0.3);
+            border-radius: 1px;
+        }
+
+        /* 响应式适配 */
+        @media (max-width: 414px) {
+            .iphone-container {
+                margin: 20px auto;
+            }
+            
+            .home-tab-container {
+                padding: 8px 0;
+                gap: 4px;
+            }
+            
+            .home-tab-item {
+                padding: 6px 12px;
+            }
+            
+            .home-tab-text {
+                font-size: 14px;
+            }
+        }
+
+        /* 星形动画效果 */
+        @keyframes starFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(180deg); }
+        }
+
+        .character-display::before {
+            content: "⭐";
+            position: absolute;
+            top: 20%;
+            left: 20%;
+            font-size: 24px;
+            color: rgba(245, 223, 175, 0.3);
+            animation: starFloat 3s ease-in-out infinite;
+        }
+
+        .character-display::after {
+            animation: starFloat 4s ease-in-out infinite reverse;
+        }
+    </style>
+</head>
+<body>
+    <!-- iPhone 15 Pro 容器 -->
+    <div class="iphone-container">
+        <!-- Dynamic Island -->
+        <div class="dynamic-island"></div>
+        
+        <!-- 物理按键 -->
+        <div class="power-button"></div>
+        <div class="volume-up"></div>
+        <div class="volume-down"></div>
+        <div class="action-button"></div>
+        
+        <!-- iPhone 屏幕 -->
+        <div class="iphone-screen">
+            <!-- iOS状态栏 -->
+            <div class="status-bar">
+                <div class="status-left">14:16</div>
+                <div class="status-right">
+                    <i class="ri-wifi-fill"></i>
+                    <i class="ri-battery-fill"></i>
+                    <span class="notification-badge">48</span>
+                </div>
+            </div>
+
+            <!-- 应用内容区域 -->
+            <div class="app-container">
+                <!-- 首页顶部Tab导航 -->
+                <div class="home-tab-nav" id="homeTabNav">
+                    <div class="home-tab-container">
+                        <div class="home-tab-item" onclick="switchHomeTab('assistant')" data-tab="assistant">
+                            <span class="home-tab-text">助理</span>
+                        </div>
+                        <div class="home-tab-item" onclick="switchHomeTab('fm')" data-tab="fm">
+                            <span class="home-tab-text">FM</span>
+                        </div>
+                        <div class="home-tab-item" onclick="switchHomeTab('comprehensive')" data-tab="comprehensive">
+                            <span class="home-tab-text">综合</span>
+                        </div>
+                        <div class="home-tab-item active" onclick="switchHomeTab('selection')" data-tab="selection">
+                            <span class="home-tab-text">精选</span>
+                            <div class="home-tab-indicator"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 精选页内容 -->
+                <div class="selection-page">
+                    <div class="page-content">
+                        <!-- 顶部导航操作区 -->
+                        <div class="top-nav-actions">
+                            <div></div> <!-- 占位元素 -->
+                            <div class="nav-icons">
+                                <i class="ri-search-line nav-icon" title="搜索"></i>
+                                <i class="ri-menu-line nav-icon" title="菜单"></i>
+                            </div>
+                        </div>
+
+                        <!-- 角色信息区 -->
+                        <div class="profile-section">
+                            <div class="character-avatar">季</div>
+                            <div class="character-info">
+                                <div class="character-name">季文泽</div>
+                                <div class="character-stats">92.4万连接者</div>
+                            </div>
+                            <div class="action-buttons">
+                                <div class="follow-btn">
+                                    <i class="ri-add-line"></i>
+                                    <span>关注</span>
+                                </div>
+                                <div class="message-count">
+                                    <i class="ri-message-3-line"></i>
+                                    <span>3695</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 主要内容展示区 -->
+                        <div class="main-showcase">
+                            <div class="character-display"></div>
+                            <div class="character-details">
+                                <div class="character-description">21岁，有占有欲，霸道，只对你撒娇</div>
+                                <div class="character-tags">
+                                    <div class="character-tag">恋爱</div>
+                                    <div class="character-tag">男友</div>
+                                    <div class="character-tag">占有欲</div>
+                                    <div class="character-tag">霸道</div>
+                                </div>
+                                <div class="character-note">该角色仅支持文字交流，不支持图片和语音</div>
+                            </div>
+                        </div>
+
+                        <!-- 对话交互区 -->
+                        <div class="conversation-area">
+                            <div class="message-bubble">
+                                <div class="message-header">
+                                    <div class="message-sender">季文泽</div>
+                                    <div class="message-time">00:32</div>
+                                </div>
+                                <div class="message-text">
+                                    "嘿，我刚下课，你在干嘛呢？今天怎么没看到你？我找了你好久，还以为你不想理我了。"
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 输入控制区 -->
+                        <div class="input-section">
+                            <div class="input-controls">
+                                <div class="control-btn">
+                                    <i class="ri-mic-line"></i>
+                                </div>
+                                <div class="input-field">按住说话</div>
+                                <div class="control-btn">
+                                    <i class="ri-add-line"></i>
+                                </div>
+                            </div>
+
+                            <!-- 快捷回复 -->
+                            <div class="quick-replies">
+                                <div class="quick-reply">
+                                    <i class="ri-lightbulb-line"></i> 我在图书馆自习呢
+                                </div>
+                                <div class="quick-reply">今天有事请假了</div>
+                                <div class="quick-reply">想我了？</div>
+                            </div>
+                        </div>
+
+                        <!-- 功能菜单 -->
+                        <div class="function-menu">
+                            <div class="menu-item">
+                                <div class="menu-icon">
+                                    <i class="ri-refresh-line"></i>
+                                </div>
+                                <div class="menu-label">重新加载</div>
+                            </div>
+                            <div class="menu-item">
+                                <div class="menu-icon">
+                                    <i class="ri-phone-line"></i>
+                                </div>
+                                <div class="menu-label">语音通话</div>
+                            </div>
+                            <div class="menu-item">
+                                <div class="menu-icon">
+                                    <i class="ri-image-line"></i>
+                                </div>
+                                <div class="menu-label">图片</div>
+                            </div>
+                            <div class="menu-item">
+                                <div class="menu-icon">
+                                    <i class="ri-link"></i>
+                                </div>
+                                <div class="menu-label">链接</div>
+                            </div>
+                            <div class="menu-item">
+                                <div class="menu-icon">
+                                    <i class="ri-share-line"></i>
+                                </div>
+                                <div class="menu-label">小红书</div>
+                            </div>
+                            <div class="menu-item">
+                                <div class="menu-icon">
+                                    <i class="ri-flag-line"></i>
+                                </div>
+                                <div class="menu-label">举报</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 底部Tab导航 -->
+                <div class="bottom-tab">
+                    <div class="tab-item active" onclick="navigateToTab('home')">
+                        <i class="ri-home-5-fill tab-icon"></i>
+                        <div class="tab-label">首页</div>
+                    </div>
+                    <div class="tab-item" onclick="navigateToTab('messages')">
+                        <i class="ri-message-2-line tab-icon"></i>
+                        <div class="tab-label">消息</div>
+                    </div>
+                    <div class="tab-item creation-center" onclick="navigateToTab('creation')">
+                        <i class="ri-add-line tab-icon"></i>
+                    </div>
+                    <div class="tab-item" onclick="navigateToTab('discovery')">
+                        <i class="ri-compass-3-line tab-icon"></i>
+                        <div class="tab-label">发现</div>
+                    </div>
+                    <div class="tab-item" onclick="navigateToTab('profile')">
+                        <i class="ri-user-line tab-icon"></i>
+                        <div class="tab-label">我的</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * 精选页交互逻辑
+         * 基于星趣app设计文档的品牌风格和用户体验标准
+         * @description iPhone15Pro样式的精选页面，符合HIG设计规范
+         */
+
+        // DOM元素引用
+        const homeTabNav = document.getElementById('homeTabNav');
+
+        // 页面初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('精选页已加载 - 遵循星趣品牌设计规范');
+            initPageAnimations();
+            bindEventHandlers();
+            // 默认选中精选Tab
+            switchHomeTab('selection');
+        });
+
+        /**
+         * 初始化页面动画
+         * @description 设置符合品牌调性的动画效果
+         */
+        function initPageAnimations() {
+            // 角色信息渐入动画
+            const profileSection = document.querySelector('.profile-section');
+            profileSection.style.opacity = '0';
+            profileSection.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                profileSection.style.transition = 'all 0.8s ease';
+                profileSection.style.opacity = '1';
+                profileSection.style.transform = 'translateY(0)';
+            }, 300);
+
+            // 消息气泡动画
+            const messageBubble = document.querySelector('.message-bubble');
+            messageBubble.style.opacity = '0';
+            messageBubble.style.transform = 'scale(0.95)';
+            
+            setTimeout(() => {
+                messageBubble.style.transition = 'all 0.6s ease';
+                messageBubble.style.opacity = '1';
+                messageBubble.style.transform = 'scale(1)';
+            }, 600);
+
+            // 快捷回复依次显示
+            const quickReplies = document.querySelectorAll('.quick-reply');
+            quickReplies.forEach((reply, index) => {
+                reply.style.opacity = '0';
+                reply.style.transform = 'translateX(-20px)';
+                
+                setTimeout(() => {
+                    reply.style.transition = 'all 0.4s ease';
+                    reply.style.opacity = '1';
+                    reply.style.transform = 'translateX(0)';
+                }, 800 + (index * 100));
+            });
+        }
+
+        /**
+         * 绑定事件处理器
+         * @description 为各个交互元素添加事件监听
+         */
+        function bindEventHandlers() {
+            // 关注按钮交互
+            const followBtn = document.querySelector('.follow-btn');
+            followBtn.addEventListener('click', handleFollowClick);
+
+            // 快捷回复交互
+            const quickReplies = document.querySelectorAll('.quick-reply');
+            quickReplies.forEach(reply => {
+                reply.addEventListener('click', handleQuickReply);
+            });
+
+            // 功能菜单交互
+            const menuItems = document.querySelectorAll('.menu-item');
+            menuItems.forEach(item => {
+                item.addEventListener('click', handleMenuItemClick);
+            });
+
+            // 输入控制按钮
+            const controlBtns = document.querySelectorAll('.control-btn');
+            controlBtns.forEach(btn => {
+                btn.addEventListener('click', handleControlBtnClick);
+            });
+        }
+
+        /**
+         * 处理关注按钮点击
+         * @param {Event} event - 点击事件
+         */
+        function handleFollowClick(event) {
+            const followBtn = event.currentTarget;
+            const isFollowed = followBtn.classList.contains('followed');
+            
+            if (isFollowed) {
+                followBtn.innerHTML = '<i class="ri-add-line"></i><span>关注</span>';
+                followBtn.classList.remove('followed');
+                showToast('已取消关注');
+            } else {
+                followBtn.innerHTML = '<i class="ri-check-line"></i><span>已关注</span>';
+                followBtn.classList.add('followed');
+                followBtn.style.color = '#FFC542';
+                showToast('关注成功');
+            }
+            
+            // 触觉反馈
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+        }
+
+        /**
+         * 处理快捷回复点击
+         * @param {Event} event - 点击事件
+         */
+        function handleQuickReply(event) {
+            const reply = event.currentTarget;
+            const replyText = reply.textContent.trim();
+            
+            // 添加选中效果
+            reply.style.background = 'rgba(245, 223, 175, 0.3)';
+            reply.style.borderColor = 'rgba(245, 223, 175, 0.5)';
+            reply.style.color = '#F5DFAF';
+            
+            setTimeout(() => {
+                reply.style.background = 'rgba(28, 28, 30, 0.8)';
+                reply.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                reply.style.color = '#FFFFFF';
+            }, 200);
+            
+            showToast(`已选择: ${replyText}`);
+            
+            // 模拟发送消息
+            setTimeout(() => {
+                addUserMessage(replyText);
+            }, 500);
+        }
+
+        /**
+         * 处理菜单项点击
+         * @param {Event} event - 点击事件
+         */
+        function handleMenuItemClick(event) {
+            const menuItem = event.currentTarget;
+            const label = menuItem.querySelector('.menu-label').textContent;
+            
+            // 添加点击效果
+            const icon = menuItem.querySelector('.menu-icon');
+            icon.style.transform = 'scale(0.9)';
+            icon.style.background = 'rgba(245, 223, 175, 0.3)';
+            
+            setTimeout(() => {
+                icon.style.transform = 'scale(1)';
+                icon.style.background = 'rgba(28, 28, 30, 0.8)';
+            }, 150);
+            
+            showToast(`正在${label}...`);
+            
+            // 根据功能执行相应操作
+            switch(label) {
+                case '重新加载':
+                    setTimeout(() => location.reload(), 1000);
+                    break;
+                case '小红书':
+                    showToast('正在打开小红书分享...');
+                    break;
+                case '语音通话':
+                    showToast('正在启动语音通话...');
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        /**
+         * 处理控制按钮点击
+         * @param {Event} event - 点击事件
+         */
+        function handleControlBtnClick(event) {
+            const btn = event.currentTarget;
+            const icon = btn.querySelector('i');
+            
+            // 点击动画
+            btn.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                btn.style.transform = 'scale(1)';
+            }, 100);
+            
+            if (icon.classList.contains('ri-mic-line')) {
+                showToast('长按开始录音');
+            } else if (icon.classList.contains('ri-add-line')) {
+                showToast('打开更多功能');
+            }
+        }
+
+        /**
+         * 添加用户消息
+         * @param {string} text - 消息内容
+         */
+        function addUserMessage(text) {
+            const conversationArea = document.querySelector('.conversation-area');
+            const newMessage = document.createElement('div');
+            newMessage.className = 'message-bubble';
+            newMessage.style.background = 'rgba(245, 223, 175, 0.1)';
+            newMessage.style.borderColor = 'rgba(245, 223, 175, 0.3)';
+            newMessage.innerHTML = `
+                <div class="message-header">
+                    <div class="message-sender" style="color: #FFC542;">你</div>
+                    <div class="message-time">${getCurrentTime()}</div>
+                </div>
+                <div class="message-text">${text}</div>
+            `;
+            
+            conversationArea.appendChild(newMessage);
+            
+            // 滚动到底部
+            const pageContent = document.querySelector('.page-content');
+            pageContent.scrollTop = pageContent.scrollHeight;
+        }
+
+        /**
+         * 获取当前时间
+         * @returns {string} 格式化的时间字符串
+         */
+        function getCurrentTime() {
+            const now = new Date();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            return `${minutes}:${seconds}`;
+        }
+
+        /**
+         * 切换首页Tab
+         * @param {string} tabName - Tab名称
+         */
+        function switchHomeTab(tabName) {
+            document.querySelectorAll('.home-tab-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            const targetItem = document.querySelector(`.home-tab-item[data-tab="${tabName}"]`);
+            if (targetItem) {
+                targetItem.classList.add('active');
+                // 触觉反馈
+                if (navigator.vibrate) {
+                    navigator.vibrate(30);
+                }
+            }
+
+            // 根据tab切换内容（精选页保持当前内容）
+            const contentRoutes = {
+                assistant: 'home-assistant.html',
+                fm: 'home-fm.html',
+                comprehensive: 'home-comprehensive.html',
+                selection: 'home-selection.html'
+            };
+
+            if (contentRoutes[tabName] && tabName !== 'selection') {
+                console.log('切换到首页内容:', tabName);
+                showToast(`正在加载${getTabDisplayName(tabName)}内容...`);
+                setTimeout(() => {
+                    window.location.href = contentRoutes[tabName];
+                }, 800);
+            }
+        }
+
+        /**
+         * 获取Tab显示名称
+         * @param {string} tabName - Tab标识
+         * @returns {string} 显示名称
+         */
+        function getTabDisplayName(tabName) {
+            const tabMap = {
+                assistant: '助理',
+                fm: 'FM',
+                comprehensive: '综合',
+                selection: '精选'
+            };
+            return tabMap[tabName] || tabName;
+        }
+
+        /**
+         * 底部Tab导航功能
+         * @param {string} tabName - Tab名称
+         */
+        function navigateToTab(tabName) {
+            // 更新选中状态
+            document.querySelectorAll('.tab-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            event.currentTarget.classList.add('active');
+            
+            // 路由映射
+            const routes = {
+                home: 'home-selection.html',
+                discovery: 'discovery.html',
+                creation: 'creation.html',
+                messages: 'messages.html',
+                profile: 'profile.html'
+            };
+            
+            if (routes[tabName] && tabName !== 'home') {
+                console.log('导航到:', tabName);
+                showToast(`正在跳转到${getBottomTabDisplayName(tabName)}...`);
+                setTimeout(() => {
+                    window.location.href = routes[tabName];
+                }, 600);
+            }
+        }
+
+        /**
+         * 获取底部Tab显示名称
+         * @param {string} tabName - Tab标识
+         * @returns {string} 显示名称
+         */
+        function getBottomTabDisplayName(tabName) {
+            const tabMap = {
+                home: '首页',
+                discovery: '发现',
+                creation: '创作中心',
+                messages: '消息',
+                profile: '我的'
+            };
+            return tabMap[tabName] || tabName;
+        }
+
+        /**
+         * 显示消息提示
+         * @param {string} message - 提示消息
+         */
+        function showToast(message) {
+            // 创建提示元素
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(0, 0, 0, 0.9);
+                color: #F5DFAF;
+                padding: 12px 24px;
+                border-radius: 24px;
+                font-size: 14px;
+                z-index: 3000;
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(245, 223, 175, 0.3);
+                animation: toastFadeInOut 2.5s ease;
+                font-weight: 500;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            `;
+            toast.textContent = message;
+            
+            // 添加动画样式
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes toastFadeInOut {
+                    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                    15% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                    85% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            document.body.appendChild(toast);
+            
+            // 自动移除
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.remove();
+                }
+                if (style.parentNode) {
+                    style.remove();
+                }
+            }, 2500);
+        }
+
+        // 页面生命周期管理
+        window.addEventListener('beforeunload', function() {
+            console.log('精选页面卸载');
+        });
+
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                console.log('精选页面重新激活');
+            }
+        });
+
+        // 触摸手势支持
+        let touchStartY = 0;
+        let touchEndY = 0;
+
+        document.addEventListener('touchstart', function(e) {
+            touchStartY = e.changedTouches[0].screenY;
+        });
+
+        document.addEventListener('touchend', function(e) {
+            touchEndY = e.changedTouches[0].screenY;
+            handleSwipeGesture();
+        });
+
+        /**
+         * 处理滑动手势
+         */
+        function handleSwipeGesture() {
+            const swipeThreshold = 50;
+            const swipeDistance = touchStartY - touchEndY;
+            
+            if (Math.abs(swipeDistance) > swipeThreshold) {
+                if (swipeDistance > 0) {
+                    // 向上滑动 - 滚动内容
+                    console.log('向上滑动');
+                } else {
+                    // 向下滑动 - 刷新内容
+                    console.log('向下滑动');
+                    showToast('正在刷新内容...');
+                }
+            }
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>星趣App - 高保真原型展示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: #000000;
+            color: #FFFFFF;
+            overflow-x: hidden;
+            overflow-y: auto;
+            width: 100vw;
+            max-width: 1920px;
+            margin: 0 auto;
+        }
+
+        /* 顶部导航栏 */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            padding: 0 40px;
+            z-index: 1000;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-right: auto;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .logo-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            color: #F5DFAF;
+        }
+
+        .nav-info {
+            color: #CFCFCF;
+            font-size: 14px;
+        }
+
+        .nav-status {
+            background: #FFC542;
+            color: #000;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 20px;
+        }
+
+        /* 页面容器 */
+        .container {
+            margin-top: 80px;
+            padding: 40px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(393px, 1fr));
+            gap: 40px;
+            min-height: calc(100vh - 140px);
+            max-width: 1920px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* 页面卡片 */
+        .page-card {
+            width: 393px;
+            max-width: 100%;
+            background: #1E1E1E;
+            border-radius: 20px;
+            border: 1px solid #333;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+            justify-self: center;
+        }
+
+        .page-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(255, 197, 66, 0.2);
+            border-color: #FFC542;
+        }
+
+        .page-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+            border-bottom: 1px solid #333;
+        }
+
+        .page-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #FFC542;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .page-icon {
+            font-size: 20px;
+        }
+
+        .page-description {
+            color: #CFCFCF;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .page-iframe {
+            width: 100%;
+            height: 852px;
+            border: none;
+            background: #000;
+            border-radius: 0 0 20px 20px;
+        }
+
+        /* 控制按钮 */
+        .page-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .page-card:hover .page-controls {
+            opacity: 1;
+        }
+
+        .control-btn {
+            width: 32px;
+            height: 32px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #555;
+            border-radius: 8px;
+            color: #FFC542;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: #FFC542;
+            color: #000;
+        }
+
+        /* 状态指示器 */
+        .status-indicator {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4CAF50;
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-indicator.loading {
+            background: #FF9800;
+            box-shadow: 0 0 10px rgba(255, 152, 0, 0.5);
+        }
+
+        .status-indicator.error {
+            background: #F44336;
+            box-shadow: 0 0 10px rgba(244, 67, 54, 0.5);
+        }
+
+        /* 页面标签 */
+        .page-tags {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .page-tag {
+            background: rgba(255, 197, 66, 0.2);
+            color: #FFC542;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        /* 底部信息栏 */
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            z-index: 1000;
+        }
+
+        .footer-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            color: #CFCFCF;
+            font-size: 14px;
+        }
+
+        .footer-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .footer-btn {
+            background: #333;
+            border: 1px solid #555;
+            color: #FFC542;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .footer-btn:hover {
+            background: #FFC542;
+            color: #000;
+        }
+
+        /* 响应式调整 */
+        @media (min-width: 1920px) {
+            .container {
+                grid-template-columns: repeat(4, 393px);
+                justify-content: center;
+                max-width: 1920px;
+                padding: 40px 60px;
+            }
+        }
+
+        @media (min-width: 1400px) and (max-width: 1919px) {
+            .container {
+                grid-template-columns: repeat(3, 393px);
+                justify-content: center;
+                padding: 40px;
+            }
+        }
+
+        @media (min-width: 800px) and (max-width: 1399px) {
+            .container {
+                grid-template-columns: repeat(2, 393px);
+                justify-content: center;
+                padding: 40px 20px;
+            }
+        }
+
+        @media (max-width: 799px) {
+            .container {
+                grid-template-columns: 1fr;
+                padding: 20px;
+                gap: 20px;
+            }
+            
+            .page-card {
+                width: 100%;
+                max-width: 393px;
+            }
+            
+            .page-iframe {
+                height: 760px;
+            }
+
+            .header {
+                padding: 0 20px;
+            }
+
+            .footer {
+                padding: 0 20px;
+            }
+        }
+
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #FFC542;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #FFD700;
+        }
+
+        /* 加载动画 */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #333;
+            border-top: 3px solid #FFC542;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <div class="header">
+        <div class="logo">
+            <div class="logo-icon">
+                <img src="assets/images/logo.png" alt="星趣Logo">
+            </div>
+            <div class="logo-text">星趣App原型</div>
+        </div>
+        <div class="nav-info">在星趣 - 发现有趣的故事，遇见有趣的人 | 高保真HTML原型展示</div>
+        <div class="nav-status">已完成18个页面</div>
+    </div>
+
+    <!-- 页面容器 -->
+    <div class="container" id="pageContainer">
+        <!-- 启动页 -->
+        <div class="page-card" data-page="splash">
+            <div class="status-indicator"></div>
+            <div class="page-header">
+                <div class="page-title">
+                    <span class="page-icon">🚀</span>
+                    启动页面
+                </div>
+                <div class="page-description">
+                    品牌标志展示、星尘粒子动画、自动跳转逻辑
+                </div>
+                <div class="page-tags">
+                    <span class="page-tag">品牌展示</span>
+                    <span class="page-tag">动画效果</span>
+                    <span class="page-tag">入口页面</span>
+                </div>
+                <div class="page-controls">
+                    <button class="control-btn" onclick="refreshPage('splash')" title="刷新">🔄</button>
+                    <button class="control-btn" onclick="openInNew('splash.html')" title="新窗口打开">🔗</button>
+                </div>
+            </div>
+            <iframe class="page-iframe" src="splash.html" id="iframe-splash"></iframe>
+        </div>
+
+        <!-- 登录页 -->
+        <div class="page-card" data-page="login">
+            <div class="status-indicator"></div>
+            <div class="page-header">
+                <div class="page-title">
+                    <span class="page-icon">🔐</span>
+                    登录页面
+                </div>
+                <div class="page-description">
+                    手机号验证码登录、表单验证、社交登录选项
+                </div>
+                <div class="page-tags">
+                    <span class="page-tag">用户认证</span>
+                    <span class="page-tag">表单验证</span>
+                    <span class="page-tag">多种登录</span>
+                </div>
+                <div class="page-controls">
+                    <button class="control-btn" onclick="refreshPage('login')" title="刷新">🔄</button>
+                    <button class="control-btn" onclick="openInNew('login.html')" title="新窗口打开">🔗</button>
+                </div>
+            </div>
+            <iframe class="page-iframe" src="login.html" id="iframe-login"></iframe>
+        </div>
+
+
+
+        <!-- 发现页 -->
+        <div class="page-card" data-page="discovery">
+            <div class="status-indicator"></div>
+            <div class="page-header">
+                <div class="page-title">
+                    <span class="page-icon">🔍</span>
+                    发现页面
+                </div>
+                <div class="page-description">
+                    搜索建议、钻石榜、星趣市集、分类导航、内容卡片
+                </div>
+                <div class="page-tags">
+                    <span class="page-tag">内容探索</span>
+                    <span class="page-tag">排行榜</span>
+                    <span class="page-tag">商城入口</span>
+                </div>
+                <div class="page-controls">
+                    <button class="control-btn" onclick="refreshPage('discovery')" title="刷新">🔄</button>
+                    <button class="control-btn" onclick="openInNew('discovery.html')" title="新窗口打开">🔗</button>
+                </div>
+            </div>
+            <iframe class="page-iframe" src="discovery.html" id="iframe-discovery"></iframe>
+        </div>
+
+        <!-- 消息中心 -->
+        <div class="page-card" data-page="messages">
+            <div class="status-indicator"></div>
+            <div class="page-header">
+                <div class="page-title">
+                    <span class="page-icon">💌</span>
+                    消息中心
+                </div>
+                <div class="page-description">
+                    对话列表管理、搜索筛选、长按菜单、分组显示
+                </div>
+                <div class="page-tags">
+                    <span class="page-tag">消息管理</span>
+                    <span class="page-tag">搜索功能</span>
+                    <span class="page-tag">交互菜单</span>
+                </div>
+                <div class="page-controls">
+                    <button class="control-btn" onclick="refreshPage('messages')" title="刷新">🔄</button>
+                    <button class="control-btn" onclick="openInNew('messages.html')" title="新窗口打开">🔗</button>
+                </div>
+            </div>
+            <iframe class="page-iframe" src="messages.html" id="iframe-messages"></iframe>
+        </div>
+
+        <!-- 创作中心 -->
+        <div class="page-card" data-page="creation">
+            <div class="status-indicator"></div>
+            <div class="page-header">
+                <div class="page-title">
+                    <span class="page-icon">✨</span>
+                    创作中心
+                </div>
+                <div class="page-description">
+                    AI角色创建、故事创作、模板选择、创作工具
+                </div>
+                <div class="page-tags">
+                    <span class="page-tag">内容创作</span>
+                    <span class="page-tag">模板系统</span>
+                    <span class="page-tag">AI助手</span>
+                </div>
+                <div class="page-controls">
+                    <button class="control-btn" onclick="refreshPage('creation')" title="刷新">🔄</button>
+                    <button class="control-btn" onclick="openInNew('creation.html')" title="新窗口打开">🔗</button>
+                </div>
+            </div>
+            <iframe class="page-iframe" src="creation.html" id="iframe-creation"></iframe>
+        </div>
+
+        <!-- 个人中心 -->
+        <div class="page-card" data-page="profile">
+            <div class="status-indicator"></div>
+            <div class="page-header">
+                <div class="page-title">
+                    <span class="page-icon">👤</span>
+                    个人中心
+                </div>
+                <div class="page-description">
+                    用户信息展示、会员状态、统计数据、设置入口
+                </div>
+                <div class="page-tags">
+                    <span class="page-tag">用户信息</span>
+                    <span class="page-tag">会员系统</span>
+                    <span class="page-tag">数据统计</span>
+                </div>
+                <div class="page-controls">
+                    <button class="control-btn" onclick="refreshPage('profile')" title="刷新">🔄</button>
+                    <button class="control-btn" onclick="openInNew('profile.html')" title="新窗口打开">🔗</button>
+                </div>
+            </div>
+            <iframe class="page-iframe" src="profile.html" id="iframe-profile"></iframe>
+        </div>
+
+        <!-- 首页-精选页 -->
+        <div class="page-card" data-page="home-selection">
+            <div class="status-indicator"></div>
+            <div class="page-header">
+                <div class="page-title">
+                    <span class="page-icon">🌟</span>
+                    首页-精选页
+                </div>
+                <div class="page-description">
+                    推荐角色展示、单角色模式、对话交互区域
+                </div>
+                <div class="page-tags">
+                    <span class="page-tag">核心Tab页</span>
+                    <span class="page-tag">角色推荐</span>
+                    <span class="page-tag">互动体验</span>
+                </div>
+                <div class="page-controls">
+                    <button class="control-btn" onclick="refreshPage('home-selection')" title="刷新">🔄</button>
+                    <button class="control-btn" onclick="openInNew('home-selection.html')" title="新窗口打开">🔗</button>
+                </div>
+            </div>
+            <iframe class="page-iframe" src="home-selection.html" id="iframe-home-selection"></iframe>
+        </div>
+
+        <!-- 首页-综合页 -->
+        <div class="page-card" data-page="home-comprehensive">
+            <div class="status-indicator"></div>
+            <div class="page-header">
+                <div class="page-title">
+                    <span class="page-icon">📱</span>
+                    首页-综合页
+                </div>
+                <div class="page-description">
+                    6个分类Tab、订阅/推荐/智能体/记忆簿/双语/挑战
+                </div>
+                <div class="page-tags">
+                    <span class="page-tag">多分类</span>
+                    <span class="page-tag">网格布局</span>
+                    <span class="page-tag">内容分类</span>
+                </div>
+                <div class="page-controls">
+                    <button class="control-btn" onclick="refreshPage('home-comprehensive')" title="刷新">🔄</button>
+                    <button class="control-btn" onclick="openInNew('home-comprehensive.html')" title="新窗口打开">🔗</button>
+                </div>
+            </div>
+            <iframe class="page-iframe" src="home-comprehensive.html" id="iframe-home-comprehensive"></iframe>
+        </div>
+
+        <!-- 首页-FM页 -->
+        <div class="page-card" data-page="home-fm">
+            <div class="status-indicator"></div>
+            <div class="page-header">
+                <div class="page-title">
+                    <span class="page-icon">📻</span>
+                    首页-FM页
+                </div>
+                <div class="page-description">
+                    音频播放中心、电台界面、播放控制、频谱可视化
+                </div>
+                <div class="page-tags">
+                    <span class="page-tag">音频内容</span>
+                    <span class="page-tag">播放控制</span>
+                    <span class="page-tag">视觉效果</span>
+                </div>
+                <div class="page-controls">
+                    <button class="control-btn" onclick="refreshPage('home-fm')" title="刷新">🔄</button>
+                    <button class="control-btn" onclick="openInNew('home-fm.html')" title="新窗口打开">🔗</button>
+                </div>
+            </div>
+            <iframe class="page-iframe" src="home-fm.html" id="iframe-home-fm"></iframe>
+        </div>
+
+        <!-- 首页-助理页 -->
+        <div class="page-card" data-page="home-assistant">
+            <div class="status-indicator"></div>
+            <div class="page-header">
+                <div class="page-title">
+                    <span class="page-icon">🤖</span>
+                    首页-助理页
+                </div>
+                <div class="page-description">
+                    专属AI智能助手"星若"、系统功能、建议问题
+                </div>
+                <div class="page-tags">
+                    <span class="page-tag">AI助手</span>
+                    <span class="page-tag">智能问答</span>
+                    <span class="page-tag">系统功能</span>
+                </div>
+                <div class="page-controls">
+                    <button class="control-btn" onclick="refreshPage('home-assistant')" title="刷新">🔄</button>
+                    <button class="control-btn" onclick="openInNew('home-assistant.html')" title="新窗口打开">🔗</button>
+                </div>
+            </div>
+            <iframe class="page-iframe" src="home-assistant.html" id="iframe-home-assistant"></iframe>
+        </div>
+
+        <!-- 设置页面 -->
+        <div class="page-card" data-page="settings">
+            <div class="status-indicator"></div>
+            <div class="page-header">
+                <div class="page-title">
+                    <span class="page-icon">⚙️</span>
+                    设置页面
+                </div>
+                <div class="page-description">
+                    账号安全、通知设置、应用设置、反馈帮助
+                </div>
+                <div class="page-tags">
+                    <span class="page-tag">系统设置</span>
+                    <span class="page-tag">账号管理</span>
+                    <span class="page-tag">隐私安全</span>
+                </div>
+                <div class="page-controls">
+                    <button class="control-btn" onclick="refreshPage('settings')" title="刷新">🔄</button>
+                    <button class="control-btn" onclick="openInNew('settings.html')" title="新窗口打开">🔗</button>
+                </div>
+            </div>
+            <iframe class="page-iframe" src="settings.html" id="iframe-settings"></iframe>
+        </div>
+
+        <!-- 会员中心 -->
+        <div class="page-card" data-page="membership">
+            <div class="status-indicator"></div>
+            <div class="page-header">
+                <div class="page-title">
+                    <span class="page-icon">💎</span>
+                    会员中心
+                </div>
+                <div class="page-description">
+                    会员权益展示、订阅计划、订阅管理、特权功能
+                </div>
+                <div class="page-tags">
+                    <span class="page-tag">会员系统</span>
+                    <span class="page-tag">订阅管理</span>
+                    <span class="page-tag">专享权益</span>
+                </div>
+                <div class="page-controls">
+                    <button class="control-btn" onclick="refreshPage('membership')" title="刷新">🔄</button>
+                    <button class="control-btn" onclick="openInNew('membership.html')" title="新窗口打开">🔗</button>
+                </div>
+            </div>
+            <iframe class="page-iframe" src="membership.html" id="iframe-membership"></iframe>
+        </div>
+
+        <!-- 综合页-订阅页 -->
+        <div class="page-card" data-page="comprehensive-subscribe">
+            <div class="status-indicator"></div>
+            <div class="page-header">
+                <div class="page-title">
+                    <span class="page-icon">📋</span>
+                    综合页-订阅页
+                </div>
+                <div class="page-description">
+                    已订阅角色管理、批量操作、分组筛选、订阅统计
+                </div>
+                <div class="page-tags">
+                    <span class="page-tag">订阅管理</span>
+                    <span class="page-tag">批量操作</span>
+                    <span class="page-tag">智能分组</span>
+                </div>
+                <div class="page-controls">
+                    <button class="control-btn" onclick="refreshPage('comprehensive-subscribe')" title="刷新">🔄</button>
+                    <button class="control-btn" onclick="openInNew('comprehensive_subscribe.html')" title="新窗口打开">🔗</button>
+                </div>
+            </div>
+            <iframe class="page-iframe" src="comprehensive_subscribe.html" id="iframe-comprehensive-subscribe"></iframe>
+        </div>
+
+        <!-- 综合页-推荐页 -->
+        <div class="page-card" data-page="comprehensive-recommend">
+            <div class="status-indicator"></div>
+            <div class="page-header">
+                <div class="page-title">
+                    <span class="page-icon">🎯</span>
+                    综合页-推荐页
+                </div>
+                <div class="page-description">
+                    智能推荐算法、角色评分、2x2网格布局、实时推荐统计
+                </div>
+                <div class="page-tags">
+                    <span class="page-tag">智能推荐</span>
+                    <span class="page-tag">网格布局</span>
+                    <span class="page-tag">评分系统</span>
+                </div>
+                <div class="page-controls">
+                    <button class="control-btn" onclick="refreshPage('comprehensive-recommend')" title="刷新">🔄</button>
+                    <button class="control-btn" onclick="openInNew('comprehensive_recommend.html')" title="新窗口打开">🔗</button>
+                </div>
+            </div>
+            <iframe class="page-iframe" src="comprehensive_recommend.html" id="iframe-comprehensive-recommend"></iframe>
+        </div>
+
+        <!-- 综合页-智能体页 -->
+        <div class="page-card" data-page="comprehensive-agent">
+            <div class="status-indicator"></div>
+            <div class="page-header">
+                <div class="page-title">
+                    <span class="page-icon">🤖</span>
+                    综合页-智能体页
+                </div>
+                <div class="page-description">
+                    专业AI助手分类、行业应用、能力标识、业务数据统计
+                </div>
+                <div class="page-tags">
+                    <span class="page-tag">专业AI</span>
+                    <span class="page-tag">行业分类</span>
+                    <span class="page-tag">能力展示</span>
+                </div>
+                <div class="page-controls">
+                    <button class="control-btn" onclick="refreshPage('comprehensive-agent')" title="刷新">🔄</button>
+                    <button class="control-btn" onclick="openInNew('comprehensive_agent.html')" title="新窗口打开">🔗</button>
+                </div>
+            </div>
+            <iframe class="page-iframe" src="comprehensive_agent.html" id="iframe-comprehensive-agent"></iframe>
+        </div>
+
+        <!-- 综合页-记忆簿页 -->
+        <div class="page-card" data-page="comprehensive-memory">
+            <div class="status-indicator"></div>
+            <div class="page-header">
+                <div class="page-title">
+                    <span class="page-icon">💭</span>
+                    综合页-记忆簿页
+                </div>
+                <div class="page-description">
+                    对话历史管理、2x3网格布局、搜索功能、导出备份
+                </div>
+                <div class="page-tags">
+                    <span class="page-tag">对话历史</span>
+                    <span class="page-tag">搜索功能</span>
+                    <span class="page-tag">数据管理</span>
+                </div>
+                <div class="page-controls">
+                    <button class="control-btn" onclick="refreshPage('comprehensive-memory')" title="刷新">🔄</button>
+                    <button class="control-btn" onclick="openInNew('comprehensive_memory.html')" title="新窗口打开">🔗</button>
+                </div>
+            </div>
+            <iframe class="page-iframe" src="comprehensive_memory.html" id="iframe-comprehensive-memory"></iframe>
+        </div>
+
+        <!-- 综合页-双语页 -->
+        <div class="page-card" data-page="comprehensive-bilingual">
+            <div class="status-indicator"></div>
+            <div class="page-header">
+                <div class="page-title">
+                    <span class="page-icon">🌍</span>
+                    综合页-双语页
+                </div>
+                <div class="page-description">
+                    多语言AI角色、7种语言支持、学习模式、文化交流
+                </div>
+                <div class="page-tags">
+                    <span class="page-tag">多语言</span>
+                    <span class="page-tag">学习模式</span>
+                    <span class="page-tag">文化交流</span>
+                </div>
+                <div class="page-controls">
+                    <button class="control-btn" onclick="refreshPage('comprehensive-bilingual')" title="刷新">🔄</button>
+                    <button class="control-btn" onclick="openInNew('comprehensive_bilingual.html')" title="新窗口打开">🔗</button>
+                </div>
+            </div>
+            <iframe class="page-iframe" src="comprehensive_bilingual.html" id="iframe-comprehensive-bilingual"></iframe>
+        </div>
+
+        <!-- 综合页-挑战页 -->
+        <div class="page-card" data-page="comprehensive-challenge">
+            <div class="status-indicator"></div>
+            <div class="page-header">
+                <div class="page-title">
+                    <span class="page-icon">⚡</span>
+                    综合页-挑战页
+                </div>
+                <div class="page-description">
+                    四大挑战类型、积分徽章系统、排行榜、进度追踪
+                </div>
+                <div class="page-tags">
+                    <span class="page-tag">挑战任务</span>
+                    <span class="page-tag">积分系统</span>
+                    <span class="page-tag">成就徽章</span>
+                </div>
+                <div class="page-controls">
+                    <button class="control-btn" onclick="refreshPage('comprehensive-challenge')" title="刷新">🔄</button>
+                    <button class="control-btn" onclick="openInNew('comprehensive_challenge.html')" title="新窗口打开">🔗</button>
+                </div>
+            </div>
+            <iframe class="page-iframe" src="comprehensive_challenge.html" id="iframe-comprehensive-challenge"></iframe>
+        </div>
+    </div>
+
+    <!-- 底部信息栏 -->
+    <div class="footer">
+        <div class="footer-left">
+            <span>星趣App高保真原型</span>
+            <span>|</span>
+            <span>基于Flutter + Supabase架构</span>
+            <span>|</span>
+            <span>iPhone 15 Pro适配</span>
+        </div>
+        <div class="footer-right">
+            <button class="footer-btn" onclick="toggleFullscreen()">全屏模式</button>
+            <button class="footer-btn" onclick="exportProject()">导出项目</button>
+            <button class="footer-btn" onclick="showProjectInfo()">项目信息</button>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * 主入口页面交互逻辑
+         * 包含页面加载、控制、导出等功能
+         */
+
+        // 页面配置
+        const pages = [
+            { id: 'splash', name: '启动页', file: 'splash.html' },
+            { id: 'login', name: '登录页', file: 'login.html' },
+            { id: 'home-selection', name: '首页-精选', file: 'home-selection.html' },
+            { id: 'home-comprehensive', name: '首页-综合', file: 'home-comprehensive.html' },
+            { id: 'home-fm', name: '首页-FM', file: 'home-fm.html' },
+            { id: 'home-assistant', name: '首页-助理', file: 'home-assistant.html' },
+            { id: 'discovery', name: '发现页', file: 'discovery.html' },
+            { id: 'messages', name: '消息中心', file: 'messages.html' },
+            { id: 'creation', name: '创作中心', file: 'creation.html' },
+            { id: 'profile', name: '个人中心', file: 'profile.html' },
+            { id: 'settings', name: '设置页面', file: 'settings.html' },
+            { id: 'membership', name: '会员中心', file: 'membership.html' },
+            { id: 'comprehensive-subscribe', name: '综合页-订阅', file: 'comprehensive_subscribe.html' },
+            { id: 'comprehensive-recommend', name: '综合页-推荐', file: 'comprehensive_recommend.html' },
+            { id: 'comprehensive-agent', name: '综合页-智能体', file: 'comprehensive_agent.html' },
+            { id: 'comprehensive-memory', name: '综合页-记忆簿', file: 'comprehensive_memory.html' },
+            { id: 'comprehensive-bilingual', name: '综合页-双语', file: 'comprehensive_bilingual.html' },
+            { id: 'comprehensive-challenge', name: '综合页-挑战', file: 'comprehensive_challenge.html' }
+        ];
+
+        // 页面初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('星趣App原型展示页面已加载');
+            initPageMonitoring();
+            addScrollEffects();
+            showWelcomeMessage();
+        });
+
+        /**
+         * 初始化页面监控
+         */
+        function initPageMonitoring() {
+            const iframes = document.querySelectorAll('.page-iframe');
+            
+            iframes.forEach(iframe => {
+                const pageId = iframe.id.replace('iframe-', '');
+                const indicator = iframe.closest('.page-card').querySelector('.status-indicator');
+                
+                // 设置加载状态
+                indicator.className = 'status-indicator loading';
+                
+                iframe.addEventListener('load', function() {
+                    // 页面加载完成
+                    setTimeout(() => {
+                        indicator.className = 'status-indicator';
+                        console.log(`页面加载完成: ${pageId}`);
+                    }, 500);
+                });
+                
+                iframe.addEventListener('error', function() {
+                    // 页面加载错误
+                    indicator.className = 'status-indicator error';
+                    console.error(`页面加载失败: ${pageId}`);
+                });
+            });
+        }
+
+        /**
+         * 添加滚动效果
+         */
+        function addScrollEffects() {
+            const container = document.getElementById('pageContainer');
+            const cards = document.querySelectorAll('.page-card');
+            
+            // 初始显示动画
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(50px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 200);
+            });
+        }
+
+        /**
+         * 显示欢迎消息
+         */
+        function showWelcomeMessage() {
+            setTimeout(() => {
+                console.log(`
+                    🌟 欢迎体验星趣App高保真原型！
+                    
+                    📱 已完成18个核心页面：
+                    
+                    🎯 核心框架页面 (6个)：
+                    • 启动页 - 品牌展示与加载动画
+                    • 登录页 - 多种登录方式
+                    • 发现页 - 内容探索与推荐
+                    • 消息中心 - 对话列表管理
+                    • 创作中心 - AI辅助创作工具
+                    • 个人中心 - 用户信息与设置
+                    
+                    🏠 首页子模块 (4个)：
+                    • 首页-精选 - AI角色推荐
+                    • 首页-综合 - 六大子分类入口
+                    • 首页-FM - 音频播放中心
+                    • 首页-助理 - 专属AI助手星若
+                    
+                    📊 综合页子模块 (6个)：
+                    • 订阅页 - 已订阅角色管理
+                    • 推荐页 - 智能推荐算法
+                    • 智能体页 - 专业AI助手
+                    • 记忆簿页 - 对话历史管理
+                    • 双语页 - 多语言学习
+                    • 挑战页 - 任务成就系统
+                    
+                    ⚙️ 系统功能页面 (2个)：
+                    • 设置页面 - 系统配置
+                    • 会员中心 - 订阅管理
+                    
+                    🎨 设计特色：
+                    • 严格遵循UI风格指南
+                    • iPhone 15 Pro完美适配
+                    • 暗色赛博氛围
+                    • 丰富交互动画
+                    
+                    💡 技术架构：
+                    • Flutter框架
+                    • Supabase后端
+                    • 飞书多维表格
+                    • AI对话集成
+                `);
+            }, 1000);
+        }
+
+        /**
+         * 刷新指定页面
+         */
+        function refreshPage(pageId) {
+            const iframe = document.getElementById(`iframe-${pageId}`);
+            const indicator = iframe.closest('.page-card').querySelector('.status-indicator');
+            
+            indicator.className = 'status-indicator loading';
+            iframe.src = iframe.src;
+            
+            console.log(`刷新页面: ${pageId}`);
+        }
+
+        /**
+         * 在新窗口打开页面
+         */
+        function openInNew(filename) {
+            window.open(filename, '_blank', 'width=393,height=852,resizable=yes,scrollbars=yes');
+            console.log(`新窗口打开: ${filename}`);
+        }
+
+        /**
+         * 切换全屏模式
+         */
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().then(() => {
+                    console.log('进入全屏模式');
+                }).catch(err => {
+                    console.error('无法进入全屏模式:', err);
+                });
+            } else {
+                document.exitFullscreen().then(() => {
+                    console.log('退出全屏模式');
+                });
+            }
+        }
+
+        /**
+         * 导出项目
+         */
+        function exportProject() {
+            const projectInfo = {
+                name: '星趣App高保真原型',
+                version: '1.0.0',
+                pages: pages.length,
+                framework: 'Flutter',
+                backend: 'Supabase',
+                ui_system: '星趣品牌视觉识别系统',
+                device_target: 'iPhone 15 Pro (393×852px)',
+                completion_date: new Date().toLocaleDateString('zh-CN'),
+                features: [
+                    'AI角色对话',
+                    '多模态交互',
+                    '内容推荐',
+                    '创作工具',
+                    '会员系统',
+                    '实时消息',
+                    '社交分享',
+                    '个性化设置'
+                ]
+            };
+            
+            const dataStr = JSON.stringify(projectInfo, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = 'starfun-app-prototype-info.json';
+            link.click();
+            
+            console.log('项目信息已导出');
+        }
+
+        /**
+         * 显示项目信息
+         */
+        function showProjectInfo() {
+            const info = `
+                🌟 星趣App高保真原型 v1.0.0
+                
+                📊 项目统计：
+                • 已完成页面：18个
+                • 代码行数：约32,000行
+                • 设计组件：80+个
+                • 交互动画：150+个
+                
+                🎨 UI设计系统：
+                • 颜色配比：极夜黑70% + 浅米色15% + 琥珀黄10% + 浅灰蓝5%
+                • 字体系统：HarmonyOS Sans SC + 思源黑体
+                • 圆角规范：12px基础圆角
+                • 间距系统：8px网格系统
+                
+                📱 设备适配：
+                • 目标设备：iPhone 15 Pro
+                • 屏幕尺寸：393×852px
+                • 圆角半径：46px
+                • 状态栏：动态岛设计
+                
+                🚀 技术特色：
+                • 原生HTML/CSS/JS实现
+                • 严格遵循Flutter设计规范
+                • 完整的用户交互流程
+                • 真实感的动画效果
+                
+                ⭐ 核心功能：
+                • AI角色创建与对话
+                • 多模态内容交互
+                • 智能内容推荐
+                • 创作工具集成
+                • 会员权益系统
+                • 实时消息管理
+                • 社交分享功能
+                • 个性化用户中心
+                
+                📅 完成时间：${new Date().toLocaleDateString('zh-CN')}
+                🏢 开发团队：StarFun Studio
+                📧 联系方式：support@starfun.com
+            `;
+            
+            alert(info);
+        }
+
+        // 键盘快捷键
+        document.addEventListener('keydown', function(e) {
+            // F11 - 切换全屏
+            if (e.key === 'F11') {
+                e.preventDefault();
+                toggleFullscreen();
+            }
+            
+            // Ctrl+E - 导出项目
+            if (e.ctrlKey && e.key === 'e') {
+                e.preventDefault();
+                exportProject();
+            }
+            
+            // Ctrl+I - 项目信息
+            if (e.ctrlKey && e.key === 'i') {
+                e.preventDefault();
+                showProjectInfo();
+            }
+            
+            // Ctrl+R - 刷新所有页面
+            if (e.ctrlKey && e.key === 'r') {
+                e.preventDefault();
+                pages.forEach(page => refreshPage(page.id));
+            }
+        });
+
+        // 页面性能监控
+        function monitorPerformance() {
+            const observer = new PerformanceObserver((list) => {
+                list.getEntries().forEach((entry) => {
+                    if (entry.entryType === 'navigation') {
+                        console.log(`页面加载性能: ${entry.loadEventEnd - entry.loadEventStart}ms`);
+                    }
+                });
+            });
+            
+            observer.observe({entryTypes: ['navigation']});
+        }
+
+        // 启动性能监控
+        monitorPerformance();
+
+        // 定期检查iframe状态
+        setInterval(() => {
+            const iframes = document.querySelectorAll('.page-iframe');
+            let loadedCount = 0;
+            
+            iframes.forEach(iframe => {
+                try {
+                    if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
+                        loadedCount++;
+                    }
+                } catch (e) {
+                    // 跨域限制，假设已加载
+                    loadedCount++;
+                }
+            });
+            
+            // 更新状态栏
+            const statusEl = document.querySelector('.nav-status');
+            if (statusEl) {
+                statusEl.textContent = `已完成${loadedCount}个页面`;
+            }
+        }, 2000);
+    </script>
+</body>
+</html> 

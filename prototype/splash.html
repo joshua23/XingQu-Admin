@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>星趣App - 启动页</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            background: #000000;
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            overflow: hidden;
+        }
+
+        /* iPhone 15 Pro 机身容器 */
+        .iphone-container {
+            position: relative;
+            width: 393px;
+            height: 852px;
+            margin: 40px auto;
+            background: #1f1f1f;
+            border-radius: 55px;
+            padding: 8px;
+            box-shadow: 
+                0 0 0 2px #333333,
+                0 8px 30px rgba(0, 0, 0, 0.8),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+        }
+
+        /* iPhone 15 Pro 屏幕 */
+        .iphone-screen {
+            width: 100%;
+            height: 100%;
+            background: #000000;
+            border-radius: 47px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Dynamic Island */
+        .dynamic-island {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 126px;
+            height: 37px;
+            background: #000000;
+            border-radius: 18px;
+            z-index: 1000;
+            border: 0.5px solid #333;
+        }
+
+        /* 物理按键 */
+        .power-button {
+            position: absolute;
+            right: -3px;
+            top: 200px;
+            width: 4px;
+            height: 80px;
+            background: #333333;
+            border-radius: 2px 0 0 2px;
+        }
+
+        .volume-up {
+            position: absolute;
+            left: -3px;
+            top: 160px;
+            width: 4px;
+            height: 50px;
+            background: #333333;
+            border-radius: 0 2px 2px 0;
+        }
+
+        .volume-down {
+            position: absolute;
+            left: -3px;
+            top: 220px;
+            width: 4px;
+            height: 50px;
+            background: #333333;
+            border-radius: 0 2px 2px 0;
+        }
+
+        .action-button {
+            position: absolute;
+            left: -3px;
+            top: 100px;
+            width: 4px;
+            height: 40px;
+            background: #333333;
+            border-radius: 0 2px 2px 0;
+        }
+
+        /* iOS状态栏 */
+        .status-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 54px;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px 0 24px;
+            font-size: 17px;
+            font-weight: 600;
+            color: #FFFFFF;
+            z-index: 999;
+        }
+
+        .status-left {
+            font-size: 17px;
+            margin-top: 8px;
+        }
+
+        .status-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 17px;
+            margin-top: 8px;
+        }
+
+        .battery {
+            width: 27px;
+            height: 13px;
+            border: 1px solid #FFFFFF;
+            border-radius: 3px;
+            position: relative;
+            margin-left: 2px;
+        }
+
+        .battery::after {
+            content: '';
+            position: absolute;
+            right: -4px;
+            top: 4px;
+            width: 2px;
+            height: 5px;
+            background: #FFFFFF;
+            border-radius: 0 1px 1px 0;
+        }
+
+        .battery-fill {
+            background: #34C759;
+            height: 100%;
+            width: 80%;
+            border-radius: 2px;
+        }
+
+        /* 启动页内容容器 */
+        .app-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 启动页内容 */
+        .splash-container {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 星尘粒子背景 */
+        .stars {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+        }
+
+        .star {
+            position: absolute;
+            color: #F5DFAF;
+            font-size: 8px;
+            animation: twinkle 2s infinite alternate;
+        }
+
+        .star:nth-child(1) { top: 20%; left: 10%; animation-delay: 0s; }
+        .star:nth-child(2) { top: 30%; left: 80%; animation-delay: 0.5s; }
+        .star:nth-child(3) { top: 60%; left: 20%; animation-delay: 1s; }
+        .star:nth-child(4) { top: 80%; left: 70%; animation-delay: 1.5s; }
+        .star:nth-child(5) { top: 40%; left: 90%; animation-delay: 2s; }
+        .star:nth-child(6) { top: 70%; left: 50%; animation-delay: 0.8s; }
+
+        @keyframes twinkle {
+            0% { opacity: 0.3; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .splash-content {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: slideIn 1.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            0% { opacity: 0; transform: translateY(50px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo {
+            width: 120px;
+            height: 120px;
+            background: none;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            box-shadow: 
+                0 0 30px rgba(245, 223, 175, 0.3),
+                0 0 60px rgba(255, 77, 103, 0.2);
+            animation: logoRotate 3s ease-in-out infinite;
+            position: relative;
+            transform: rotate(45deg);
+            overflow: hidden;
+        }
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 30px;
+        }
+        .logo::before {
+            content: '';
+        }
+
+        .app-title {
+            font-size: 36px;
+            font-weight: 700;
+            color: #F5DFAF;
+            margin-bottom: 12px;
+            text-shadow: 0 0 20px rgba(245, 223, 175, 0.5);
+        }
+
+        .slogan {
+            font-size: 18px;
+            color: #CFCFCF;
+            margin-bottom: 50px;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .loading-bar {
+            width: 200px;
+            height: 4px;
+            background: rgba(245, 223, 175, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .loading-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #F5DFAF 0%, #FF4D67 100%);
+            border-radius: 2px;
+            animation: loading 2s ease-in-out infinite;
+        }
+
+        @keyframes loading {
+            0% { width: 0%; transform: translateX(-100%); }
+            50% { width: 100%; transform: translateX(0%); }
+            100% { width: 100%; transform: translateX(100%); }
+        }
+
+        .loading-text {
+            font-size: 14px;
+            color: #CFCFCF;
+            opacity: 0.8;
+        }
+
+        /* 底部装饰 */
+        .bottom-decoration {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background: #FF4D67;
+            border-radius: 50%;
+            animation: bounce 1.5s infinite;
+        }
+
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes bounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+
+        /* 响应式适配 */
+        @media (max-width: 414px) {
+            .iphone-container {
+                margin: 20px auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- iPhone 15 Pro 容器 -->
+    <div class="iphone-container">
+        <!-- Dynamic Island -->
+        <div class="dynamic-island"></div>
+        
+        <!-- 物理按键 -->
+        <div class="power-button"></div>
+        <div class="volume-up"></div>
+        <div class="volume-down"></div>
+        <div class="action-button"></div>
+        
+        <!-- iPhone 屏幕 -->
+        <div class="iphone-screen">
+            <!-- iOS状态栏 -->
+            <div class="status-bar">
+                <div class="status-left">9:41</div>
+                <div class="status-right">
+                    <i class="fas fa-signal" style="font-size: 14px;"></i>
+                    <i class="fas fa-wifi" style="font-size: 14px;"></i>
+                    <div class="battery">
+                        <div class="battery-fill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 应用内容区域 -->
+            <div class="app-container">
+                <div class="splash-container">
+                    <!-- 星尘粒子背景 -->
+                    <div class="stars">
+                        <div class="star">✦</div>
+                        <div class="star">✧</div>
+                        <div class="star">✦</div>
+                        <div class="star">✧</div>
+                        <div class="star">✦</div>
+                        <div class="star">✧</div>
+                    </div>
+
+                    <!-- 主要内容 -->
+                    <div class="splash-content">
+                        <div class="logo"><img src="assets/images/logo.png" alt="logo"></div>
+                        <div class="app-title">星趣</div>
+                        <div class="slogan">发现有趣的故事<br>遇见有趣的人</div>
+                        
+                        <div class="loading-container">
+                            <div class="loading-bar">
+                                <div class="loading-progress"></div>
+                            </div>
+                            <div class="loading-text">正在加载精彩内容...</div>
+                        </div>
+                    </div>
+
+                    <!-- 底部装饰 -->
+                    <div class="bottom-decoration">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 启动页自动跳转逻辑（演示用）
+        setTimeout(() => {
+            console.log('启动页加载完成，准备跳转到主页');
+        }, 3000);
+    </script>
+</body>
+</html> 
