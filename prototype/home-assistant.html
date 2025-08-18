@@ -246,6 +246,9 @@
             backdrop-filter: blur(20px);
             z-index: 90;
             position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
         .home-tab-container {
@@ -648,7 +651,7 @@
             color: #FFC542;
         }
 
-        /* 创作中心特殊样式 */
+        /* 创作中心特殊样式 - 只显示图标 */
         .tab-item.creation-center {
             padding: 8px;
         }
@@ -656,11 +659,6 @@
         .tab-item.creation-center .tab-icon {
             font-size: 28px;
             margin-bottom: 0;
-            color: #FFC542;
-            background: linear-gradient(135deg, #FFC542, #FFE135);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
 
         /* 滚动条样式 */
@@ -694,7 +692,19 @@
             
             .home-tab-text {
                 font-size: 14px;
-            }
+
+        }
+        
+        .ri-search-line {
+            font-size: 20px;
+            color: #FFFFFF;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 8px;
+        }
+
+        .ri-search-line:hover {
+            color: #FFCF6F;
         }
 
         /* 助理页面特殊动画效果 */
@@ -799,18 +809,13 @@
                             <span class="home-tab-text">精选</span>
                         </div>
                     </div>
+                    <!-- 右侧搜索图标 -->
+                    <i class="ri-search-line" onclick="openSearchPage()"></i>
                 </div>
 
                 <!-- 助理页面内容 -->
                 <div class="assistant-page">
                     <div class="page-content">
-                        <!-- 导航操作区 -->
-                        <div class="nav-actions">
-                            <div></div> <!-- 占位元素 -->
-                            <div class="nav-icons">
-                                <i class="ri-search-line" title="搜索"></i>
-                            </div>
-                        </div>
 
                         <!-- 助理信息区 -->
                         <div class="assistant-profile">
@@ -894,22 +899,18 @@
                 <!-- 底部Tab导航 -->
                 <div class="bottom-tab">
                     <div class="tab-item active" onclick="navigateToTab('home')">
-                        <i class="ri-home-5-fill tab-icon"></i>
                         <div class="tab-label">首页</div>
                     </div>
                     <div class="tab-item" onclick="navigateToTab('messages')">
-                        <i class="ri-message-2-line tab-icon"></i>
                         <div class="tab-label">消息</div>
                     </div>
                     <div class="tab-item creation-center" onclick="navigateToTab('creation')">
-                        <i class="ri-add-line tab-icon"></i>
+                        <div class="tab-icon">✨</div>
                     </div>
                     <div class="tab-item" onclick="navigateToTab('discovery')">
-                        <i class="ri-compass-3-line tab-icon"></i>
                         <div class="tab-label">发现</div>
                     </div>
                     <div class="tab-item" onclick="navigateToTab('profile')">
-                        <i class="ri-user-line tab-icon"></i>
                         <div class="tab-label">我的</div>
                     </div>
                 </div>
@@ -1294,6 +1295,18 @@
                     style.remove();
                 }, 500);
             }, 2500);
+        }
+
+        /**
+         * 打开搜索页面
+         * @description 跳转到搜索页面
+         */
+        function openSearchPage() {
+            console.log('跳转到搜索页面');
+            showToast('正在打开搜索...');
+            setTimeout(() => {
+                window.location.href = 'search.html';
+            }, 500);
         }
 
         /**

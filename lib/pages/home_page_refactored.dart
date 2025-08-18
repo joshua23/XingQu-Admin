@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/status_bar.dart';
-import 'home_selection_page.dart';
-import 'home_comprehensive_page.dart';
-import 'home_fm_page.dart';
-import 'home_assistant_page.dart';
+import 'home_tabs/home_selection_page.dart';
+// import 'home_tabs/home_comprehensive_page.dart'; // 已删除的页面
+import 'home_tabs/home_fm_page.dart';
+import 'home_tabs/home_assistant_page.dart';
 
 /// 重构后的首页Widget - 基于原型文件的4个Tab页模式
 /// 包含精选、综合、FM、助理四个子页面
@@ -26,7 +26,7 @@ class _HomePageRefactoredState extends State<HomePageRefactored>
   final List<String> _tabTitles = ['精选', '综合', 'FM', '助理'];
   final List<Widget> _tabPages = [
     const HomeSelectionPage(),
-    const HomeComprehensivePage(),
+    const HomeSelectionPage(), // 使用精选页面替代已删除的综合页面
     const HomeFMPage(),
     const HomeAssistantPage(),
   ];
@@ -64,9 +64,6 @@ class _HomePageRefactoredState extends State<HomePageRefactored>
       backgroundColor: AppColors.background,
       body: Column(
         children: [
-          // 状态栏
-          const StatusBar(),
-          
           // 顶部导航区域
           _buildTopNavigation(),
           

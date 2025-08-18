@@ -15,6 +15,12 @@ class AICharacter {
   final DateTime? lastActiveTime;
   final double? rating;
   
+  // 增强版角色卡片需要的字段
+  final String? avatarUrl;
+  final int? followerCount;
+  final int? messageCount; 
+  final bool? isFollowing;
+  
   AICharacter({
     required this.id,
     required this.name,
@@ -29,6 +35,10 @@ class AICharacter {
     this.coverImage,
     this.lastActiveTime,
     this.rating,
+    this.avatarUrl,
+    this.followerCount,
+    this.messageCount,
+    this.isFollowing,
   });
 
   /// 从JSON创建AICharacter实例
@@ -49,6 +59,10 @@ class AICharacter {
           ? DateTime.parse(json['last_active_time'] as String)
           : null,
       rating: json['rating']?.toDouble(),
+      avatarUrl: json['avatar_url'] as String?,
+      followerCount: json['follower_count'] as int?,
+      messageCount: json['message_count'] as int?,
+      isFollowing: json['is_following'] as bool?,
     );
   }
 
@@ -68,6 +82,10 @@ class AICharacter {
       'cover_image': coverImage,
       'last_active_time': lastActiveTime?.toIso8601String(),
       'rating': rating,
+      'avatar_url': avatarUrl,
+      'follower_count': followerCount,
+      'message_count': messageCount,
+      'is_following': isFollowing,
     };
   }
 
@@ -86,6 +104,10 @@ class AICharacter {
     String? coverImage,
     DateTime? lastActiveTime,
     double? rating,
+    String? avatarUrl,
+    int? followerCount,
+    int? messageCount,
+    bool? isFollowing,
   }) {
     return AICharacter(
       id: id ?? this.id,
@@ -101,6 +123,10 @@ class AICharacter {
       coverImage: coverImage ?? this.coverImage,
       lastActiveTime: lastActiveTime ?? this.lastActiveTime,
       rating: rating ?? this.rating,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      followerCount: followerCount ?? this.followerCount,
+      messageCount: messageCount ?? this.messageCount,
+      isFollowing: isFollowing ?? this.isFollowing,
     );
   }
 

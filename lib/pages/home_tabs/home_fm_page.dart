@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../theme/app_theme.dart';
-import '../../models/audio_content.dart';
-import '../../widgets/audio_player_widget.dart';
-import '../../widgets/channel_card.dart';
+import 'dart:ui';
+import '../../widgets/interaction_menu/universal_interaction_menu.dart';
+import '../../widgets/interaction_menu/interaction_menu_config.dart';
 
 /// 首页FM音频页面 - 音频播放和电台功能
 /// 基于原型文件home-fm.html设计
@@ -13,136 +12,151 @@ class HomeFMPage extends StatefulWidget {
   State<HomeFMPage> createState() => _HomeFMPageState();
 }
 
-class _HomeFMPageState extends State<HomeFMPage>
-    with TickerProviderStateMixin {
+class _HomeFMPageState extends State<HomeFMPage> {
   
   // 播放控制
   bool _isPlaying = false;
-  double _progress = 0.3;
-  AudioContent? _currentAudio;
+  double _progress = 0.2;
   
-  // 动画控制器
-  late AnimationController _rotationController;
-  late AnimationController _pulseController;
+  // 互动状态
+  bool _isLiked = false;
+  bool _isFavorited = false;
+  bool _isFollowing = false;
+  bool _showCommentHint = true;
   
-  // 滚动控制器
-  final ScrollController _scrollController = ScrollController();
+  // 互动数据
+  int _likeCount = 21000;
+  int _favoriteCount = 18000;
+  int _commentCount = 856;
+  int _shareCount = 0;
   
-  // 模拟数据
-  List<AudioContent> _channels = [];
-  List<AudioContent> _recentPlayed = [];
-  
-  @override
-  void initState() {
-    super.initState();
-    _initAnimations();
-    _loadMockData();
-  }
-
-  @override
-  void dispose() {
-    _rotationController.dispose();
-    _pulseController.dispose();
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  /// 初始化动画
-  void _initAnimations() {
-    _rotationController = AnimationController(
-      duration: const Duration(seconds: 10),
-      vsync: this,
-    );
-    
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    );
-    
-    if (_isPlaying) {
-      _rotationController.repeat();
-      _pulseController.repeat(reverse: true);
-    }
-  }
-
-  /// 加载模拟数据
-  void _loadMockData() {
-    _channels = [
-      AudioContent(
-        id: '1',
-        title: '星空夜语',
-        artist: '星语电台',
-        album: '深夜电台',
-        cover: '🌙',
-        duration: Duration(minutes: 45),
-        category: '深夜电台',
-        description: '温柔的夜晚陪伴，用星空的语言治愈你的心灵',
-      ),
-      AudioContent(
-        id: '2',
-        title: '古风雅韵',
-        artist: '墨染FM',
-        album: '古典音乐',
-        cover: '🎵',
-        duration: Duration(minutes: 32),
-        category: '古典音乐',
-        description: '传统文化的音乐之旅，感受古典雅韵的魅力',
-      ),
-      AudioContent(
-        id: '3',
-        title: '知识电台',
-        artist: '智慧之声',
-        album: '教育频道',
-        cover: '📚',
-        duration: Duration(minutes: 28),
-        category: '教育学习',
-        description: '每日一课，用知识充实你的每一天',
-      ),
-      AudioContent(
-        id: '4',
-        title: '冥想时光',
-        artist: '静心电台',
-        album: '放松音乐',
-        cover: '🧘',
-        duration: Duration(minutes: 60),
-        category: '冥想放松',
-        description: '引导式冥想，找回内心的宁静与平衡',
-      ),
-    ];
-    
-    _recentPlayed = _channels.take(3).toList();
-    
-    // 设置当前播放
-    if (_channels.isNotEmpty) {
-      _currentAudio = _channels.first;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Column(
+      backgroundColor: Colors.black,
+      body: Stack(
         children: [
-          // 当前播放区域
-          _buildNowPlayingSection(),
+          // 背景模糊图片
+          _buildBackgroundImage(),
           
-          // 主要内容区域
-          Expanded(
-            child: CustomScrollView(
-              controller: _scrollController,
-              slivers: [
-                // 频道列表
-                _buildChannelsSection(),
-                
-                // 最近播放
-                _buildRecentPlayedSection(),
-                
-                // 底部间距
-                const SliverToBoxAdapter(
-                  child: SizedBox(height: 100),
+          // 主要内容
+          Column(
+            children: [
+              // 内容滚动区域
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      // 封面图片区域
+                      _buildAlbumCoverSection(),
+                      
+                      // 标题与作者信息
+                      _buildTitleAuthorSection(),
+                      
+                      // 互动图标区
+                      _buildInteractionBar(),
+                    ],
+                  ),
                 ),
-              ],
+              ),
+              
+              // 播放控制区
+              _buildPlayerControls(),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 构建背景模糊图片
+  Widget _buildBackgroundImage() {
+    return Positioned.fill(
+      child: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/image.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.6),
+          ),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              color: Colors.black.withOpacity(0.3),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 构建封面图片区域
+  Widget _buildAlbumCoverSection() {
+    return Container(
+      width: double.infinity,
+      height: MediaQuery.of(context).size.height * 0.6, // 1:1.2 比例
+      child: Stack(
+        children: [
+          // 封面图片
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/images/image.png'),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          ),
+          
+          // 评论输入提示
+          if (_showCommentHint)
+            Positioned(
+              bottom: 20,
+              left: 20,
+              right: 20,
+              child: _buildCommentInputHint(),
+            ),
+        ],
+      ),
+    );
+  }
+  
+  /// 构建评论输入提示
+  Widget _buildCommentInputHint() {
+    return Container(
+      height: 36,
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Row(
+        children: [
+          const Expanded(
+            child: Text(
+              '@苏怜芗^: W靠,',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _showCommentHint = false;
+              });
+            },
+            child: const Icon(
+              Icons.close,
+              color: Colors.white,
+              size: 16,
             ),
           ),
         ],
@@ -150,318 +164,249 @@ class _HomeFMPageState extends State<HomeFMPage>
     );
   }
 
-  /// 构建当前播放区域
-  Widget _buildNowPlayingSection() {
-    if (_currentAudio == null) return const SizedBox.shrink();
-    
+  /// 构建标题与作者信息
+  Widget _buildTitleAuthorSection() {
     return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.accent.withOpacity(0.15),
-            AppColors.primary.withOpacity(0.05),
-          ],
-        ),
-        border: const Border(
-          bottom: BorderSide(
-            color: AppColors.divider,
-            width: 0.5,
-          ),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            // 专辑封面
-            _buildAlbumCover(),
-            
-            const SizedBox(height: 20),
-            
-            // 歌曲信息
-            _buildSongInfo(),
-            
-            const SizedBox(height: 20),
-            
-            // 进度条
-            _buildProgressSection(),
-            
-            const SizedBox(height: 20),
-            
-            // 播放控制
-            _buildPlaybackControls(),
-            
-            const SizedBox(height: 24),
-            
-            // 统计数据
-            _buildStatsArea(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// 构建专辑封面
-  Widget _buildAlbumCover() {
-    return Center(
-      child: AnimatedBuilder(
-        animation: _rotationController,
-        builder: (context, child) {
-          return Transform.rotate(
-            angle: _rotationController.value * 2 * 3.14159,
-            child: Container(
-              width: 160,
-              height: 160,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                gradient: AppColors.primaryGradient,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withOpacity(0.3),
-                    blurRadius: 24,
-                    spreadRadius: 0,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Stack(
-                children: [
-                  Center(
-                    child: Text(
-                      _currentAudio!.cover,
-                      style: const TextStyle(
-                        fontSize: 48,
-                        color: AppColors.background,
-                      ),
-                    ),
-                  ),
-                  // 中心圆点
-                  Center(
-                    child: Container(
-                      width: 20,
-                      height: 20,
-                      decoration: const BoxDecoration(
-                        color: AppColors.background,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+      padding: const EdgeInsets.all(20),
+      color: Colors.black.withOpacity(0.6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 歌曲标题
+          const Text(
+            'Sweets Parade（节选）',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
-          );
-        },
-      ),
-    );
-  }
-
-  /// 构建歌曲信息
-  Widget _buildSongInfo() {
-    return Column(
-      children: [
-        Text(
-          _currentAudio!.title,
-          style: AppTextStyles.h2.copyWith(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.bold,
           ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          _currentAudio!.artist,
-          style: AppTextStyles.body1.copyWith(
-            color: AppColors.textSecondary,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 4),
-        Text(
-          _currentAudio!.album,
-          style: AppTextStyles.body2.copyWith(
-            color: AppColors.accent,
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ],
-    );
-  }
-
-  /// 构建进度条区域
-  Widget _buildProgressSection() {
-    return Column(
-      children: [
-        // 进度条
-        GestureDetector(
-          onTapDown: (details) => _onProgressTap(details),
-          child: Container(
-            width: double.infinity,
-            height: 4,
-            decoration: BoxDecoration(
-              color: AppColors.textSecondary.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(2),
-            ),
-            child: FractionallySizedBox(
-              alignment: Alignment.centerLeft,
-              widthFactor: _progress,
-              child: Container(
+          
+          const SizedBox(height: 12),
+          
+          // 作者信息行
+          Row(
+            children: [
+              // 分类标签
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 2,
+                ),
                 decoration: BoxDecoration(
-                  gradient: AppColors.accentGradient,
-                  borderRadius: BorderRadius.circular(2),
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text(
+                  '脑洞',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
                 ),
               ),
-            ),
+              
+              const SizedBox(width: 8),
+              
+              // 作者名称
+              const Text(
+                '洛文·阿斯特',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.white,
+                ),
+              ),
+              
+              const Spacer(),
+              
+              // 关注按钮
+              GestureDetector(
+                onTap: _toggleFollow,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.white),
+                    borderRadius: BorderRadius.circular(12),
+                    color: _isFollowing ? Colors.white : Colors.transparent,
+                  ),
+                  child: Text(
+                    _isFollowing ? '已关注' : '关注',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: _isFollowing ? Colors.black : Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ),
-        
-        const SizedBox(height: 8),
-        
-        // 时间显示
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              _formatDuration(
-                Duration(
-                  milliseconds: (_currentAudio!.duration.inMilliseconds * _progress).round(),
-                ),
-              ),
-              style: AppTextStyles.caption.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-            Text(
-              _formatDuration(_currentAudio!.duration),
-              style: AppTextStyles.caption.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ],
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  /// 构建播放控制
-  Widget _buildPlaybackControls() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _buildControlButton(
-          icon: Icons.skip_previous,
-          onPressed: _onPrevious,
+
+
+  /// 构建互动图标区
+  Widget _buildInteractionBar() {
+    return Container(
+      height: 48,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.6),
+        border: const Border(
+          top: BorderSide(
+            color: Colors.white12,
+            width: 1,
+          ),
         ),
-        
-        const SizedBox(width: 24),
-        
-        // 主播放按钮
-        GestureDetector(
-          onTap: _onPlayPause,
-          child: AnimatedBuilder(
-            animation: _pulseController,
-            builder: (context, child) {
-              return Transform.scale(
-                scale: _isPlaying ? 1.0 + (_pulseController.value * 0.05) : 1.0,
-                child: Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    gradient: AppColors.accentGradient,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.accent.withOpacity(0.4),
-                        blurRadius: 16,
-                        spreadRadius: 0,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    _isPlaying ? Icons.pause : Icons.play_arrow,
-                    color: AppColors.background,
-                    size: 28,
-                  ),
-                ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildInteractionItem('🔄', '转发', _shareCount, _onShare),
+          _buildInteractionItem('❤️', '81', 81, _onLike),
+          _buildInteractionItem('⭐', '79', 79, _onFavorite),
+          _buildInteractionItem('💬', '8', 8, _onComment),
+          // 添加通用交互菜单触发器
+          GestureDetector(
+            onTap: () {
+              InteractionMenuTrigger.showMenu(
+                context: context,
+                pageType: PageType.aiInteraction,
+                onActionSelected: (InteractionType type) {
+                  _handleInteractionAction(type);
+                },
               );
             },
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              child: const Icon(
+                Icons.add,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
           ),
-        ),
-        
-        const SizedBox(width: 24),
-        
-        _buildControlButton(
-          icon: Icons.skip_next,
-          onPressed: _onNext,
-        ),
-      ],
+        ],
+      ),
     );
   }
-
-  /// 构建控制按钮
-  Widget _buildControlButton({
-    required IconData icon,
-    required VoidCallback onPressed,
-  }) {
+  
+  /// 构建互动项
+  Widget _buildInteractionItem(String icon, String label, int count, VoidCallback onTap) {
     return GestureDetector(
-      onTap: onPressed,
+      onTap: onTap,
       child: Container(
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(
-          color: AppColors.textSecondary.withOpacity(0.1),
-          shape: BoxShape.circle,
-        ),
-        child: Icon(
-          icon,
-          color: AppColors.textPrimary,
-          size: 20,
+        padding: const EdgeInsets.all(8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              icon,
+              style: const TextStyle(fontSize: 20),
+            ),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.white,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  /// 构建统计数据区域
-  Widget _buildStatsArea() {
+  /// 构建播放控制区
+  Widget _buildPlayerControls() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF443D45),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.4),
+            blurRadius: 10,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // 互动图标行
+          _buildPlayerInteractionIcons(),
+          
+          const SizedBox(height: 16),
+          
+          // 进度条
+          _buildPlayerProgressSection(),
+          
+          const SizedBox(height: 20),
+          
+          // 播放按键
+          _buildControlButtons(),
+        ],
+      ),
+    );
+  }
+  
+  /// 构建播放器内互动图标
+  Widget _buildPlayerInteractionIcons() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        _buildStatItem('1.2k', '收听'),
-        _buildStatItem('89', '喜欢'),
-        _buildStatItem('45', '分享'),
-        _buildStatItem('12', '评论'),
+        _buildPlayerInteractionItem(
+          _isLiked ? Icons.favorite : Icons.favorite_border,
+          _formatCount(_likeCount),
+          _isLiked,
+          _onPlayerLike,
+        ),
+        _buildPlayerInteractionItem(
+          _isFavorited ? Icons.star : Icons.star_border,
+          _formatCount(_favoriteCount),
+          _isFavorited,
+          _onPlayerFavorite,
+        ),
+        _buildPlayerInteractionItem(
+          Icons.chat_bubble_outline,
+          _commentCount.toString(),
+          false,
+          _onPlayerComment,
+        ),
       ],
     );
   }
-
-  /// 构建统计项
-  Widget _buildStatItem(String value, String label) {
+  
+  /// 构建播放器互动项
+  Widget _buildPlayerInteractionItem(IconData icon, String count, bool isActive, VoidCallback onTap) {
     return GestureDetector(
-      onTap: () {},
+      onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 8,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(20),
+          color: isActive ? Colors.orange.withOpacity(0.1) : Colors.transparent,
         ),
-        child: Column(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              value,
-              style: AppTextStyles.body1.copyWith(
-                color: AppColors.accent,
-                fontWeight: FontWeight.bold,
-              ),
+            Icon(
+              icon,
+              color: isActive ? Colors.orange : Colors.white,
+              size: 20,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(width: 6),
             Text(
-              label,
-              style: AppTextStyles.caption.copyWith(
-                color: AppColors.textSecondary,
+              count,
+              style: TextStyle(
+                fontSize: 14,
+                color: isActive ? Colors.orange : Colors.white,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -471,176 +416,236 @@ class _HomeFMPageState extends State<HomeFMPage>
     );
   }
 
-  /// 构建频道列表区域
-  Widget _buildChannelsSection() {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 标题
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  /// 构建播放器进度条区域
+  Widget _buildPlayerProgressSection() {
+    return Column(
+      children: [
+        // 进度条
+        GestureDetector(
+          onTapDown: _onProgressTap,
+          child: Container(
+            width: double.infinity,
+            height: 6,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(3),
+            ),
+            child: Stack(
               children: [
-                Text(
-                  '热门频道',
-                  style: AppTextStyles.h3,
+                FractionallySizedBox(
+                  alignment: Alignment.centerLeft,
+                  widthFactor: _progress,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  ),
                 ),
-                GestureDetector(
-                  onTap: () => _onViewAllChannels(),
-                  child: Text(
-                    '查看全部',
-                    style: AppTextStyles.body2.copyWith(
-                      color: AppColors.accent,
+                Positioned(
+                  left: (MediaQuery.of(context).size.width - 40) * _progress - 6,
+                  top: -3,
+                  child: Container(
+                    width: 12,
+                    height: 12,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
                     ),
                   ),
                 ),
               ],
             ),
-            
-            const SizedBox(height: 16),
-            
-            // 频道网格
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 1.1,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-              ),
-              itemCount: _channels.length,
-              itemBuilder: (context, index) {
-                return ChannelCard(
-                  audio: _channels[index],
-                  isActive: _currentAudio?.id == _channels[index].id,
-                  onTap: () => _onChannelSelected(_channels[index]),
-                );
-              },
-            ),
-          ],
+          ),
         ),
-      ),
-    );
-  }
-
-  /// 构建最近播放区域
-  Widget _buildRecentPlayedSection() {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        
+        const SizedBox(height: 8),
+        
+        // 时间显示
+        const Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              '最近播放',
-              style: AppTextStyles.h3,
+              '00:03',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.white,
+              ),
             ),
-            
-            const SizedBox(height: 16),
-            
-            // 最近播放列表
-            ...(_recentPlayed.map((audio) => _buildRecentItem(audio))),
+            Text(
+              '00:21',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.white,
+              ),
+            ),
           ],
+        ),
+      ],
+    );
+  }
+
+  /// 构建播放按键区
+  Widget _buildControlButtons() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _buildPlayerControlButton(Icons.repeat, _onRepeat),
+        _buildPlayerControlButton(Icons.skip_previous, _onPrevious),
+        _buildPlayButton(),
+        _buildPlayerControlButton(Icons.skip_next, _onNext),
+        _buildPlayerControlButton(Icons.playlist_play, _onPlaylist),
+      ],
+    );
+  }
+  
+  /// 构建播放器控制按钮
+  Widget _buildPlayerControlButton(IconData icon, VoidCallback onPressed) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          icon,
+          color: Colors.white,
+          size: 20,
         ),
       ),
     );
   }
-
-  /// 构建最近播放项
-  Widget _buildRecentItem(AudioContent audio) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.divider,
-          width: 0.5,
+  
+  /// 构建主播放按钮
+  Widget _buildPlayButton() {
+    return GestureDetector(
+      onTap: _onPlayPause,
+      child: Container(
+        width: 64,
+        height: 64,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
         ),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(12),
-        leading: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            gradient: AppColors.primaryGradient,
-          ),
-          child: Center(
-            child: Text(
-              audio.cover,
-              style: const TextStyle(
-                fontSize: 16,
-                color: AppColors.background,
-              ),
-            ),
-          ),
+        child: Icon(
+          _isPlaying ? Icons.pause : Icons.play_arrow,
+          color: Colors.black,
+          size: 28,
         ),
-        title: Text(
-          audio.title,
-          style: AppTextStyles.body1.copyWith(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        subtitle: Text(
-          audio.artist,
-          style: AppTextStyles.caption.copyWith(
-            color: AppColors.textSecondary,
-          ),
-        ),
-        trailing: Text(
-          _formatDuration(audio.duration),
-          style: AppTextStyles.caption.copyWith(
-            color: AppColors.textSecondary,
-          ),
-        ),
-        onTap: () => _onChannelSelected(audio),
       ),
     );
+  }
+  
+  /// 处理交互动作
+  void _handleInteractionAction(InteractionType type) {
+    switch (type) {
+      case InteractionType.reload:
+        debugPrint('🔄 重新加载被点击');
+        // 重新加载音频内容
+        break;
+      case InteractionType.voiceCall:
+        debugPrint('📞 语音通话被点击');
+        // 启动语音通话功能
+        break;
+      case InteractionType.image:
+        debugPrint('🖼️ 图片被点击');
+        // 分享音频图片
+        break;
+      case InteractionType.camera:
+        debugPrint('📸 相机被点击');
+        // 拍照分享
+        break;
+      case InteractionType.gift:
+        debugPrint('🎁 礼物被点击');
+        // 给作者送礼物
+        break;
+      case InteractionType.share:
+        debugPrint('📱 分享被点击');
+        // 分享音频内容
+        _onShare();
+        break;
+      default:
+        debugPrint('未知交互类型: $type');
+    }
   }
 
   // 事件处理方法
+  void _toggleFollow() {
+    setState(() {
+      _isFollowing = !_isFollowing;
+    });
+  }
+  
+  void _onShare() {
+    setState(() {
+      _shareCount++;
+    });
+  }
+  
+  void _onLike() {
+    setState(() {
+      _isLiked = !_isLiked;
+    });
+  }
+  
+  void _onFavorite() {
+    setState(() {
+      _isFavorited = !_isFavorited;
+    });
+  }
+  
+  void _onComment() {
+    // 打开评论
+  }
+  
+  void _onPlayerLike() {
+    setState(() {
+      _isLiked = !_isLiked;
+      if (_isLiked) {
+        _likeCount++;
+      } else {
+        _likeCount--;
+      }
+    });
+  }
+  
+  void _onPlayerFavorite() {
+    setState(() {
+      _isFavorited = !_isFavorited;
+      if (_isFavorited) {
+        _favoriteCount++;
+      } else {
+        _favoriteCount--;
+      }
+    });
+  }
+  
+  void _onPlayerComment() {
+    // 打开评论
+  }
+  
+  void _onRepeat() {
+    // 切换重复模式
+  }
+  
+  void _onPlaylist() {
+    // 显示播放列表
+  }
+  
   void _onPlayPause() {
     setState(() {
       _isPlaying = !_isPlaying;
     });
-    
-    if (_isPlaying) {
-      _rotationController.repeat();
-      _pulseController.repeat(reverse: true);
-    } else {
-      _rotationController.stop();
-      _pulseController.stop();
-    }
   }
 
   void _onPrevious() {
-    if (_currentAudio != null) {
-      final currentIndex = _channels.indexOf(_currentAudio!);
-      if (currentIndex > 0) {
-        setState(() {
-          _currentAudio = _channels[currentIndex - 1];
-          _progress = 0.0;
-        });
-      }
-    }
+    // 上一曲
   }
 
   void _onNext() {
-    if (_currentAudio != null) {
-      final currentIndex = _channels.indexOf(_currentAudio!);
-      if (currentIndex < _channels.length - 1) {
-        setState(() {
-          _currentAudio = _channels[currentIndex + 1];
-          _progress = 0.0;
-        });
-      }
-    }
+    // 下一曲
   }
 
   void _onProgressTap(TapDownDetails details) {
@@ -651,25 +656,11 @@ class _HomeFMPageState extends State<HomeFMPage>
     });
   }
 
-  void _onChannelSelected(AudioContent audio) {
-    setState(() {
-      _currentAudio = audio;
-      _progress = 0.0;
-      _isPlaying = true;
-    });
-    
-    _rotationController.repeat();
-    _pulseController.repeat(reverse: true);
-  }
-
-  void _onViewAllChannels() {
-    Navigator.pushNamed(context, '/channels_list');
-  }
-
-  /// 格式化时长
-  String _formatDuration(Duration duration) {
-    final minutes = duration.inMinutes;
-    final seconds = duration.inSeconds % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  /// 格式化数字
+  String _formatCount(int count) {
+    if (count >= 10000) {
+      return '${(count / 1000).toStringAsFixed(1)}万';
+    }
+    return count.toString();
   }
 }

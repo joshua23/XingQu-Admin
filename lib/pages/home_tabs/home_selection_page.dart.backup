@@ -1,0 +1,498 @@
+import 'package:flutter/material.dart';
+import 'dart:ui'; // 添加毛玻璃效果支持
+import '../../theme/app_theme.dart';
+
+/// 首页精选页面 - 虚拟角色聊天展示页面
+/// 基于原型文件home-selection.html设计
+/// 背景图片覆盖整个屏幕，UI元素使用半透明毛玻璃效果
+class HomeSelectionPage extends StatefulWidget {
+  const HomeSelectionPage({super.key});
+
+  @override
+  State<HomeSelectionPage> createState() => _HomeSelectionPageState();
+}
+
+class _HomeSelectionPageState extends State<HomeSelectionPage> {
+  // 功能菜单显示状态
+  bool _isMenuVisible = false;
+  // 快捷回复显示状态
+  bool _isQuickRepliesVisible = false;
+  
+  // 角色信息
+  final Map<String, dynamic> _character = {
+    'name': '寂文泽',
+    'avatar': '寂',
+    'followers': '92.4万',
+    'messages': '3695',
+    'description': '21岁，有占有欲，霸道，只对你撒娇',
+    'tags': ['恋爱', '男友', '占有欲', '霸道'],
+    'note': '该角色仅支持文字交流，不支持图片和语音',
+  };
+
+  // 快捷回复
+  final List<String> _quickReplies = [
+    '我在图书馆自习呢',
+    '今天有事请假了',
+    '想我了？',
+  ];
+
+  // 功能菜单
+  final List<Map<String, dynamic>> _menuItems = [
+    {'icon': Icons.refresh, 'label': '重新加载'},
+    {'icon': Icons.phone, 'label': '语音通话'},
+    {'icon': Icons.image, 'label': '图片'},
+    {'icon': Icons.link, 'label': '链接'},
+    {'icon': Icons.share, 'label': '小红书'},
+    {'icon': Icons.flag, 'label': '举报'},
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+              body: Column(
+          children: [
+            // 角色信息区 - 恢复人物昵称和点赞评论订阅
+            _buildProfileSection(),
+            
+            // 主要内容展示区
+            Expanded(
+              child: _buildMainShowcase(),
+            ),
+            
+            // 对话交互区
+            _buildConversationArea(),
+            
+            // 输入控制区
+            _buildInputSection(),
+            
+            // 功能菜单 - 根据状态显示或隐藏
+            if (_isMenuVisible) _buildFunctionMenu(),
+          ],
+        ),
+    );
+  }
+
+
+
+  /// 构建角色信息区 - 透明漂浮效果
+  Widget _buildProfileSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.transparent, // 完全透明
+      ),
+      child: Row(
+        children: [
+          // 角色头像 - 使用真实图片缩小版
+          Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.3),
+                    width: 2,
+                  ),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(22),
+                  child: Image.asset(
+                    'assets/images/image.png',
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(22),
+                          gradient: LinearGradient(
+                            colors: [
+                              AppColors.primary.withOpacity(0.8),
+                              AppColors.accent.withOpacity(0.6),
+                            ],
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            _character['avatar'],
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ),
+        
+        const SizedBox(width: 12),
+        
+        // 角色信息
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _character['name'],
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              Text(
+                '${_character['followers']}连接者',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.white.withOpacity(0.7),
+                ),
+              ),
+            ],
+          ),
+        ),
+        
+        // 操作按钮
+        Row(
+          children: [
+            // 点赞数
+            Row(
+              children: [
+                Icon(
+                  Icons.favorite_border,
+                  size: 16,
+                  color: Colors.white.withOpacity(0.7),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '2.1万',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white.withOpacity(0.7),
+                  ),
+                ),
+              ],
+            ),
+            
+            const SizedBox(width: 12),
+            
+            // 关注按钮
+            Row(
+              children: [
+                Icon(
+                  Icons.add,
+                  size: 16,
+                  color: Colors.white.withOpacity(0.7),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '关注',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white.withOpacity(0.7),
+                  ),
+                ),
+              ],
+            ),
+            
+            const SizedBox(width: 12),
+            
+            // 消息数量
+            Row(
+              children: [
+                Icon(
+                  Icons.message_outlined,
+                  size: 16,
+                  color: Colors.white.withOpacity(0.7),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  _character['messages'],
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white.withOpacity(0.7),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
+    ),
+  ),
+);
+}
+
+  /// 构建主要内容展示区 - 纯背景图片区域，移除所有文字内容
+  Widget _buildMainShowcase() {
+    return Container(
+      // 移除内边距，让背景图片完全显示
+      child: Stack(
+        children: [
+          // 背景图片已经通过Stack的Positioned.fill设置
+          // 移除所有角色详情覆盖层，让背景图片完全显示
+        ],
+      ),
+    );
+  }
+
+  /// 构建对话交互区 - 半透明毛玻璃效果
+  Widget _buildConversationArea() {
+    return ClipRRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.3),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.grey[900]!.withOpacity(0.6),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.1),
+                width: 1,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 消息头部
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      _character['name'],
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.accent,
+                      ),
+                    ),
+                    Text(
+                      '00:32',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white.withOpacity(0.7),
+                      ),
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 8),
+                
+                // 消息内容
+                Text(
+                  '"嘿，我刚下课，你在干嘛呢？今天怎么没看到你？我找了你好久，还以为你不想理我了。"',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    color: Colors.white,
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 构建输入控制区 - 半透明毛玻璃效果
+  Widget _buildInputSection() {
+    return ClipRRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.4),
+            border: Border(
+              top: BorderSide(
+                color: Colors.white.withOpacity(0.1),
+                width: 1,
+              ),
+            ),
+          ),
+          child: Column(
+            children: [
+              // 输入控制栏
+              Row(
+                children: [
+                  // 麦克风按钮
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.accent.withOpacity(0.2),
+                          AppColors.primary.withOpacity(0.1),
+                        ],
+                      ),
+                      border: Border.all(
+                        color: AppColors.accent.withOpacity(0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.mic,
+                      color: AppColors.accent,
+                      size: 20,
+                    ),
+                  ),
+                  
+                  const SizedBox(width: 12),
+                  
+                  // 输入框
+                  Expanded(
+                    child: Container(
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[900]!.withOpacity(0.6),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.1),
+                          width: 1,
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          '按住说话',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white.withOpacity(0.7),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  
+                  const SizedBox(width: 12),
+                  
+                  // 添加按钮
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.accent.withOpacity(0.2),
+                          AppColors.primary.withOpacity(0.1),
+                        ],
+                      ),
+                      border: Border.all(
+                        color: AppColors.accent.withOpacity(0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.add,
+                      color: AppColors.accent,
+                      size: 20,
+                    ),
+                  ),
+                ],
+              ),
+              
+              const SizedBox(height: 12),
+              
+              // 快捷回复
+              if (_isQuickRepliesVisible)
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: _quickReplies.map((reply) {
+                      return Container(
+                        margin: const EdgeInsets.only(right: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[900]!.withOpacity(0.6),
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.1),
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          reply,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.white,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 构建功能菜单 - 半透明毛玻璃效果
+  Widget _buildFunctionMenu() {
+    return ClipRRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.4),
+            border: Border(
+              top: BorderSide(
+                color: Colors.white.withOpacity(0.1),
+                width: 1,
+              ),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: _menuItems.map((item) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[900]!.withOpacity(0.6),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.1),
+                        width: 1,
+                      ),
+                    ),
+                    child: Icon(
+                      item['icon'],
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    item['label'],
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.white.withOpacity(0.7),
+                    ),
+                  ),
+                ],
+              );
+            }).toList(),
+          ),
+        ),
+      ),
+    );
+  }
+}

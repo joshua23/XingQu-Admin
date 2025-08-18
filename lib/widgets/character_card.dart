@@ -113,9 +113,10 @@ class CharacterCard extends StatelessWidget {
   Widget _buildInfoSection() {
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             // 角色名称
             Text(
@@ -123,30 +124,34 @@ class CharacterCard extends StatelessWidget {
               style: AppTextStyles.body1.copyWith(
                 color: AppColors.textPrimary,
                 fontWeight: FontWeight.w600,
+                fontSize: 14,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
             
-            const SizedBox(height: 4),
+            const SizedBox(height: 1),
             
             // 角色描述
-            Text(
-              character.description,
-              style: AppTextStyles.caption.copyWith(
-                color: AppColors.textSecondary,
-                height: 1.3,
+            Expanded(
+              child: Text(
+                character.description,
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.textSecondary,
+                  height: 1.1,
+                  fontSize: 11,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
             ),
             
-            const SizedBox(height: 8),
+            const SizedBox(height: 2),
             
             // 标签
             _buildTags(),
             
-            const Spacer(),
+            const SizedBox(height: 2),
             
             // 统计信息和操作按钮
             _buildBottomSection(),
@@ -161,17 +166,17 @@ class CharacterCard extends StatelessWidget {
     if (character.tags.isEmpty) return const SizedBox.shrink();
     
     return Wrap(
-      spacing: 4,
-      runSpacing: 4,
-      children: character.tags.take(2).map((tag) {
+      spacing: 2,
+      runSpacing: 2,
+      children: character.tags.take(1).map((tag) {
         return Container(
           padding: const EdgeInsets.symmetric(
-            horizontal: 6,
-            vertical: 2,
+            horizontal: 4,
+            vertical: 1,
           ),
           decoration: BoxDecoration(
             color: AppColors.primary.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: AppColors.primary.withOpacity(0.2),
               width: 0.5,
@@ -181,7 +186,7 @@ class CharacterCard extends StatelessWidget {
             tag,
             style: AppTextStyles.caption.copyWith(
               color: AppColors.primary,
-              fontSize: 10,
+              fontSize: 9,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -196,24 +201,12 @@ class CharacterCard extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         // 关注数
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              _formatNumber(character.followers),
-              style: AppTextStyles.caption.copyWith(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            Text(
-              '关注',
-              style: AppTextStyles.caption.copyWith(
-                color: AppColors.textSecondary,
-                fontSize: 10,
-              ),
-            ),
-          ],
+        Text(
+          '${_formatNumber(character.followers)}关注',
+          style: AppTextStyles.caption.copyWith(
+            color: AppColors.textSecondary,
+            fontSize: 9,
+          ),
         ),
         
         // 关注按钮
@@ -222,14 +215,14 @@ class CharacterCard extends StatelessWidget {
             onTap: () => _onFollowTap(),
             child: Container(
               padding: const EdgeInsets.symmetric(
-                horizontal: 8,
-                vertical: 4,
+                horizontal: 4,
+                vertical: 2,
               ),
               decoration: BoxDecoration(
                 color: character.isFollowed 
                     ? AppColors.accent.withOpacity(0.1)
                     : AppColors.highlight.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: character.isFollowed 
                       ? AppColors.accent.withOpacity(0.3)
@@ -237,30 +230,15 @@ class CharacterCard extends StatelessWidget {
                   width: 0.5,
                 ),
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    character.isFollowed 
-                        ? Icons.favorite 
-                        : Icons.favorite_border,
-                    size: 12,
-                    color: character.isFollowed 
-                        ? AppColors.accent
-                        : AppColors.highlight,
-                  ),
-                  const SizedBox(width: 2),
-                  Text(
-                    character.isFollowed ? '已关注' : '关注',
-                    style: AppTextStyles.caption.copyWith(
-                      color: character.isFollowed 
-                          ? AppColors.accent
-                          : AppColors.highlight,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
+              child: Text(
+                character.isFollowed ? '已关注' : '关注',
+                style: AppTextStyles.caption.copyWith(
+                  color: character.isFollowed 
+                      ? AppColors.accent
+                      : AppColors.highlight,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ),

@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/status_bar.dart';
 import '../widgets/bottom_navigation_refactored.dart';
+import '../services/auth_guard_service.dart';
 import 'home_refactored.dart';
 import 'messages_page.dart';
-import 'creation_center_refactored.dart';
+import 'creation_center_page.dart';
 import 'discovery_page.dart';
 import 'profile_page.dart';
 
@@ -25,7 +26,7 @@ class _MainPageRefactoredState extends State<MainPageRefactored> {
   final List<Widget> _pages = [
     const HomeRefactored(),              // 首页（包含4个Tab）
     const MessagesPage(),                // 消息页
-    const CreationCenterRefactored(),    // 创作中心（重构版）
+    const CreationCenterPage(),          // 创作中心
     const DiscoveryPage(),               // 发现页
     const ProfilePage(),                 // 我的页面
   ];
@@ -46,20 +47,19 @@ class _MainPageRefactoredState extends State<MainPageRefactored> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Column(
-        children: [
-          // 状态栏
-          const StatusBar(),
-          
-          // 页面内容
-          Expanded(
-            child: PageView(
-              controller: _pageController,
-              onPageChanged: _onPageChanged,
-              children: _pages,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // 页面内容
+            Expanded(
+              child: PageView(
+                controller: _pageController,
+                onPageChanged: _onPageChanged,
+                children: _pages,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       
       // 底部导航
@@ -79,13 +79,37 @@ class _MainPageRefactoredState extends State<MainPageRefactored> {
 
   /// 底部导航点击回调
   void _onTabTapped(int index) {
-    setState(() {
-      _currentIndex = index;
+    // 根据Tab index确定需要的权限
+    String action = _getActionForTabIndex(index);
+    
+    // 使用认证守卫检查权限
+    context.checkAuth(action, () {
+      setState(() {
+        _currentIndex = index;
+      });
+      _pageController.animateToPage(
+        index,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
     });
-    _pageController.animateToPage(
-      index,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
+  }
+
+  /// 根据Tab索引确定需要的权限操作
+  String _getActionForTabIndex(int index) {
+    switch (index) {
+      case 0: // 首页
+        return 'view'; // 首页可以游客浏览
+      case 1: // 消息
+        return 'view'; // 消息页可以游客浏览（但具体操作可能需要登录）
+      case 2: // 创作中心
+        return 'create'; // 创作需要登录
+      case 3: // 发现
+        return 'view'; // 发现页可以游客浏览
+      case 4: // 我的
+        return 'view'; // 我的页面可以游客浏览（显示登录提示）
+      default:
+        return 'view';
+    }
   }
 }

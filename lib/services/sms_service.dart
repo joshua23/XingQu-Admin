@@ -8,11 +8,26 @@ import 'package:flutter/foundation.dart';
 /// 用于发送手机验证码
 /// 注意：需替换为实际的AccessKey、Secret、SignName、TemplateCode
 class AliyunSmsService {
-  // 阿里云访问密钥（从环境变量或配置获取，避免硬编码）
-  static const String accessKeyId = 'YOUR_ACCESS_KEY_ID'; // 替换为实际值
-  static const String accessKeySecret = 'YOUR_ACCESS_KEY_SECRET'; // 替换为实际值
-  static const String signName = 'YOUR_SIGN_NAME'; // 短信签名
-  static const String templateCode = 'YOUR_TEMPLATE_CODE'; // 短信模板代码
+  // 阿里云访问密钥（从环境变量获取，确保安全）
+  static String get accessKeyId => const String.fromEnvironment(
+    'ALIYUN_ACCESS_KEY_ID',
+    defaultValue: '',
+  );
+  
+  static String get accessKeySecret => const String.fromEnvironment(
+    'ALIYUN_ACCESS_KEY_SECRET', 
+    defaultValue: '',
+  );
+  
+  static String get signName => const String.fromEnvironment(
+    'ALIYUN_SMS_SIGNATURE',
+    defaultValue: '星趣',
+  );
+  
+  static String get templateCode => const String.fromEnvironment(
+    'ALIYUN_SMS_TEMPLATE_CODE',
+    defaultValue: '',
+  );
   static const String smsEndpoint = 'https://dysmsapi.aliyuncs.com';
 
   /// 发送验证码

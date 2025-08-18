@@ -205,45 +205,57 @@
             font-weight: bold;
         }
 
-        .sub-nav {
+        .home-tab-nav {
             display: flex;
-            padding: 0 10px;
-            overflow-x: auto;
-            scrollbar-width: none;
-            border-bottom: 1px solid #2c2c2e;
-            background: #000000;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(13, 13, 18, 0.95);
+            padding: 0 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            z-index: 90;
         }
 
-        .sub-nav::-webkit-scrollbar {
-            display: none;
+        .home-tab-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 8px;
+            padding: 12px 0;
         }
 
-        .sub-nav-item {
-            padding: 12px 14px;
-            font-size: 14px;
-            color: #8e8e93;
+        .home-tab-item {
             position: relative;
-            white-space: nowrap;
             cursor: pointer;
             transition: all 0.3s ease;
+            padding: 8px 16px;
+            border-radius: 6px;
+        }
+
+        .home-tab-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .home-tab-text {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 16px;
             font-weight: 500;
+            transition: all 0.3s ease;
         }
 
-        .sub-nav-item.active {
-            color: #ffffff;
-            font-weight: bold;
+        .home-tab-item.active .home-tab-text {
+            color: #FFFFFF;
         }
 
-        .sub-nav-item.active::after {
-            content: '';
+        .home-tab-indicator {
             position: absolute;
             bottom: 0;
             left: 50%;
             transform: translateX(-50%);
             width: 20px;
             height: 3px;
-            background-color: #FFC542;
-            border-radius: 1.5px;
+            background: linear-gradient(90deg, #6E5CFE, #38D4FF);
+            border-radius: 3px;
         }
 
         /* 内容区 */
@@ -535,6 +547,60 @@
             0%, 100% { opacity: 0.5; transform: scale(0.9); }
             50% { opacity: 1; transform: scale(1.1); }
         }
+
+        /* 分类导航样式 */
+        .category-nav {
+            padding: 16px 20px 0 20px;
+        }
+
+        .category-scroll {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 16px;
+            scroll-behavior: smooth;
+        }
+
+        .category-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        .category-item {
+            flex-shrink: 0;
+            background: #1C1C1E;
+            border: 1px solid #333333;
+            border-radius: 20px;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+            color: #8E8E93;
+        }
+
+        .category-item.active {
+            background: rgba(255, 197, 66, 0.2);
+            border-color: #FFC542;
+            color: #FFC542;
+        }
+
+        .category-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #FFFFFF;
+        }
+
+        /* 搜索图标样式 */
+        .nav-icon {
+            color: #FFFFFF;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 8px;
+        }
+
+        .nav-icon:hover {
+            color: #FFCF6F;
+        }
     </style>
 </head>
 <body>
@@ -564,17 +630,38 @@
 
             <!-- 应用内容区域 -->
             <div class="app-container">
-                <!-- 主导航栏 -->
-                <div class="main-nav">
-                    <div class="main-nav-item" onclick="switchToTab('assistant')">助理</div>
-                    <div class="main-nav-item" onclick="switchToTab('fm')">FM</div>
-                    <div class="main-nav-item active" onclick="switchToTab('comprehensive')">综合</div>
-                    <div class="main-nav-item" onclick="switchToTab('selection')">精选</div>
+                <!-- 首页顶部Tab导航 -->
+                <div class="home-tab-nav" id="homeTabNav">
+                    <div class="home-tab-container">
+                        <div class="home-tab-item" onclick="switchHomeTab('assistant')" data-tab="assistant">
+                            <span class="home-tab-text">助理</span>
+                        </div>
+                        <div class="home-tab-item" onclick="switchHomeTab('fm')" data-tab="fm">
+                            <span class="home-tab-text">FM</span>
+                        </div>
+                        <div class="home-tab-item active" onclick="switchHomeTab('comprehensive')" data-tab="comprehensive">
+                            <span class="home-tab-text">综合</span>
+                            <div class="home-tab-indicator"></div>
+                        </div>
+                        <div class="home-tab-item" onclick="switchHomeTab('selection')" data-tab="selection">
+                            <span class="home-tab-text">精选</span>
+                        </div>
+                    </div>
+                    <!-- 右侧搜索图标 -->
+                    <i class="ri-search-line nav-icon" title="搜索" onclick="openSearchPage()"></i>
                 </div>
 
-                <!-- 子导航栏 -->
-                <div class="sub-nav">
-                    <div class="sub-nav-item active" onclick="switchSubTab('subscribe')">订阅</div>
+                <!-- 分类导航 -->
+                <div class="category-nav">
+                    <div class="category-scroll" id="categoryScroll">
+                        <div class="category-item active" onclick="selectCategory(this, 'subscribe')">订阅</div>
+                        <div class="category-item" onclick="selectCategory(this, 'recommend')">推荐</div>
+                        <div class="category-item" onclick="selectCategory(this, 'agent')">智能体</div>
+                        <div class="category-item" onclick="selectCategory(this, 'memory')">记忆薄</div>
+                        <div class="category-item" onclick="selectCategory(this, 'bilingual')">双语</div>
+                        <div class="category-item" onclick="selectCategory(this, 'challenge')">挑战</div>
+                    </div>
+                </div>
                     <div class="sub-nav-item" onclick="switchSubTab('recommend')">推荐</div>
                     <div class="sub-nav-item" onclick="switchSubTab('agent')">智能体</div>
                     <div class="sub-nav-item" onclick="switchSubTab('memory')">记忆簿</div>
@@ -707,22 +794,18 @@
                 <!-- 底部Tab导航 -->
                 <div class="bottom-tab">
                     <div class="tab-item active" onclick="navigateToTab('home')">
-                        <div class="tab-icon">🏠</div>
                         <div class="tab-label">首页</div>
                     </div>
                     <div class="tab-item" onclick="navigateToTab('messages')">
-                        <div class="tab-icon">💬</div>
                         <div class="tab-label">消息</div>
                     </div>
                     <div class="tab-item creation-center" onclick="navigateToTab('creation')">
                         <div class="tab-icon">✨</div>
                     </div>
                     <div class="tab-item" onclick="navigateToTab('discovery')">
-                        <div class="tab-icon">🧭</div>
                         <div class="tab-label">发现</div>
                     </div>
                     <div class="tab-item" onclick="navigateToTab('profile')">
-                        <div class="tab-icon">👤</div>
                         <div class="tab-label">我的</div>
                     </div>
                 </div>
@@ -1016,6 +1099,113 @@
                 }, 300);
             }
         });
+
+        /**
+         * 切换首页Tab
+         * @param {string} tabName - Tab名称
+         */
+        function switchHomeTab(tabName) {
+            document.querySelectorAll('.home-tab-item').forEach(item => {
+                item.classList.remove('active');
+                const indicator = item.querySelector('.home-tab-indicator');
+                if (indicator) {
+                    indicator.remove();
+                }
+            });
+
+            const targetItem = document.querySelector(`.home-tab-item[data-tab="${tabName}"]`);
+            if (targetItem) {
+                targetItem.classList.add('active');
+                const indicator = document.createElement('div');
+                indicator.className = 'home-tab-indicator';
+                targetItem.appendChild(indicator);
+                
+                if (navigator.vibrate) {
+                    navigator.vibrate(50);
+                }
+            }
+
+            const contentSections = {
+                assistant: 'home-assistant.html',
+                fm: 'home-fm.html',
+                comprehensive: 'home-comprehensive.html',
+                selection: 'home-selection.html'
+            };
+
+            const currentContent = contentSections[tabName];
+            if (currentContent && tabName !== 'comprehensive') {
+                console.log('切换到首页内容:', tabName);
+                showToast(`正在加载${getTabDisplayName(tabName)}内容...`);
+                setTimeout(() => {
+                    window.location.href = currentContent;
+                }, 500);
+            }
+        }
+
+        /**
+         * 选择分类
+         * @param {HTMLElement} element - 被点击的分类元素
+         * @param {string} category - 分类名称
+         */
+        function selectCategory(element, category) {
+            document.querySelectorAll('.category-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            element.classList.add('active');
+            
+            element.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                element.style.transform = 'scale(1)';
+            }, 150);
+            
+            console.log('选择分类:', category);
+            
+            const categoryRoutes = {
+                subscribe: 'comprehensive_subscribe.html',
+                recommend: 'comprehensive_recommend.html',
+                agent: 'comprehensive_agent.html',
+                memory: 'comprehensive_memory.html',
+                bilingual: 'comprehensive_bilingual.html',
+                challenge: 'comprehensive_challenge.html'
+            };
+            
+            if (categoryRoutes[category] && category !== 'subscribe') {
+                showToast(`正在加载${getCategoryDisplayName(category)}内容...`);
+                setTimeout(() => {
+                    window.location.href = categoryRoutes[category];
+                }, 500);
+            }
+        }
+
+        /**
+         * 获取分类显示名称
+         * @param {string} category - 分类标识
+         * @returns {string} 显示名称
+         */
+        function getCategoryDisplayName(category) {
+            const categoryMap = {
+                subscribe: '订阅',
+                recommend: '推荐',
+                agent: '智能体',
+                memory: '记忆薄',
+                bilingual: '双语',
+                challenge: '挑战'
+            };
+            return categoryMap[category] || category;
+        }
+
+        /**
+         * 打开搜索页面
+         * @description 跳转到搜索页面
+         */
+        function openSearchPage() {
+            console.log('跳转到搜索页面');
+            showToast('正在打开搜索页面...');
+            setTimeout(() => {
+                window.location.href = 'search.html';
+            }, 500);
+        }
     </script>
 </body>
 </html> 

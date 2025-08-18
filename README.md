@@ -100,10 +100,13 @@ Security: Row Level Security (RLS)
 │  └── Local Storage (SharedPreferences)     │
 ├─────────────────────────────────────────────┤
 │              Supabase Backend              │
-│  ├── PostgreSQL Database (15 tables)       │
+│  ├── PostgreSQL Database (80+ tables)      │
+│  │   ├── 71 业务核心表                     │
+│  │   └── 9 API集成扩展表                   │
 │  ├── Authentication (OTP + OAuth)          │
 │  ├── Storage (files + media)               │
 │  ├── Real-time (WebSocket)                 │
+│  ├── Row Level Security (RLS)              │
 │  └── Edge Functions (custom logic)         │
 └─────────────────────────────────────────────┘
 ```
@@ -161,6 +164,9 @@ xinqu_app/
 ├── database_schema_enhanced.sql     # 增强版数据库架构
 ├── supabase_functions.sql          # 数据库函数和触发器
 ├── test_connection.dart            # 数据库连接测试脚本
+├── API_INTEGRATION_DATABASE_EXTENSION.sql    # API集成数据库扩展脚本
+├── EXISTING_TABLES_ENHANCEMENT.sql           # 现有表功能增强脚本
+├── API_INTEGRATION_RLS_POLICIES.sql          # RLS安全策略脚本
 ├── pubspec.yaml                    # Flutter项目配置
 └── README.md                       # 项目说明文档
 ```
@@ -218,6 +224,18 @@ class SupabaseConfig {
 -- 添加触发器、计数器、搜索功能等
 ```
 
+#### 部署API集成扩展 (2025年1月新增)
+```sql
+-- 阶段1: 创建9个API集成核心表
+-- 复制并执行 API_INTEGRATION_DATABASE_EXTENSION.sql
+
+-- 阶段2: 增强6个现有业务表  
+-- 复制并执行 EXISTING_TABLES_ENHANCEMENT.sql
+
+-- 阶段3: 部署RLS安全策略 (分4个步骤执行)
+-- 复制并执行 API_INTEGRATION_RLS_POLICIES.sql 中的各个步骤
+```
+
 #### 配置存储桶
 ```sql
 -- 创建文件存储桶
@@ -245,6 +263,122 @@ flutter run -d web
 - 在应用中导航到"数据库测试"页面
 - 或直接访问路由：`/test_database`
 - 查看控制台输出确认连接状态
+
+---
+
+## 🚀 API集成扩展架构 (2025年1月)
+
+### **大模型API集成数据库扩展**
+
+基于火山引擎(Volcano Engine)的大语言模型API，我们完成了全面的数据库架构扩展，支持AI对话、音频流媒体、内容安全和API成本控制。
+
+#### **🏗️ 架构设计**
+```
+┌─────────────────────────────────────────────────┐
+│           API集成数据库扩展架构               │
+├─────────────────────────────────────────────────┤
+│  🤖 AI对话服务层                              │
+│  ├── ai_conversation_configs (对话配置)        │
+│  ├── ai_conversation_sessions (会话管理)       │
+│  └── ai_conversation_messages (消息存储)       │
+├─────────────────────────────────────────────────┤
+│  🎵 音频流媒体层                              │
+│  ├── audio_stream_configs (流媒体配置)         │
+│  └── audio_play_sessions (播放分析)           │
+├─────────────────────────────────────────────────┤
+│  🛡️ 内容安全层                               │
+│  ├── content_moderation_configs (审核配置)     │
+│  └── content_moderation_logs (审核记录)       │
+├─────────────────────────────────────────────────┤
+│  📊 API管理层                                │
+│  ├── api_usage_statistics (使用统计)          │
+│  └── api_quota_management (配额管理)          │
+├─────────────────────────────────────────────────┤
+│  🔒 安全策略层                               │
+│  ├── Row Level Security (24+策略)             │
+│  ├── 用户数据隔离                             │
+│  ├── 管理员审计权限                           │
+│  └── 敏感数据脱敏                             │
+└─────────────────────────────────────────────────┘
+```
+
+#### **📊 部署统计**
+- **✅ 新增表**: 9个API集成核心表
+- **✅ 扩展表**: 6个现有业务表，新增22+字段
+- **✅ 安全策略**: 24个RLS策略，覆盖全部新表
+- **✅ 业务函数**: 5个安全和业务函数
+- **✅ 监控视图**: 3个管理员监控视图
+
+#### **🔥 核心功能**
+
+##### **1. AI对话服务 (火山引擎集成)**
+```sql
+-- 支持多模型配置
+SELECT config_name, model_id, applicable_scenarios 
+FROM ai_conversation_configs 
+WHERE is_active = true;
+
+-- 会话管理和成本控制  
+SELECT session_title, total_messages, total_cost, status
+FROM ai_conversation_sessions 
+WHERE user_id = auth.uid();
+```
+
+##### **2. 音频流媒体系统**
+```sql
+-- 自适应质量配置
+SELECT stream_url, quality_levels, adaptive_streaming
+FROM audio_stream_configs 
+WHERE audio_content_id = ?;
+
+-- 播放行为分析
+SELECT play_progress_percentage, seek_events, buffer_events
+FROM audio_play_sessions 
+WHERE audio_content_id = ? AND completed = true;
+```
+
+##### **3. API成本控制**
+```sql
+-- 使用量监控
+SELECT api_type, request_count, cost_amount, success_rate
+FROM api_usage_statistics 
+WHERE user_id = auth.uid() AND usage_date = CURRENT_DATE;
+
+-- 配额管理
+SELECT quota_type, quota_limit, quota_used, quota_remaining
+FROM api_quota_management 
+WHERE user_id = auth.uid() AND is_active = true;
+```
+
+#### **🔐 安全架构**
+
+##### **用户数据隔离**
+- 每个用户只能访问自己的对话记录、API使用统计
+- 基于会话关联的消息访问控制
+- 配额管理防篡改保护
+
+##### **管理员审计权限**
+- 完整的系统概览视图: `api_system_overview`
+- 安全监控函数: `get_api_system_overview()`
+- 敏感内容脱敏: `mask_sensitive_content()`
+
+##### **内容安全审核**
+- 自动化API调用内容审核
+- 人工审核流程支持
+- 多维度风险分类和置信度评分
+
+#### **⚡ 性能优化**
+- **15个专用索引**: 覆盖所有查询场景
+- **JSONB字段**: 灵活配置和高效查询
+- **分区策略**: 大数据量的统计表支持
+- **触发器自动化**: 统计数据实时更新
+
+#### **🎯 业务价值**
+1. **成本透明**: 精确到Token级别的API使用成本统计
+2. **用户体验**: 自适应音频质量和流畅播放体验  
+3. **内容安全**: 全自动内容审核和风险防控
+4. **数据驱动**: 完整的用户行为分析和推荐算法支持
+5. **可扩展性**: 支持未来更多AI服务提供商集成
 
 ---
 
@@ -470,6 +604,7 @@ git push origin feature/your-feature-name
 - ✅ **前端UI系统**: 95% 完成
 - ✅ **后端API架构**: 100% 完成  
 - ✅ **数据库设计**: 100% 完成
+- ✅ **API集成扩展**: 100% 完成 ⭐ **新增**
 - ✅ **测试工具**: 100% 完成
 - ✅ **部署文档**: 100% 完成
 
@@ -481,11 +616,19 @@ git push origin feature/your-feature-name
 - ✅ 发现页面和智能推荐系统
 - ✅ 用户认证和权限管理
 - ✅ 数据库连接和API测试工具
+- ✅ **大模型API集成架构 (火山引擎)** ⭐ **新增**
+- ✅ **AI对话服务和成本控制系统** ⭐ **新增**
+- ✅ **音频流媒体和播放分析系统** ⭐ **新增**
+- ✅ **内容安全审核和风险防控** ⭐ **新增**
 
 ### **技术亮点**
 - 🏗️ **现代化架构**：Flutter + Supabase全栈解决方案
 - 🎨 **精美UI设计**：深色主题 + 星空背景 + 流畅动画
 - 🔒 **企业级安全**：RLS行级安全 + OAuth认证
+- 🤖 **AI服务集成**：火山引擎大模型 + 多模态支持 ⭐ **新增**
+- 📊 **精确成本控制**：Token级别计费 + 配额管理 ⭐ **新增**
+- 🎵 **自适应流媒体**：CDN分发 + 播放行为分析 ⭐ **新增**
+- 🛡️ **智能内容审核**：自动+人工审核双重保障 ⭐ **新增**
 - 🧪 **完善测试**：自动化测试工具和验证系统
 - 📚 **详细文档**：完整的开发和部署指南
 
@@ -539,6 +682,7 @@ MIT License - 您可以自由地：
 
 **Made with ❤️ by [joshua23](https://github.com/joshua23)**
 
-*最后更新：2024年7月31日*
+*最后更新：2025年1月7日*
+*🎉 API集成扩展架构完成！支持火山引擎大模型、音频流媒体、内容安全审核等企业级功能*
 
 </div> 

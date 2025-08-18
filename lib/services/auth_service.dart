@@ -50,36 +50,89 @@ class AuthService {
       // 格式化手机号（添加国家代码）
       final formattedPhone = _formatPhoneNumber(phoneNumber);
 
-      // 发送短信验证码
+      // 使用最新的Supabase API发送短信验证码   
       await _client.auth.signInWithOtp(
         phone: formattedPhone,
+        shouldCreateUser: true, // 允许创建新用户
       );
 
+      debugPrint('✅ 验证码发送请求已提交: $formattedPhone');
       return true;
     } on AuthException catch (e) {
       debugPrint('发送验证码失败: ${e.message}');
+      // 处理常见的Supabase错误
+      if (e.message.contains('SMS Provider')) {
+        throw const AuthException('短信服务暂时不可用，请稍后重试');
+      } else if (e.message.contains('rate limit')) {
+        throw const AuthException('发送频率过快，请稍后重试');
+      }
       throw AuthException(e.message);
     } catch (e) {
       debugPrint('发送验证码异常: $e');
-      throw Exception('发送验证码失败，请检查网络连接');
+      if (e.toString().contains('network')) {
+        throw Exception('网络连接失败，请检查网络设置');
+      }
+      throw Exception('发送验证码失败，请重试');
     }
   }
 
-  /// 验证短信验证码并登录（模拟）
+  /// 验证短信验证码并登录
   /// [phoneNumber] 手机号码
   /// [code] 验证码
   /// [nickname] 用户昵称（新用户注册时需要）
-  /// 返回登录是否成功（开发环境模拟）
+  /// 返回登录是否成功
   Future<bool> verifyCodeAndSignIn({
     required String phoneNumber,
     required String code,
     String? nickname,
   }) async {
-    if (code.length == 6) {
-      await setLoggedIn(phoneNumber);
-      return true;
+    try {
+      // 验证输入格式
+      if (code.length != 6) {
+        throw const AuthException('请输入6位验证码');
+      }
+
+      // 格式化手机号
+      final formattedPhone = _formatPhoneNumber(phoneNumber);
+
+      // 使用Supabase验证OTP
+      final response = await _client.auth.verifyOTP(
+        phone: formattedPhone,
+        token: code,
+        type: OtpType.sms,
+      );
+
+      if (response.user != null) {
+        // 验证成功，确保用户资料存在
+        if (nickname != null && nickname.isNotEmpty) {
+          await _ensureUserProfile(response.user!, nickname);
+        }
+        
+        // 保存本地登录状态
+        await setLoggedIn(phoneNumber);
+        
+        debugPrint('✅ 用户登录成功: ${response.user!.id}');
+        return true;
+      } else {
+        throw const AuthException('验证码验证失败');
+      }
+    } on AuthException catch (e) {
+      debugPrint('验证码验证失败: ${e.message}');
+      
+      // 处理常见的验证错误
+      if (e.message.contains('invalid')) {
+        throw const AuthException('验证码无效或已过期');
+      } else if (e.message.contains('expired')) {
+        throw const AuthException('验证码已过期，请重新获取');
+      } else if (e.message.contains('attempts')) {
+        throw const AuthException('尝试次数过多，请重新获取验证码');
+      }
+      
+      throw AuthException(e.message);
+    } catch (e) {
+      debugPrint('验证过程异常: $e');
+      throw Exception('验证失败，请重试');
     }
-    throw const AuthException('请输入6位验证码');
   }
 
   /// 确保用户资料存在
@@ -176,7 +229,7 @@ class AuthService {
           .from(SupabaseTables.follows)
           .select()
           .eq('follower_id', currentUserId!)
-          .eq('following_id', targetUserId)
+                      .eq('following_id', targetUserId)
           .maybeSingle();
 
       return response != null;
@@ -224,9 +277,20 @@ class AuthService {
   }
 
   /// 登出
-  /// 清除本地会话数据
+  /// 清除Supabase会话和本地数据
   Future<void> signOut() async {
+    try {
+      // 清除Supabase会话
+      await _client.auth.signOut();
+      debugPrint('✅ Supabase会话已清除');
+    } catch (e) {
+      debugPrint('⚠️ 清除Supabase会话时发生错误: $e');
+      // 即使Supabase登出失败，也要清除本地状态
+    }
+    
+    // 清除本地登录状态
     await clearLogin();
+    debugPrint('✅ 本地登录状态已清除');
   }
 
   /// 监听认证状态变化

@@ -235,14 +235,14 @@ class _TestDatabasePageState extends State<TestDatabasePage> {
           child: Row(
             children: [
               Icon(
-                info?['icon'] ?? Icons.help,
+                (info?['icon'] as IconData?) ?? Icons.help,
                 color: passed ? Colors.green : Colors.red,
                 size: 24,
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Text(
-                  info?['name'] ?? key,
+                  (info?['name'] as String?) ?? key,
                   style: AppTextStyles.bodyLarge.copyWith(
                     color: AppColors.textPrimary,
                   ),

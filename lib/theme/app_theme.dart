@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// 应用颜色配置类 - 基于星趣品牌视觉识别系统设计规范
 /// 严格按照设计文档的颜色系统和使用比例
@@ -13,11 +14,13 @@ class AppColors {
   // 强调色 (使用比例10% + 5%)  
   static const Color accent = Color(0xFFFFC542);         // 琥珀黄 - 点赞、通知、重要操作
   static const Color highlight = Color(0xFFAAB2C8);      // 浅灰蓝 - 按钮高亮、链接
+  static const Color secondary = Color(0xFFAAB2C8);      // 次要色 - 兼容旧代码
 
   // 功能色
   static const Color success = Color(0xFFB7C68B);        // 浅橄榄绿 - 成功状态
   static const Color warning = Color(0xFFFFC542);        // 琥珀黄 - 警告状态
   static const Color error = Color(0xFFFF5757);          // 错误红 - 错误状态
+  static const Color info = Color(0xFFAAB2C8);           // 信息色 - 兼容旧代码
 
   // 中性色
   static const Color textPrimary = Color(0xFFFFFFFF);    // 文字高亮
@@ -92,6 +95,15 @@ class AppTextStyles {
     letterSpacing: 0.02,
   );
 
+  // 副标题样式 (18sp)
+  static const TextStyle subtitle1 = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w500,
+    color: AppColors.textPrimary,
+    height: 1.4,
+    letterSpacing: 0.02,
+  );
+
   // 正文样式 (思源黑体 Regular)
   static const TextStyle body1 = TextStyle(
     fontSize: 16,
@@ -108,6 +120,11 @@ class AppTextStyles {
     height: 1.4,
     letterSpacing: 0.02,
   );
+
+  // 兼容旧代码的样式
+  static const TextStyle body = body1;                    // 兼容旧代码
+  static const TextStyle bodyLarge = body1;               // 兼容旧代码
+  static const TextStyle bodyMedium = body2;              // 兼容旧代码
 
   // 说明文字 (12sp)
   static const TextStyle caption = TextStyle(
@@ -195,7 +212,7 @@ class AppDimensions {
   static const double buttonHeight = 50.0;
   static const double inputHeight = 50.0;
   static const double appBarHeight = 60.0;
-  static const double bottomNavHeight = 83.0;
+  static const double bottomNavHeight = 70.0;
   static const double statusBarHeight = 47.0;
 
   // 图标尺寸
@@ -241,6 +258,11 @@ class AppTheme {
         elevation: 0,
         centerTitle: true,
         titleTextStyle: AppTextStyles.h3,
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
       ),
 
       // 按钮主题

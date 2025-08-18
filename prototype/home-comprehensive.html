@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>星趣 - 综合模式</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <link rel="stylesheet" href="common-styles.css">
     <style>
         /* iPhone 15 Pro外观样式 */
@@ -672,13 +673,16 @@
             border-radius: 2px;
         }
 
-        /* 首页顶部Tab导航 */
+        /* 首页顶部Tab导航 - 采用首页助手页面风格 */
         .home-tab-nav {
-            background: rgba(0, 0, 0, 0.95);
+            background: rgba(13, 13, 18, 0.95);
             padding: 0 20px;
-            border-bottom: 1px solid #1C1C1E;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px);
             z-index: 90;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
         .home-tab-container {
@@ -702,7 +706,7 @@
         }
 
         .home-tab-text {
-            color: #8E8E93;
+            color: rgba(255, 255, 255, 0.6);
             font-size: 16px;
             font-weight: 500;
             transition: all 0.3s ease;
@@ -717,10 +721,22 @@
             bottom: 0;
             left: 50%;
             transform: translateX(-50%);
-            width: 24px;
-            height: 2px;
-            background: #FFFFFF;
-            border-radius: 1px;
+            width: 20px;
+            height: 3px;
+            background: linear-gradient(90deg, #6E5CFE, #38D4FF);
+            border-radius: 3px;
+        }
+
+        .nav-icon {
+            color: #FFFFFF;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 8px;
+        }
+
+        .nav-icon:hover {
+            color: #FFCF6F;
         }
 
         /* 响应式适配 */
@@ -935,19 +951,13 @@
                             <span class="home-tab-text">精选</span>
                         </div>
                     </div>
+                    <!-- 右侧搜索图标 -->
+                    <i class="ri-search-line nav-icon" title="搜索" onclick="openSearchPage()"></i>
                 </div>
 
                 <!-- 综合内容容器 -->
                 <div class="comprehensive-container">
                     <div class="comprehensive-content">
-                        <!-- 搜索栏 -->
-                        <div class="search-section">
-                            <div class="search-container">
-                                <span class="search-icon" onclick="openSearchPage()" style="cursor: pointer;">🔍</span>
-                                <div class="search-placeholder" onclick="openSearchPage()" style="cursor: pointer; flex: 1; color: #9B9B9B; padding: 10px 16px;">搜索AI角色、智能体...</div>
-                            </div>
-                        </div>
-
                         <!-- 分类导航 -->
                         <div class="category-nav">
                             <div class="category-scroll" id="categoryScroll">

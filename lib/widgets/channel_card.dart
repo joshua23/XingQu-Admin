@@ -42,16 +42,17 @@ class ChannelCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               // 频道图标
               _buildChannelIcon(),
               
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               
-              // 频道信息
-              _buildChannelInfo(),
-              
-              const Spacer(),
+              // 频道信息 - 使用Expanded来避免溢出
+              Expanded(
+                child: _buildChannelInfo(),
+              ),
               
               // 播放状态指示器
               if (isActive)
@@ -100,6 +101,7 @@ class ChannelCard extends StatelessWidget {
   Widget _buildChannelInfo() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         // 频道名称
         Text(
@@ -112,20 +114,22 @@ class ChannelCard extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
         ),
         
-        const SizedBox(height: 4),
+        const SizedBox(height: 2),
         
-        // 频道描述
-        Text(
-          audio.description,
-          style: AppTextStyles.caption.copyWith(
-            color: AppColors.textSecondary,
-            height: 1.3,
+        // 频道描述 - 使用Flexible包装避免溢出
+        Flexible(
+          child: Text(
+            audio.description,
+            style: AppTextStyles.caption.copyWith(
+              color: AppColors.textSecondary,
+              height: 1.2,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
         ),
         
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         
         // 分类标签
         Container(

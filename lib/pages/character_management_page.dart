@@ -281,13 +281,16 @@ class _CharacterManagementPageState extends State<CharacterManagementPage> {
               ],
             ),
           ),
-          ElevatedButton(
-            onPressed: _showCreateCharacterDialog,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.secondary,
-              foregroundColor: AppColors.background,
+          SizedBox(
+            width: 120,
+            child: ElevatedButton(
+              onPressed: _showCreateCharacterDialog,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.secondary,
+                foregroundColor: AppColors.background,
+              ),
+              child: const Text('+ 创建新角色'),
             ),
-            child: const Text('+ 创建新角色'),
           ),
         ],
       ),

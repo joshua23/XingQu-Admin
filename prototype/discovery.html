@@ -636,53 +636,56 @@
         }
 
         /* 底部Tab导航 */
-        .bottom-tab-bar {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 83px;
-            background: rgba(0, 0, 0, 0.8);
+        .bottom-tab {
+            background: rgba(0, 0, 0, 0.95);
+            padding: 8px 20px 20px 20px;
+            border-top: 1px solid #1C1C1E;
             backdrop-filter: blur(20px);
-            border-top: 0.5px solid #333333;
             display: flex;
             justify-content: space-around;
-            align-items: flex-start;
-            padding: 8px 0 34px 0;
-            z-index: 1000;
+            align-items: center;
         }
 
         .tab-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            flex: 1;
-            text-decoration: none;
-            color: #8E8E93;
-            font-size: 10px;
-            font-weight: 500;
-            transition: all 0.2s ease;
+            gap: 4px;
             cursor: pointer;
-            padding: 4px;
-        }
-
-        .tab-item.active {
-            color: #007AFF;
+            transition: all 0.3s ease;
+            padding: 8px;
+            border-radius: 12px;
+            min-width: 60px;
         }
 
         .tab-item:hover {
-            color: #007AFF;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .tab-item.active {
+            background: rgba(255, 197, 66, 0.1);
         }
 
         .tab-icon {
-            font-size: 24px;
-            margin-bottom: 4px;
-            transition: all 0.2s ease;
+            font-size: 20px;
+            color: #8E8E93;
+            transition: all 0.3s ease;
         }
 
         .tab-item.active .tab-icon {
+            color: #FFC542;
             transform: scale(1.1);
+        }
+
+        .tab-label {
+            font-size: 12px;
+            color: #8E8E93;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .tab-item.active .tab-label {
+            color: #FFC542;
         }
 
         /* 创作中心特殊样式 - 只显示图标 */
@@ -963,22 +966,22 @@
         </div>
 
                                 <!-- 底部Tab导航 -->
-        <div class="bottom-tab-bar">
-                    <a href="home.html" class="tab-item">
-                        <span>首页</span>
-            </a>
-                    <a href="messages.html" class="tab-item">
-                        <span>消息</span>
-            </a>
-                    <a href="creation.html" class="tab-item creation-center">
-                        <div class="tab-icon">✨</div>
-            </a>
-                    <a href="discovery.html" class="tab-item active">
-                        <span>发现</span>
-            </a>
-                    <a href="profile.html" class="tab-item">
-                        <span>我的</span>
-            </a>
+        <div class="bottom-tab">
+            <div class="tab-item" onclick="navigateToTab('home')">
+                <div class="tab-label">首页</div>
+            </div>
+            <div class="tab-item" onclick="navigateToTab('messages')">
+                <div class="tab-label">消息</div>
+            </div>
+            <div class="tab-item creation-center" onclick="navigateToTab('creation')">
+                <div class="tab-icon">✨</div>
+            </div>
+            <div class="tab-item active" onclick="navigateToTab('discovery')">
+                <div class="tab-label">发现</div>
+            </div>
+            <div class="tab-item" onclick="navigateToTab('profile')">
+                <div class="tab-label">我的</div>
+            </div>
         </div>
             </div>
         </div>

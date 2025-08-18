@@ -42,32 +42,46 @@ class _DiscoveryPageState extends State<DiscoveryPage>
   // 核心功能入口
   final List<Map<String, dynamic>> _featuredFunctions = [
     {
+      'title': 'VIP会员',
+      'desc': '解锁全部高级功能',
+      'icon': '💎',
+      'badge': '热门',
+      'route': '/subscription_plans',
+    },
+    {
+      'title': '智能推荐',
+      'desc': 'AI个性化内容推荐',
+      'icon': '🎯',
+      'badge': '新增',
+      'route': '/recommendation',
+    },
+    {
+      'title': 'AI智能体',
+      'desc': '探索智能体市场',
+      'icon': '🤖',
+      'badge': null,
+      'route': '/agent_marketplace',
+    },
+    {
+      'title': '会员中心',
+      'desc': '管理订阅和权益',
+      'icon': '⚙️',
+      'badge': null,
+      'route': '/membership_management',
+    },
+    {
       'title': 'AI角色创建',
       'desc': '设计专属AI伙伴',
-      'icon': '🤖',
-      'badge': '热门',
+      'icon': '🎭',
+      'badge': null,
       'route': '/character_create',
     },
     {
       'title': 'FM电台',
       'desc': '发现有趣的音频',
       'icon': '📻',
-      'badge': '新增',
+      'badge': null,
       'route': '/fm_discovery',
-    },
-    {
-      'title': '故事创作',
-      'desc': 'AI协助创作故事',
-      'icon': '✍️',
-      'badge': null,
-      'route': '/story_creation',
-    },
-    {
-      'title': '智能问答',
-      'desc': '知识库问答助手',
-      'icon': '❓',
-      'badge': null,
-      'route': '/qa_assistant',
     },
   ];
   
@@ -310,7 +324,7 @@ class _DiscoveryPageState extends State<DiscoveryPage>
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                childAspectRatio: 1.2,
+                childAspectRatio: 1.1,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
               ),
@@ -669,12 +683,40 @@ class _DiscoveryPageState extends State<DiscoveryPage>
 
   // 事件处理方法
   void _onSearchChanged(String value) {
-    // TODO: 实现搜索逻辑
+    // 实时搜索筛选
+    setState(() {
+      if (value.isEmpty) {
+        _loadMockData(); // 重新加载所有数据
+      } else {
+        _contents = _contents.where((content) {
+          return content.title.toLowerCase().contains(value.toLowerCase()) ||
+                 content.description.toLowerCase().contains(value.toLowerCase()) ||
+                 content.tags.any((tag) => tag.toLowerCase().contains(value.toLowerCase()));
+        }).toList();
+      }
+    });
   }
 
   void _onSearchSubmitted(String value) {
     setState(() => _isSearching = false);
-    // TODO: 执行搜索
+    _performSearch(value);
+  }
+  
+  void _performSearch(String query) {
+    setState(() {
+      if (query.isEmpty) {
+        _loadMockData();
+      } else {
+        _contents = _contents.where((content) {
+          final searchLower = query.toLowerCase();
+          return content.title.toLowerCase().contains(searchLower) ||
+                 content.description.toLowerCase().contains(searchLower) ||
+                 content.author.toLowerCase().contains(searchLower) ||
+                 content.type.toLowerCase().contains(searchLower) ||
+                 content.tags.any((tag) => tag.toLowerCase().contains(searchLower));
+        }).toList();
+      }
+    });
   }
 
   void _onSuggestionTap(String suggestion) {
@@ -689,8 +731,16 @@ class _DiscoveryPageState extends State<DiscoveryPage>
   void _onCategorySelected(String category) {
     setState(() {
       _selectedCategory = category;
+      // 根据分类筛选内容
+      _loadMockData(); // 先重新加载所有数据
+      if (category != '全部') {
+        _contents = _contents.where((content) => content.type == category).toList();
+      }
+      // 如果有搜索关键字，继续应用搜索筛选
+      if (_searchController.text.isNotEmpty) {
+        _performSearch(_searchController.text);
+      }
     });
-    // TODO: 根据分类筛选内容
   }
 
   void _onContentTap(DiscoveryContent content) {

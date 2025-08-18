@@ -5,7 +5,7 @@ description: 星趣App - 故事分享平台
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: '>=3.8.0 <4.0.0'
 
 dependencies:
   flutter:
@@ -32,24 +32,36 @@ dependencies:
   cached_network_image: ^3.3.0
   
   # 动画
-  lottie: ^2.7.0
+  lottie: ^3.3.1
   
   # 工具类
-  intl: ^0.18.1  # 国际化支持
+  intl: ^0.20.2  # 国际化支持
   flutter_launcher_icons: ^0.14.4
-  # fluwx: ^5.7.0  # 暂时注释掉微信SDK
+  # fluwx: ^5.7.0  # 微信SDK - 暂时注释掉
   flutter_dotenv: ^5.2.1
+  crypto: ^3.0.3  # 加密工具库（用于SMS签名）
+  
+  # JSON序列化
+  json_annotation: ^4.9.0
+  
+  # 设备信息和分析
+  device_info_plus: ^10.1.0  # 获取设备信息
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.0
+  flutter_lints: ^6.0.0
+  
+  # 代码生成
+  build_runner: ^2.4.12
+  json_serializable: ^6.8.0
 
 # Flutter相关配置
 flutter:
   uses-material-design: true
   assets:
     - assets/images/logo.png
+    - assets/images/image.png
 
 flutter_icons:
   android: true

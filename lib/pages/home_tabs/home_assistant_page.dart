@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/sprint3_design_tokens.dart' as sprint3;
 
 /// 首页助理页面 - AI助理交互界面
 /// 基于原型文件home-assistant.html设计
@@ -76,22 +77,22 @@ class _HomeAssistantPageState extends State<HomeAssistantPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.transparent, // 透明背景
       body: Stack(
         children: [
-          // 宇宙背景效果
+          // 宇宙背景效果 - 让背景图显示更好
           _buildCosmicBackground(),
           
           // 主要内容
           Column(
             children: [
-              // 导航操作区
+              // 导航操作区 - 透明化
               _buildNavActions(),
               
-              // 助理信息区
+              // 助理信息区 - 透明化
               _buildAssistantProfile(),
               
-              // 系统功能区
+              // 系统功能区 - 透明化
               _buildSystemFunctions(),
               
               // 主要内容区域
@@ -139,7 +140,7 @@ class _HomeAssistantPageState extends State<HomeAssistantPage>
                 center: const Alignment(0.7, -0.2),
                 radius: 1.0,
                 colors: [
-                  const Color(0xFF6E5CFE).withOpacity(0.2),
+                  sprint3.AppColors.premiumMemberPurple.withOpacity(0.2),
                   Colors.transparent,
                 ],
                 stops: const [0.0, 0.4],
@@ -154,7 +155,7 @@ class _HomeAssistantPageState extends State<HomeAssistantPage>
                 center: const Alignment(-0.3, 0.7),
                 radius: 0.8,
                 colors: [
-                  const Color(0xFF38D4FF).withOpacity(0.15),
+                  sprint3.AppColors.starSkyGradient.colors[1].withOpacity(0.15),
                   Colors.transparent,
                 ],
                 stops: const [0.0, 0.5],
@@ -176,7 +177,7 @@ class _HomeAssistantPageState extends State<HomeAssistantPage>
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        const Color(0xFF6E5CFE).withOpacity(0.15),
+                        sprint3.AppColors.premiumMemberPurple.withOpacity(0.15),
                         Colors.transparent,
                       ],
                     ),
@@ -200,7 +201,7 @@ class _HomeAssistantPageState extends State<HomeAssistantPage>
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        const Color(0xFF38D4FF).withOpacity(0.15),
+                        sprint3.AppColors.starSkyGradient.colors[1].withOpacity(0.15),
                         Colors.transparent,
                       ],
                     ),
@@ -217,7 +218,7 @@ class _HomeAssistantPageState extends State<HomeAssistantPage>
   /// 构建导航操作区
   Widget _buildNavActions() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: sprint3.AppSpacing.lg, vertical: sprint3.AppSpacing.sm),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -231,7 +232,7 @@ class _HomeAssistantPageState extends State<HomeAssistantPage>
                   size: 20,
                 ),
               ),
-              const SizedBox(width: 20),
+              const SizedBox(width: sprint3.AppSpacing.xl),
               GestureDetector(
                 onTap: () => _onMenuTap(),
                 child: Icon(
@@ -253,7 +254,7 @@ class _HomeAssistantPageState extends State<HomeAssistantPage>
                   size: 20,
                 ),
               ),
-              const SizedBox(width: 20),
+              const SizedBox(width: sprint3.AppSpacing.xl),
               GestureDetector(
                 onTap: () => _onNotificationTap(),
                 child: Icon(
@@ -284,17 +285,10 @@ class _HomeAssistantPageState extends State<HomeAssistantPage>
                 height: 64,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Color(0xFF6E5CFE),
-                      Color(0xFF38D4FF),
-                    ],
-                  ),
+                  gradient: sprint3.AppColors.purpleGoldGradient,
                   boxShadow: [
                     BoxShadow(
-                      color: Color(0xFF6E5CFE).withOpacity(0.5 + _glowController.value * 0.3),
+                      color: sprint3.AppColors.premiumMemberPurple.withOpacity(0.5 + _glowController.value * 0.3),
                       blurRadius: 15 + _glowController.value * 10,
                       spreadRadius: 0,
                     ),
@@ -333,7 +327,7 @@ class _HomeAssistantPageState extends State<HomeAssistantPage>
             },
           ),
           
-          const SizedBox(width: 16),
+          const SizedBox(width: sprint3.AppSpacing.lg),
           
           // 助理信息
           Expanded(
@@ -344,7 +338,7 @@ class _HomeAssistantPageState extends State<HomeAssistantPage>
                   shaderCallback: (bounds) => LinearGradient(
                     colors: [
                       AppColors.textPrimary,
-                      Color(0xFFFFCF6F),
+                      sprint3.AppColors.basicMemberGold,
                     ],
                   ).createShader(bounds),
                   child: Text(
@@ -355,7 +349,7 @@ class _HomeAssistantPageState extends State<HomeAssistantPage>
                     ),
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: sprint3.AppSpacing.xs),
                 Text(
                   '12.8万关注者',
                   style: AppTextStyles.caption.copyWith(
@@ -396,7 +390,7 @@ class _HomeAssistantPageState extends State<HomeAssistantPage>
   Widget _buildSystemFunctions() {
     return Container(
       height: 50,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: sprint3.AppSpacing.lg),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: _systemFunctions.length,
@@ -408,26 +402,21 @@ class _HomeAssistantPageState extends State<HomeAssistantPage>
             onTap: () => _onFunctionTap(function['label']),
             child: Container(
               margin: const EdgeInsets.only(right: 10),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: sprint3.AppSpacing.lg, vertical: sprint3.AppSpacing.sm),
               decoration: BoxDecoration(
                 color: isHighlight
-                    ? LinearGradient(
-                        colors: [
-                          Color(0xFF6E5CFE).withOpacity(0.3),
-                          Color(0xFF38D4FF).withOpacity(0.3),
-                        ],
-                      ).colors.first
+                    ? sprint3.AppColors.premiumMemberPurple.withOpacity(0.3)
                     : AppColors.textSecondary.withOpacity(0.08),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: isHighlight
-                      ? Color(0xFF6E5CFE).withOpacity(0.5)
+                      ? sprint3.AppColors.premiumMemberPurple.withOpacity(0.5)
                       : AppColors.textSecondary.withOpacity(0.1),
                   width: 1,
                 ),
                 boxShadow: isHighlight ? [
                   BoxShadow(
-                    color: Color(0xFF6E5CFE).withOpacity(0.3),
+                    color: sprint3.AppColors.premiumMemberPurple.withOpacity(0.3),
                     blurRadius: 10,
                     spreadRadius: 0,
                   ),
@@ -465,10 +454,10 @@ class _HomeAssistantPageState extends State<HomeAssistantPage>
         margin: const EdgeInsets.all(16),
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Color(0xFF141420).withOpacity(0.7),
+          color: sprint3.AppColors.secondaryBackground.withOpacity(0.7),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: Color(0xFF6E5CFE).withOpacity(0.3),
+            color: sprint3.AppColors.premiumMemberPurple.withOpacity(0.3),
             width: 1,
           ),
           boxShadow: [
@@ -486,8 +475,8 @@ class _HomeAssistantPageState extends State<HomeAssistantPage>
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Color(0xFF6E5CFE).withOpacity(0.1),
-                    Color(0xFF38D4FF).withOpacity(0.1),
+                    sprint3.AppColors.premiumMemberPurple.withOpacity(0.1),
+                    sprint3.AppColors.starSkyGradient.colors[1].withOpacity(0.1),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(16),
@@ -513,7 +502,7 @@ class _HomeAssistantPageState extends State<HomeAssistantPage>
   Widget _buildPresetQuestions() {
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: sprint3.AppSpacing.lg),
         child: Column(
           children: _presetQuestions.map((question) {
             return GestureDetector(
@@ -536,10 +525,8 @@ class _HomeAssistantPageState extends State<HomeAssistantPage>
                       width: 4,
                       height: 40,
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Color(0xFF6E5CFE), Color(0xFF38D4FF)],
-                        ),
-                        borderRadius: BorderRadius.circular(2),
+                        gradient: sprint3.AppColors.purpleGoldGradient,
+                        borderRadius: BorderRadius.circular(8),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -632,13 +619,13 @@ class _HomeAssistantPageState extends State<HomeAssistantPage>
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: _isSpeakerOn
-                            ? Color(0xFFFFCF6F).withOpacity(0.2)
+                            ? sprint3.AppColors.basicMemberGold.withOpacity(0.2)
                             : AppColors.textSecondary.withOpacity(0.1),
                       ),
                       child: Icon(
                         _isSpeakerOn ? Icons.volume_up : Icons.volume_off,
                         color: _isSpeakerOn
-                            ? Color(0xFFFFCF6F)
+                            ? sprint3.AppColors.basicMemberGold
                             : AppColors.textSecondary,
                         size: 18,
                       ),

@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../theme/app_theme.dart';
-import 'package:flutter/services.dart';
 import '../widgets/chat_bubble.dart';
 import '../widgets/chat_input_bar.dart';
-import '../widgets/loading_animation.dart';
 
 /// AI聊天页
 /// 包含AI对话界面、输入框、消息气泡、AI头像、发送动画等
@@ -147,7 +145,7 @@ class _AiChatPageState extends State<AiChatPage> with TickerProviderStateMixin {
           // 设置按钮
           IconButton(
             onPressed: () => _navigateToSettings(),
-            icon: const FaIcon(FontAwesomeIcons.cog,
+            icon: const FaIcon(FontAwesomeIcons.gear,
                 color: AppColors.textSecondary, size: 20),
             tooltip: '聊天设置',
           ),

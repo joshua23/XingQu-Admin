@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>星趣 - FM电台</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <link rel="stylesheet" href="common-styles.css">
     <style>
-        /* iPhone 15 Pro外观样式 */
+        /* 全局样式重置 */
         * {
             margin: 0;
             padding: 0;
@@ -15,8 +16,7 @@
 
         html, body {
             height: 100%;
-            background: #000000;
-            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             overflow: hidden;
         }
 
@@ -101,7 +101,7 @@
         }
 
         /* iOS状态栏 */
-        .status-bar {
+        .ios-status-bar {
             position: absolute;
             top: 0;
             left: 0;
@@ -165,510 +165,34 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(135deg, #000000, #1a1a1a);
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* 顶部导航栏 */
-        .nav-header {
-            display: none; /* 隐藏空的导航栏 */
-        }
-
-        /* 移除了与顶部导航栏元素相关的样式（nav-action 和 nav-title） */
-
-        /* FM内容容器 */
-        .fm-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
             background: #000000;
-        }
-
-        .fm-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 0;
-        }
-
-        /* 当前播放区域 */
-        .now-playing {
-            background: linear-gradient(135deg, rgba(255, 197, 66, 0.15), rgba(255, 225, 53, 0.05));
-            padding: 24px 20px;
-            text-align: center;
-            border-bottom: 1px solid #1C1C1E;
-        }
-
-        .album-cover {
-            width: 160px;
-            height: 160px;
-            border-radius: 20px;
-            background: linear-gradient(135deg, #FFC542, #FFE135);
-            margin: 0 auto 20px;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 48px;
-            color: #000000;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 8px 24px rgba(255, 197, 66, 0.3);
-            animation: rotateAlbum 10s linear infinite;
+            flex-direction: column;
         }
 
-        .album-cover.playing {
-            animation-play-state: running;
-        }
-
-        .album-cover.paused {
-            animation-play-state: paused;
-        }
-
-        @keyframes rotateAlbum {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        .album-cover::before {
-            content: '';
+        /* 背景图层 */
+        .background-layer {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 20px;
-            height: 20px;
-            background: #000000;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        .song-info {
-            margin-bottom: 20px;
-        }
-
-        .song-title {
-            color: #FFFFFF;
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .song-artist {
-            color: #8E8E93;
-            font-size: 16px;
-            margin-bottom: 4px;
-        }
-
-        .song-album {
-            color: #FFC542;
-            font-size: 14px;
-        }
-
-        /* 进度条 */
-        .progress-section {
-            margin-bottom: 20px;
-        }
-
-        .progress-bar {
+            top: 0;
+            left: 0;
             width: 100%;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 2px;
-            overflow: hidden;
-            margin-bottom: 8px;
-            cursor: pointer;
-        }
-
-        .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #FFC542, #FFE135);
-            border-radius: 2px;
-            width: 30%;
-            transition: width 0.3s ease;
+            background-image: url('../assets/images/image.png');
+            background-size: cover;
+            background-position: center;
+            filter: blur(20px) brightness(0.4);
+            z-index: 0;
         }
 
-        .time-display {
-            display: flex;
-            justify-content: space-between;
-            color: #8E8E93;
-            font-size: 12px;
-        }
 
-        /* 播放控制 */
-        .playback-controls {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 24px;
-        }
-
-        /* 统计数据区 */
-        .stats-area {
-            width: 100%;
-            padding: 0 20px;
-            display: flex;
-            justify-content: space-between;
-            margin-top: 24px;
-        }
-
-        .stat-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            padding: 8px 12px;
-            border-radius: 12px;
-        }
-
-        .stat-item:hover {
-            background: rgba(255, 197, 66, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .stat-value {
-            font-size: 18px;
-            font-weight: bold;
-            color: #FFC542;
-            margin-bottom: 4px;
-            transition: all 0.3s ease;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: #8E8E93;
-            font-weight: 500;
-        }
-
-        .stat-item:hover .stat-value {
-            color: #FFE135;
-            transform: scale(1.1);
-        }
-
-        .stat-item:hover .stat-label {
-            color: #FFC542;
-        }
-
-        .control-btn {
-            width: 48px;
-            height: 48px;
-            border-radius: 24px;
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: #FFFFFF;
-            font-size: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .control-btn:hover {
-            background: rgba(255, 197, 66, 0.2);
-            transform: scale(1.1);
-        }
-
-        .play-btn {
-            width: 64px;
-            height: 64px;
-            border-radius: 32px;
-            background: linear-gradient(135deg, #FFC542, #FFE135);
-            color: #000000;
-            font-size: 24px;
-        }
-
-        .play-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 8px 24px rgba(255, 197, 66, 0.4);
-        }
-
-        /* 频道列表 */
-        .channels-section {
-            padding: 24px 20px 0 20px;
-        }
-
-        .section-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-        }
-
-        .section-title {
-            color: #FFFFFF;
-            font-size: 18px;
-            font-weight: 700;
-        }
-
-        .view-all-btn {
-            color: #FFC542;
-            font-size: 14px;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .channels-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-
-        .channel-card {
-            background: #1C1C1E;
-            border-radius: 16px;
-            padding: 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 1px solid #333333;
-        }
-
-        .channel-card:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: #FFC542;
-            transform: translateY(-2px);
-        }
-
-        .channel-card.active {
-            border-color: #FFC542;
-            background: rgba(255, 197, 66, 0.1);
-        }
-
-        .channel-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #FFC542, #FFE135);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            color: #000000;
-            margin-bottom: 12px;
-        }
-
-        .channel-name {
-            color: #FFFFFF;
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .channel-desc {
-            color: #8E8E93;
-            font-size: 12px;
-            line-height: 1.3;
-        }
-
-        /* 最近播放 */
-        .recent-section {
-            padding: 0 20px 20px 20px;
-        }
-
-        .recent-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .recent-item {
-            background: #1C1C1E;
-            border-radius: 12px;
-            padding: 12px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 1px solid #333333;
-        }
-
-        .recent-item:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: #FFC542;
-        }
-
-        .recent-cover {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            background: linear-gradient(135deg, #FFC542, #F5DFAF);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            color: #000000;
-            flex-shrink: 0;
-        }
-
-        .recent-info {
-            flex: 1;
-        }
-
-        .recent-title {
-            color: #FFFFFF;
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 2px;
-        }
-
-        .recent-artist {
-            color: #8E8E93;
-            font-size: 12px;
-        }
-
-        .recent-duration {
-            color: #8E8E93;
-            font-size: 12px;
-        }
-
-        /* 底部迷你播放器 */
-        .mini-player {
-            background: rgba(0, 0, 0, 0.95);
-            padding: 12px 20px;
-            border-top: 1px solid #1C1C1E;
-            backdrop-filter: blur(20px);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .mini-cover {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            background: linear-gradient(135deg, #FFC542, #FFE135);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            color: #000000;
-        }
-
-        .mini-info {
-            flex: 1;
-        }
-
-        .mini-title {
-            color: #FFFFFF;
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 2px;
-        }
-
-        .mini-artist {
-            color: #8E8E93;
-            font-size: 12px;
-        }
-
-        .mini-controls {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .mini-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 16px;
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: #FFFFFF;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .mini-btn:hover {
-            background: rgba(255, 197, 66, 0.2);
-        }
-
-        /* 底部Tab导航 */
-        .bottom-tab {
-            background: rgba(0, 0, 0, 0.95);
-            padding: 8px 20px 20px 20px;
-            border-top: 1px solid #1C1C1E;
-            backdrop-filter: blur(20px);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-        }
-
-        .tab-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            padding: 8px;
-            border-radius: 12px;
-            min-width: 60px;
-        }
-
-        .tab-item:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .tab-item.active {
-            background: rgba(255, 197, 66, 0.1);
-        }
-
-        .tab-icon {
-            font-size: 20px;
-            color: #8E8E93;
-            transition: all 0.3s ease;
-        }
-
-        .tab-item.active .tab-icon {
-            color: #FFC542;
-            transform: scale(1.1);
-        }
-
-        .tab-label {
-            font-size: 12px;
-            color: #8E8E93;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .tab-item.active .tab-label {
-            color: #FFC542;
-        }
-
-        /* 创作中心特殊样式 - 只显示图标 */
-        .tab-item.creation-center {
-            padding: 8px;
-        }
-
-        .tab-item.creation-center .tab-icon {
-            font-size: 28px;
-            margin-bottom: 0;
-        }
-
-        /* 滚动条样式 */
-        .fm-content::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .fm-content::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .fm-content::-webkit-scrollbar-thumb {
-            background: rgba(255, 197, 66, 0.3);
-            border-radius: 2px;
-        }
-
-        /* 首页顶部Tab导航 */
+        /* 首页顶部Tab导航 - 采用统一风格 */
         .home-tab-nav {
-            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(13, 13, 18, 0.95);
             padding: 0 20px;
-            border-bottom: 1px solid #1C1C1E;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px);
             z-index: 90;
         }
@@ -694,7 +218,7 @@
         }
 
         .home-tab-text {
-            color: #8E8E93;
+            color: rgba(255, 255, 255, 0.6);
             font-size: 16px;
             font-weight: 500;
             transition: all 0.3s ease;
@@ -709,92 +233,402 @@
             bottom: 0;
             left: 50%;
             transform: translateX(-50%);
-            width: 24px;
-            height: 2px;
-            background: #FFFFFF;
-            border-radius: 1px;
+            width: 20px;
+            height: 3px;
+            background: linear-gradient(90deg, #6E5CFE, #38D4FF);
+            border-radius: 3px;
         }
 
-        /* 响应式适配 */
-        @media (max-width: 414px) {
-            .iphone-container {
-                margin: 20px auto;
-            }
-            
-            .home-tab-container {
-                padding: 8px 0;
-                gap: 4px;
-            }
-            
-            .home-tab-item {
-                padding: 6px 12px;
-            }
-            
-            .home-tab-text {
-                font-size: 14px;
-            }
-            
-            .now-playing {
-                padding: 20px 16px;
-            }
-            
-            .album-cover {
-                width: 140px;
-                height: 140px;
-            }
-            
-            .channels-section,
-            .recent-section {
-                padding-left: 16px;
-                padding-right: 16px;
-            }
+        .nav-icon {
+            color: #FFFFFF;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 8px;
         }
 
-        /* 动画效果 */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .nav-icon:hover {
+            color: #FFCF6F;
         }
 
-        .channel-card,
-        .recent-item {
-            animation: fadeInUp 0.5s ease;
+        /* 内容区域 */
+        .content-scroll {
+            flex: 1;
+            overflow-y: auto;
+            z-index: 1;
+            -webkit-overflow-scrolling: touch;
         }
 
-        .channel-card:nth-child(1) { animation-delay: 0.1s; }
-        .channel-card:nth-child(2) { animation-delay: 0.2s; }
-        .channel-card:nth-child(3) { animation-delay: 0.3s; }
-        .channel-card:nth-child(4) { animation-delay: 0.4s; }
+        .content-container {
+            padding-bottom: 100px;
+        }
 
-        /* 波形动画 */
-        .wave-indicator {
+        /* 封面图片 */
+        .album-cover-section {
+            position: relative;
+            width: 100%;
+            padding-top: 120%; /* 1:1.2 比例 */
+            overflow: hidden;
+        }
+
+        .album-cover-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        
+        .album-cover-section:hover .album-cover-image {
+            transform: scale(1.05);
+        }
+
+        /* 评论输入提示 */
+        .comment-input-hint {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            height: 36px;
+            background: rgba(50, 50, 50, 0.8);
+            border-radius: 18px;
+            padding: 0 12px;
             display: flex;
             align-items: center;
-            gap: 2px;
+            justify-content: space-between;
+            backdrop-filter: blur(10px);
         }
 
-        .wave-bar {
-            width: 3px;
-            background: #FFC542;
-            border-radius: 1.5px;
-            animation: wave 1s ease-in-out infinite;
+        .comment-text {
+            font-size: 14px;
+            color: #FFFFFF;
         }
 
-        .wave-bar:nth-child(1) { height: 8px; animation-delay: 0s; }
-        .wave-bar:nth-child(2) { height: 12px; animation-delay: 0.1s; }
-        .wave-bar:nth-child(3) { height: 6px; animation-delay: 0.2s; }
-        .wave-bar:nth-child(4) { height: 10px; animation-delay: 0.3s; }
-        .wave-bar:nth-child(5) { height: 8px; animation-delay: 0.4s; }
+        .clear-icon {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
 
-        @keyframes wave {
-            0%, 100% { transform: scaleY(0.5); }
-            50% { transform: scaleY(1); }
+        .clear-icon:hover {
+            opacity: 1;
+        }
+
+        /* 标题与作者信息 */
+        .title-author-section {
+            padding: 16px 20px;
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        .song-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #FFFFFF;
+            margin-bottom: 12px;
+        }
+
+        .author-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tag {
+            font-size: 12px;
+            color: #AAAAAA;
+            border: 1px solid #AAAAAA;
+            border-radius: 4px;
+            padding: 2px 8px;
+        }
+
+        .author-name {
+            font-size: 12px;
+            color: #FFFFFF;
+        }
+
+        .follow-btn {
+            font-size: 12px;
+            color: #FFFFFF;
+            border: 1px solid #FFFFFF;
+            border-radius: 12px;
+            padding: 4px 12px;
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .follow-btn:hover {
+            background: #FFFFFF;
+            color: #000000;
+        }
+
+        /* 互动图标区 */
+        .interaction-bar {
+            height: 48px;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            background: rgba(0, 0, 0, 0.6);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .interaction-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: background 0.3s ease;
+        }
+
+        .interaction-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .interaction-icon {
+            width: 24px;
+            height: 24px;
+        }
+
+        .interaction-count {
+            font-size: 14px;
+            color: #FFFFFF;
+        }
+
+        /* 播放控制区 */
+        .player-controls {
+            background: #443D45;
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px);
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.4);
+        }
+
+        /* 互动图标行 */
+        .interaction-icons {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 16px 0;
+            margin-bottom: 12px;
+        }
+
+        .interaction-icon-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            color: #FFFFFF;
+            font-size: 20px;
+            padding: 8px 12px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .interaction-icon-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .interaction-icon-item.active {
+            color: #FFC542;
+        }
+
+        .interaction-icon-item span {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* 进度条 */
+        .progress-section {
+            margin: 16px 0 20px 0;
+            position: relative;
+        }
+
+        .seek-bar {
+            position: relative;
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            cursor: pointer;
+        }
+
+        .seek-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background: #FFF;
+            border-radius: 3px;
+            width: 20%;
+            position: relative;
+        }
+
+        .seek-fill::after {
+            content: '';
+            position: absolute;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            background: #FFF;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .time-display {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+        }
+
+        .time-current, .time-total {
+            font-size: 14px;
+            color: #FFFFFF;
+        }
+
+        /* 播放按键区 */
+        .control-buttons {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+
+        .control-btn {
+            width: 44px;
+            height: 44px;
+            background: none;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #FFFFFF;
+            font-size: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn.repeat,
+        .control-btn.playlist {
+            font-size: 18px;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.05);
+        }
+
+        .control-btn:active {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(0.95);
+        }
+
+        .control-btn.prev,
+        .control-btn.next {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn.play {
+            width: 64px;
+            height: 64px;
+            background: #FFF;
+            border-radius: 50%;
+            color: #000;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 底部导航栏 */
+        .bottom-navigation {
+            background: rgba(0, 0, 0, 0.95);
+            padding: 8px 20px 20px 20px;
+            border-top: 1px solid #1C1C1E;
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 8px;
+            border-radius: 12px;
+            min-width: 60px;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-item.active {
+            background: rgba(255, 197, 66, 0.1);
+        }
+
+        .nav-icon {
+            font-size: 20px;
+            color: #8E8E93;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item.active .nav-icon {
+            color: #FFC542;
+            transform: scale(1.1);
+        }
+
+        .nav-label {
+            font-size: 12px;
+            color: #8E8E93;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-item.active .nav-label {
+            color: #FFC542;
+        }
+
+        /* 创作中心特殊样式 - 只显示图标 */
+        .nav-item.center {
+            padding: 8px;
+        }
+
+        .center-btn .center-icon {
+            font-size: 28px;
+            margin-bottom: 0;
+        }
+
+        /* 滚动条美化 */
+        .content-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .content-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255, 193, 7, 0.3);
+            border-radius: 2px;
+        }
+
+        .content-scroll::-webkit-scrollbar-track {
+            background: transparent;
         }
     </style>
 </head>
@@ -813,7 +647,7 @@
         <!-- iPhone 屏幕 -->
         <div class="iphone-screen">
             <!-- iOS状态栏 -->
-            <div class="status-bar">
+            <div class="ios-status-bar">
                 <div class="status-left">9:41</div>
                 <div class="status-right">
                     <span style="font-size: 16px;">•••</span>
@@ -827,502 +661,174 @@
 
             <!-- 应用内容区域 -->
             <div class="app-container">
-                <!-- 顶部导航栏 -->
-                <div class="nav-header">
-                    <!-- 空的导航栏，仅保留容器结构 -->
+                <!-- 背景图层 -->
+                <div class="background-layer"></div>
+
+        <!-- 首页顶部Tab导航 -->
+        <div class="home-tab-nav" id="homeTabNav">
+            <div class="home-tab-container">
+                <div class="home-tab-item" onclick="switchTab('assistant')" data-tab="assistant">
+                    <span class="home-tab-text">助理</span>
                 </div>
-
-                <!-- 首页顶部Tab导航 -->
-                <div class="home-tab-nav" id="homeTabNav">
-                    <div class="home-tab-container">
-                        <div class="home-tab-item" onclick="switchHomeTab('assistant')" data-tab="assistant">
-                            <span class="home-tab-text">助理</span>
-                        </div>
-                        <div class="home-tab-item active" onclick="switchHomeTab('fm')" data-tab="fm">
-                            <span class="home-tab-text">FM</span>
-                            <div class="home-tab-indicator"></div>
-                        </div>
-                        <div class="home-tab-item" onclick="switchHomeTab('comprehensive')" data-tab="comprehensive">
-                            <span class="home-tab-text">综合</span>
-                        </div>
-                        <div class="home-tab-item" onclick="switchHomeTab('selection')" data-tab="selection">
-                            <span class="home-tab-text">精选</span>
-                        </div>
-                    </div>
+                <div class="home-tab-item active" onclick="switchTab('fm')" data-tab="fm">
+                    <span class="home-tab-text">FM</span>
+                    <div class="home-tab-indicator"></div>
                 </div>
+                <div class="home-tab-item" onclick="switchTab('comprehensive')" data-tab="comprehensive">
+                    <span class="home-tab-text">综合</span>
+                </div>
+                <div class="home-tab-item" onclick="switchTab('selection')" data-tab="selection">
+                    <span class="home-tab-text">精选</span>
+                </div>
+            </div>
+            <!-- 右侧搜索图标 -->
+            <i class="ri-search-line nav-icon" title="搜索" onclick="openSearch()"></i>
+        </div>
 
-                <!-- FM内容容器 -->
-                <div class="fm-container">
-                    <div class="fm-content">
-                        <!-- 当前播放区域 -->
-                        <div class="now-playing">
-                            <div class="album-cover playing" id="albumCover">
-                                🎵
-                            </div>
-                            
-                            <div class="song-info">
-                                <div class="song-title" id="songTitle">星空物语</div>
-                                <div class="song-artist" id="songArtist">星趣FM</div>
-                                <div class="song-album" id="songAlbum">深夜故事集</div>
-                            </div>
-
-                            <div class="progress-section">
-                                <div class="progress-bar" onclick="seekTo(event)">
-                                    <div class="progress-fill" id="progressFill"></div>
-                                </div>
-                                <div class="time-display">
-                                    <span id="currentTime">02:45</span>
-                                    <span id="totalTime">08:30</span>
-                                </div>
-                            </div>
-
-                            <div class="playback-controls">
-                                <button class="control-btn" onclick="previousTrack()" title="上一首">⏮️</button>
-                                <button class="play-btn" onclick="togglePlay()" id="playBtn" title="播放/暂停">⏸️</button>
-                                <button class="control-btn" onclick="nextTrack()" title="下一首">⏭️</button>
-                            </div>
-
-                            <!-- 统计数据区 -->
-                            <div class="stats-area">
-                                <div class="stat-item" onclick="showListeners()">
-                                    <div class="stat-value">889</div>
-                                    <div class="stat-label">收听</div>
-                                </div>
-                                <div class="stat-item" onclick="toggleLike()">
-                                    <div class="stat-value" id="likeCount">948</div>
-                                    <div class="stat-label">点赞</div>
-                                </div>
-                                <div class="stat-item" onclick="showComments()">
-                                    <div class="stat-value">151</div>
-                                    <div class="stat-label">评论</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 频道列表 -->
-                        <div class="channels-section">
-                            <div class="section-header">
-                                <div class="section-title">🎪 精选频道</div>
-                                <a href="#" class="view-all-btn">查看全部</a>
-                            </div>
-                            
-                            <div class="channels-grid">
-                                <div class="channel-card active" onclick="selectChannel(this, 'story')">
-                                    <div class="channel-icon">📖</div>
-                                    <div class="channel-name">故事FM</div>
-                                    <div class="channel-desc">精选原创故事</div>
-                                </div>
-
-                                <div class="channel-card" onclick="selectChannel(this, 'music')">
-                                    <div class="channel-icon">🎵</div>
-                                    <div class="channel-name">音乐时光</div>
-                                    <div class="channel-desc">舒缓背景音乐</div>
-                                </div>
-
-                                <div class="channel-card" onclick="selectChannel(this, 'talk')">
-                                    <div class="channel-icon">🎤</div>
-                                    <div class="channel-name">深度访谈</div>
-                                    <div class="channel-desc">对话有趣的人</div>
-                                </div>
-
-                                <div class="channel-card" onclick="selectChannel(this, 'sleep')">
-                                    <div class="channel-icon">🌙</div>
-                                    <div class="channel-name">助眠电台</div>
-                                    <div class="channel-desc">温柔的睡前故事</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 最近播放 -->
-                        <div class="recent-section">
-                            <div class="section-header">
-                                <div class="section-title">⏰ 最近播放</div>
-                                <a href="#" class="view-all-btn">查看全部</a>
-                            </div>
-
-                            <div class="recent-list">
-                                <div class="recent-item" onclick="playTrack('track1')">
-                                    <div class="recent-cover">🌟</div>
-                                    <div class="recent-info">
-                                        <div class="recent-title">午夜咖啡馆的故事</div>
-                                        <div class="recent-artist">星趣FM · 都市夜话</div>
-                                    </div>
-                                    <div class="recent-duration">12:30</div>
-                                </div>
-
-                                <div class="recent-item" onclick="playTrack('track2')">
-                                    <div class="recent-cover">🎭</div>
-                                    <div class="recent-info">
-                                        <div class="recent-title">时间旅行者的日记</div>
-                                        <div class="recent-artist">创作者电台 · 科幻故事</div>
-                                    </div>
-                                    <div class="recent-duration">18:45</div>
-                                </div>
-
-                                <div class="recent-item" onclick="playTrack('track3')">
-                                    <div class="recent-cover">🌸</div>
-                                    <div class="recent-info">
-                                        <div class="recent-title">春天的约定</div>
-                                        <div class="recent-artist">情感电台 · 温暖故事</div>
-                                    </div>
-                                    <div class="recent-duration">15:20</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 底部迷你播放器 -->
-                    <div class="mini-player" id="miniPlayer" style="display: none;">
-                        <div class="mini-cover">🎵</div>
-                        <div class="mini-info">
-                            <div class="mini-title">星空物语</div>
-                            <div class="mini-artist">星趣FM</div>
-                        </div>
-                        <div class="mini-controls">
-                            <button class="mini-btn" onclick="togglePlay()">⏸️</button>
-                            <div class="wave-indicator">
-                                <div class="wave-bar"></div>
-                                <div class="wave-bar"></div>
-                                <div class="wave-bar"></div>
-                                <div class="wave-bar"></div>
-                                <div class="wave-bar"></div>
-                            </div>
-                        </div>
+        <!-- 内容区域 -->
+        <div class="content-scroll">
+            <div class="content-container">
+                <!-- 封面图片区域 -->
+                <div class="album-cover-section">
+                    <img src="../assets/images/image.png" alt="Album Cover" class="album-cover-image">
+                    
+                    <!-- 评论输入提示 -->
+                    <div class="comment-input-hint">
+                        <span class="comment-text">@苏怜芷^: W靠,</span>
+                        <span class="clear-icon" onclick="clearComment()">✕</span>
                     </div>
                 </div>
 
-                <!-- 底部Tab导航 -->
-                <div class="bottom-tab">
-                    <div class="tab-item active" onclick="navigateToTab('home')">
-                        <div class="tab-label">首页</div>
+                <!-- 标题与作者信息 -->
+                <div class="title-author-section">
+                    <h3 class="song-title">Sweets Parade（节选）</h3>
+                    <div class="author-row">
+                        <span class="tag">脑洞</span>
+                        <span class="author-name">洛文·阿斯特</span>
+                        <button class="follow-btn" onclick="toggleFollow()">关注</button>
                     </div>
-                    <div class="tab-item" onclick="navigateToTab('messages')">
-                        <div class="tab-label">消息</div>
+                </div>
+
+                <!-- 互动图标区 -->
+                <div class="interaction-bar">
+                    <div class="interaction-item" onclick="handleShare()">
+                        <span class="interaction-icon">🔄</span>
+                        <span class="interaction-count">转发</span>
                     </div>
-                    <div class="tab-item creation-center" onclick="navigateToTab('creation')">
-                        <div class="tab-icon">✨</div>
+                    <div class="interaction-item" onclick="handleLike()">
+                        <span class="interaction-icon">❤️</span>
+                        <span class="interaction-count">81</span>
                     </div>
-                    <div class="tab-item" onclick="navigateToTab('discovery')">
-                        <div class="tab-label">发现</div>
+                    <div class="interaction-item" onclick="handleFavorite()">
+                        <span class="interaction-icon">⭐</span>
+                        <span class="interaction-count">79</span>
                     </div>
-                    <div class="tab-item" onclick="navigateToTab('profile')">
-                        <div class="tab-label">我的</div>
+                    <div class="interaction-item" onclick="handleComment()">
+                        <span class="interaction-icon">💬</span>
+                        <span class="interaction-count">8</span>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 播放控制区 -->
+        <div class="player-controls">
+            <!-- 互动图标 -->
+            <div class="interaction-icons">
+                <div class="interaction-icon-item" onclick="handleLikeInPlayer()">
+                    <i class="ri-heart-line"></i>
+                    <span>2.1万</span>
+                </div>
+                <div class="interaction-icon-item" onclick="handleFavoriteInPlayer()">
+                    <i class="ri-star-line"></i>
+                    <span>1.8万</span>
+                </div>
+                <div class="interaction-icon-item" onclick="handleCommentInPlayer()">
+                    <i class="ri-message-3-line"></i>
+                    <span>856</span>
+                </div>
+            </div>
+
+            <!-- 进度条 -->
+            <div class="progress-section">
+                <div class="seek-bar" onclick="seekTo(event)">
+                    <div class="seek-fill" id="seekFill"></div>
+                </div>
+                <div class="time-display">
+                    <span class="time-current">00:03</span>
+                    <span class="time-total">00:21</span>
+                </div>
+            </div>
+
+            <!-- 播放按键 -->
+            <div class="control-buttons">
+                <button class="control-btn repeat" onclick="toggleRepeat()">
+                    <i class="ri-repeat-line"></i>
+                </button>
+                <button class="control-btn prev" onclick="previousTrack()">
+                    <i class="ri-skip-back-line"></i>
+                </button>
+                <button class="control-btn play" onclick="togglePlay()" id="playBtn">
+                    <i class="ri-play-fill" id="playIcon"></i>
+                </button>
+                <button class="control-btn next" onclick="nextTrack()">
+                    <i class="ri-skip-forward-line"></i>
+                </button>
+                <button class="control-btn playlist" onclick="showPlaylist()">
+                    <i class="ri-play-list-line"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- 底部导航栏 -->
+        <div class="bottom-navigation">
+            <div class="nav-item active" onclick="navigateTo('home')">
+                <div class="nav-label">首页</div>
+            </div>
+            <div class="nav-item" onclick="navigateTo('messages')">
+                <div class="nav-label">消息</div>
+            </div>
+            <div class="nav-item center" onclick="navigateTo('create')">
+                <div class="nav-icon">✨</div>
+            </div>
+            <div class="nav-item" onclick="navigateTo('discover')">
+                <div class="nav-label">发现</div>
+            </div>
+            <div class="nav-item" onclick="navigateTo('profile')">
+                <div class="nav-label">我的</div>
+            </div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        /**
-         * FM电台页面交互逻辑
-         * 包含播放控制、频道切换、进度管理等功能
-         * @description iPhone15pro样式的FM电台页面
-         */
-
-        // DOM元素引用
-        const albumCover = document.getElementById('albumCover');
-        const songTitle = document.getElementById('songTitle');
-        const songArtist = document.getElementById('songArtist');
-        const songAlbum = document.getElementById('songAlbum');
-        const playBtn = document.getElementById('playBtn');
-        const progressFill = document.getElementById('progressFill');
-        const currentTime = document.getElementById('currentTime');
-        const totalTime = document.getElementById('totalTime');
-        const miniPlayer = document.getElementById('miniPlayer');
-        const homeTabNav = document.getElementById('homeTabNav');
-
-        // 播放状态管理
-        let isPlaying = true;
-        let currentProgress = 30; // 百分比
-        let currentTrackId = 'track1';
-        let currentChannel = 'story';
+        // 播放状态
+        let isPlaying = false;
+        let isFollowing = false;
         let isLiked = false;
-        let likeCount = 948;
+        let isFavorited = false;
+        let repeatMode = 'off'; // off, single, all
 
-        // 模拟音轨数据
-        const tracks = {
-            track1: {
-                title: '星空物语',
-                artist: '星趣FM',
-                album: '深夜故事集',
-                duration: '08:30',
-                icon: '🎵'
-            },
-            track2: {
-                title: '午夜咖啡馆的故事',
-                artist: '星趣FM',
-                album: '都市夜话',
-                duration: '12:30',
-                icon: '🌟'
-            },
-            track3: {
-                title: '时间旅行者的日记',
-                artist: '创作者电台',
-                album: '科幻故事',
-                duration: '18:45',
-                icon: '🎭'
-            }
-        };
-
-        // 页面初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('FM电台页面已加载 - iPhone15pro样式');
-            initPlayer();
-            startProgressSimulation();
-            // 默认选中FM模式
-            switchHomeTab('fm');
-        });
-
-        /**
-         * 初始化播放器
-         * @description 设置初始播放状态
-         */
-        function initPlayer() {
-            updateProgress();
-            updatePlayButton();
-            
-            // 模拟当前播放时间
-            updateTimeDisplay();
-            
-            console.log('播放器初始化完成');
-        }
-
-        /**
-         * 切换播放/暂停
-         * @description 控制音频播放状态
-         */
-        function togglePlay() {
-            isPlaying = !isPlaying;
-            updatePlayButton();
-            
-            if (isPlaying) {
-                albumCover.classList.remove('paused');
-                albumCover.classList.add('playing');
-                showToast('继续播放');
-            } else {
-                albumCover.classList.remove('playing');
-                albumCover.classList.add('paused');
-                showToast('暂停播放');
-            }
-            
-            // 触觉反馈
-            if (navigator.vibrate) {
-                navigator.vibrate(50);
-            }
-            
-            console.log('播放状态:', isPlaying ? '播放' : '暂停');
-        }
-
-        /**
-         * 更新播放按钮
-         * @description 根据播放状态更新按钮图标
-         */
-        function updatePlayButton() {
-            const icon = isPlaying ? '⏸️' : '▶️';
-            playBtn.textContent = icon;
-            
-            // 同步迷你播放器
-            const miniBtn = document.querySelector('.mini-btn');
-            if (miniBtn) {
-                miniBtn.textContent = icon;
-            }
-        }
-
-        /**
-         * 上一首
-         * @description 播放上一首音轨
-         */
-        function previousTrack() {
-            console.log('上一首');
-            showToast('切换到上一首');
-            
-            // 这里可以实现实际的上一首逻辑
-            currentProgress = 0;
-            updateProgress();
-            updateTimeDisplay();
-        }
-
-        /**
-         * 下一首
-         * @description 播放下一首音轨
-         */
-        function nextTrack() {
-            console.log('下一首');
-            showToast('切换到下一首');
-            
-            // 这里可以实现实际的下一首逻辑
-            currentProgress = 0;
-            updateProgress();
-            updateTimeDisplay();
-        }
-
-        /**
-         * 播放指定音轨
-         * @param {string} trackId - 音轨ID
-         */
-        function playTrack(trackId) {
-            const track = tracks[trackId];
-            if (!track) return;
-            
-            currentTrackId = trackId;
-            
-            // 更新播放信息
-            songTitle.textContent = track.title;
-            songArtist.textContent = track.artist;
-            songAlbum.textContent = track.album;
-            totalTime.textContent = track.duration;
-            albumCover.textContent = track.icon;
-            
-            // 重置进度
-            currentProgress = 0;
-            updateProgress();
-            updateTimeDisplay();
-            
-            // 开始播放
-            if (!isPlaying) {
-                togglePlay();
-            }
-            
-            showToast(`正在播放：${track.title}`);
-            console.log('播放音轨:', track.title);
-        }
-
-        /**
-         * 进度条点击
-         * @param {Event} event - 点击事件
-         */
-        function seekTo(event) {
-            const progressBar = event.currentTarget;
-            const rect = progressBar.getBoundingClientRect();
-            const clickX = event.clientX - rect.left;
-            const percentage = (clickX / rect.width) * 100;
-            
-            currentProgress = Math.max(0, Math.min(100, percentage));
-            updateProgress();
-            updateTimeDisplay();
-            
-            showToast(`跳转到 ${Math.round(percentage)}%`);
-            console.log('进度调整:', Math.round(percentage) + '%');
-        }
-
-        /**
-         * 更新进度条
-         * @description 更新播放进度显示
-         */
-        function updateProgress() {
-            progressFill.style.width = `${currentProgress}%`;
-        }
-
-        /**
-         * 更新时间显示
-         * @description 计算并显示当前播放时间
-         */
-        function updateTimeDisplay() {
-            // 模拟时间计算（简化版）
-            const totalSeconds = 8 * 60 + 30; // 8:30
-            const currentSeconds = Math.floor((currentProgress / 100) * totalSeconds);
-            
-            const minutes = Math.floor(currentSeconds / 60);
-            const seconds = currentSeconds % 60;
-            
-            currentTime.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        }
-
-        /**
-         * 模拟进度更新
-         * @description 在播放时自动更新进度
-         */
-        function startProgressSimulation() {
-            setInterval(() => {
-                if (isPlaying && currentProgress < 100) {
-                    currentProgress += 0.2; // 模拟播放进度
-                    updateProgress();
-                    updateTimeDisplay();
-                }
-            }, 1000);
-        }
-
-        /**
-         * 选择频道
-         * @param {HTMLElement} element - 被点击的频道卡片
-         * @param {string} channelId - 频道ID
-         */
-        function selectChannel(element, channelId) {
-            // 移除所有选中状态
-            document.querySelectorAll('.channel-card').forEach(card => {
-                card.classList.remove('active');
-            });
-            
-            // 添加选中状态
-            element.classList.add('active');
-            currentChannel = channelId;
-            
-            // 添加选择动画
-            element.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                element.style.transform = 'scale(1)';
-            }, 150);
-            
-            const channelName = element.querySelector('.channel-name').textContent;
-            showToast(`切换到 ${channelName}`);
-            
-            console.log('选择频道:', channelId);
-        }
-
-        // 移除了与顶部导航栏相关的函数（goBack 和 openPlaylist）
-
-        /**
-         * 切换首页Tab
-         * @param {string} tabName - Tab名称
-         */
-        function switchHomeTab(tabName) {
-            document.querySelectorAll('.home-tab-item').forEach(item => {
-                item.classList.remove('active');
-                // 移除指示器
-                const indicator = item.querySelector('.home-tab-indicator');
-                if (indicator) {
-                    indicator.remove();
-                }
-            });
-
-            const targetItem = document.querySelector(`.home-tab-item[data-tab="${tabName}"]`);
-            if (targetItem) {
-                targetItem.classList.add('active');
-                // 添加指示器
-                const indicator = document.createElement('div');
-                indicator.className = 'home-tab-indicator';
-                targetItem.appendChild(indicator);
-                
-                // 触觉反馈
-                if (navigator.vibrate) {
-                    navigator.vibrate(50);
-                }
-            }
-
-            // 根据tab切换内容
-            const contentSections = {
+        // Tab切换
+        function switchTab(tabName) {
+            const contentRoutes = {
                 assistant: 'home-assistant.html',
                 fm: 'home-fm.html',
                 comprehensive: 'home-comprehensive.html',
                 selection: 'home-selection.html'
             };
 
-            const currentContent = contentSections[tabName];
-            if (currentContent && tabName !== 'fm') {
+            if (contentRoutes[tabName] && tabName !== 'fm') {
                 console.log('切换到首页内容:', tabName);
                 showToast(`正在加载${getTabDisplayName(tabName)}内容...`);
                 setTimeout(() => {
-                    window.location.href = currentContent;
+                    window.location.href = contentRoutes[tabName];
                 }, 500);
             }
         }
 
-        /**
-         * 获取Tab显示名称
-         * @param {string} tabName - Tab标识
-         * @returns {string} 显示名称
-         */
+        // 获取Tab显示名称
         function getTabDisplayName(tabName) {
             const tabMap = {
                 assistant: '助理',
@@ -1333,42 +839,187 @@
             return tabMap[tabName] || tabName;
         }
 
-        /**
-         * Tab导航功能
-         * @param {string} tabName - Tab名称
-         */
-        function navigateToTab(tabName) {
-            // 更新选中状态
-            document.querySelectorAll('.tab-item').forEach(item => {
+        // 搜索功能
+        function openSearch() {
+            console.log('打开搜索');
+            showToast('正在打开搜索...');
+            setTimeout(() => {
+                window.location.href = 'search.html';
+            }, 500);
+        }
+
+        // 清除评论
+        function clearComment() {
+            const commentHint = document.querySelector('.comment-input-hint');
+            commentHint.style.display = 'none';
+            console.log('清除评论提示');
+        }
+
+        // 关注切换
+        function toggleFollow() {
+            isFollowing = !isFollowing;
+            const btn = event.currentTarget;
+            btn.textContent = isFollowing ? '已关注' : '关注';
+            btn.style.background = isFollowing ? '#FFFFFF' : 'transparent';
+            btn.style.color = isFollowing ? '#000000' : '#FFFFFF';
+            console.log('关注状态:', isFollowing);
+        }
+
+        // 分享功能
+        function handleShare() {
+            console.log('分享内容');
+            showToast('分享功能开发中');
+        }
+
+        // 点赞功能
+        function handleLike() {
+            isLiked = !isLiked;
+            const item = event.currentTarget;
+            const icon = item.querySelector('.interaction-icon');
+            const count = item.querySelector('.interaction-count');
+            
+            icon.textContent = isLiked ? '❤️' : '🤍';
+            count.textContent = isLiked ? '82' : '81';
+            
+            console.log('点赞状态:', isLiked);
+        }
+
+        // 收藏功能
+        function handleFavorite() {
+            isFavorited = !isFavorited;
+            const item = event.currentTarget;
+            const icon = item.querySelector('.interaction-icon');
+            const count = item.querySelector('.interaction-count');
+            
+            icon.textContent = isFavorited ? '⭐' : '☆';
+            count.textContent = isFavorited ? '80' : '79';
+            
+            console.log('收藏状态:', isFavorited);
+        }
+
+        // 评论功能
+        function handleComment() {
+            console.log('打开评论');
+            showToast('评论功能开发中');
+        }
+
+        // 进度条点击
+        function seekTo(event) {
+            const seekBar = event.currentTarget;
+            const rect = seekBar.getBoundingClientRect();
+            const clickX = event.clientX - rect.left;
+            const percentage = (clickX / rect.width) * 100;
+            
+            document.getElementById('seekFill').style.width = percentage + '%';
+            console.log('跳转到:', percentage.toFixed(1) + '%');
+        }
+
+        // 切换重复模式
+        function toggleRepeat() {
+            const modes = ['off', 'single', 'all'];
+            const currentIndex = modes.indexOf(repeatMode);
+            repeatMode = modes[(currentIndex + 1) % modes.length];
+            
+            const btn = event.currentTarget;
+            const icon = btn.querySelector('i');
+            switch(repeatMode) {
+                case 'off':
+                    icon.className = 'ri-repeat-line';
+                    btn.style.opacity = '0.5';
+                    break;
+                case 'single':
+                    icon.className = 'ri-repeat-one-line';
+                    btn.style.opacity = '1';
+                    break;
+                case 'all':
+                    icon.className = 'ri-repeat-line';
+                    btn.style.opacity = '1';
+                    break;
+            }
+            
+            console.log('重复模式:', repeatMode);
+        }
+
+        // 播放控制
+        function togglePlay() {
+            isPlaying = !isPlaying;
+            const icon = document.getElementById('playIcon');
+            icon.className = isPlaying ? 'ri-pause-fill' : 'ri-play-fill';
+            console.log('播放状态:', isPlaying);
+        }
+
+        // 播放器内的点赞功能
+        function handleLikeInPlayer() {
+            const item = event.currentTarget;
+            const icon = item.querySelector('i');
+            const isLiked = icon.classList.contains('ri-heart-fill');
+            
+            if (isLiked) {
+                icon.className = 'ri-heart-line';
+                item.classList.remove('active');
+            } else {
+                icon.className = 'ri-heart-fill';
+                item.classList.add('active');
+            }
+            console.log('点赞状态:', !isLiked);
+        }
+
+        // 播放器内的收藏功能
+        function handleFavoriteInPlayer() {
+            const item = event.currentTarget;
+            const icon = item.querySelector('i');
+            const isFavorited = icon.classList.contains('ri-star-fill');
+            
+            if (isFavorited) {
+                icon.className = 'ri-star-line';
+                item.classList.remove('active');
+            } else {
+                icon.className = 'ri-star-fill';
+                item.classList.add('active');
+            }
+            console.log('收藏状态:', !isFavorited);
+        }
+
+        // 播放器内的评论功能
+        function handleCommentInPlayer() {
+            console.log('打开评论');
+            showToast('评论功能开发中');
+        }
+
+        function previousTrack() {
+            console.log('上一曲');
+            showToast('切换到上一曲');
+        }
+
+        function nextTrack() {
+            console.log('下一曲');
+            showToast('切换到下一曲');
+        }
+
+        function showPlaylist() {
+            console.log('显示播放列表');
+            showToast('播放列表功能开发中');
+        }
+
+        // 底部导航
+        function navigateTo(page) {
+            document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
             });
             
-            event.currentTarget.classList.add('active');
+            if (page !== 'create') {
+                event.currentTarget.classList.add('active');
+            }
             
-            // 根据tab跳转页面
-            const routes = {
-                home: 'home-selection.html',
-                discovery: 'discovery.html',
-                creation: 'creation.html',
-                messages: 'messages.html',
-                profile: 'profile.html'
-            };
+            console.log('导航到:', page);
             
-            if (routes[tabName]) {
-                console.log('导航到:', tabName);
-                showToast(`正在跳转到${tabName}...`);
-                setTimeout(() => {
-                    window.location.href = routes[tabName];
-                }, 500);
+            if (page === 'create') {
+                showToast('打开创作中心');
             }
         }
 
-        /**
-         * 显示消息提示
-         * @param {string} message - 提示消息
-         */
+        // Toast提示
         function showToast(message) {
-            // 创建提示元素
             const toast = document.createElement('div');
             toast.style.cssText = `
                 position: fixed;
@@ -1376,124 +1027,37 @@
                 left: 50%;
                 transform: translate(-50%, -50%);
                 background: rgba(0, 0, 0, 0.8);
-                color: #FFC542;
+                color: #FFC107;
                 padding: 12px 24px;
                 border-radius: 24px;
                 font-size: 14px;
-                z-index: 3000;
-                backdrop-filter: blur(10px);
-                border: 1px solid rgba(255, 197, 66, 0.3);
+                z-index: 1000;
                 animation: fadeInOut 2s ease;
             `;
             toast.textContent = message;
             
-            // 添加动画样式
             const style = document.createElement('style');
             style.textContent = `
                 @keyframes fadeInOut {
-                    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-                    20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-                    80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-                    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                    0% { opacity: 0; }
+                    20% { opacity: 1; }
+                    80% { opacity: 1; }
+                    100% { opacity: 0; }
                 }
             `;
             document.head.appendChild(style);
-            
             document.body.appendChild(toast);
             
-            // 自动移除
             setTimeout(() => {
-                if (toast.parentNode) {
-                    toast.remove();
-                }
-                if (style.parentNode) {
-                    style.remove();
-                }
+                toast.remove();
+                style.remove();
             }, 2000);
         }
 
-        // 页面卸载时的清理工作
-        window.addEventListener('beforeunload', function() {
-            console.log('FM电台页面卸载');
+        // 页面初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('FM页面加载完成');
         });
-
-        // 页面可见性变化处理
-        document.addEventListener('visibilitychange', function() {
-            if (document.hidden && isPlaying) {
-                // 页面隐藏时暂停播放
-                console.log('页面隐藏，暂停播放');
-            } else if (!document.hidden && !isPlaying) {
-                // 页面重新可见时询问是否继续播放
-                console.log('页面可见，可继续播放');
-            }
-        });
-
-        /**
-         * 显示收听者列表
-         * @description 展示当前FM频道的收听者信息
-         */
-        function showListeners() {
-            showToast('共有889位听众正在收听');
-            
-            // 触觉反馈
-            if (navigator.vibrate) {
-                navigator.vibrate(50);
-            }
-            
-            console.log('显示收听者列表');
-        }
-
-        /**
-         * 切换点赞状态
-         * @description 点赞或取消点赞当前播放内容
-         */
-        function toggleLike() {
-            isLiked = !isLiked;
-            const likeCountElement = document.getElementById('likeCount');
-            
-            if (isLiked) {
-                likeCount++;
-                showToast('❤️ 已点赞');
-                
-                // 添加点赞动画效果
-                likeCountElement.style.transform = 'scale(1.2)';
-                setTimeout(() => {
-                    likeCountElement.style.transform = 'scale(1)';
-                }, 200);
-            } else {
-                likeCount--;
-                showToast('已取消点赞');
-            }
-            
-            likeCountElement.textContent = likeCount;
-            
-            // 触觉反馈
-            if (navigator.vibrate) {
-                navigator.vibrate(isLiked ? [50, 50, 50] : 50);
-            }
-            
-            console.log('点赞状态:', isLiked ? '已点赞' : '取消点赞');
-        }
-
-        /**
-         * 显示评论区
-         * @description 打开评论区域，显示用户评论
-         */
-        function showComments() {
-            showToast('正在加载评论区...');
-            
-            // 模拟加载评论
-            setTimeout(() => {
-                showToast('💬 共有151条评论');
-            }, 800);
-            
-            // 触觉反馈
-            if (navigator.vibrate) {
-                navigator.vibrate(50);
-            }
-            
-            console.log('显示评论区');
-        }
     </script>
 </body>
-</html> 
+</html>

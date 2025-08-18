@@ -6,7 +6,7 @@ import 'dart:convert';
 import '../theme/app_theme.dart';
 import '../widgets/status_bar.dart';
 import '../services/auth_service.dart';
-import 'home_page.dart';
+import 'main_page_refactored.dart';
 import 'dart:math' as math;
 import '../widgets/starry_background.dart';
 import '../widgets/glowing_logo.dart';
@@ -190,6 +190,12 @@ class _LoginPageState extends State<LoginPage> {
           return '请输入11位手机号';
         return null;
       },
+      onChanged: (value) {
+        // 用户开始输入手机号时，清除错误信息
+        if (_errorMessage != null && value.isNotEmpty) {
+          setState(() { _errorMessage = null; });
+        }
+      },
     );
   }
 
@@ -229,6 +235,12 @@ class _LoginPageState extends State<LoginPage> {
               if (value.length != 6 || int.tryParse(value) == null)
                 return '请输入6位数字验证码';
               return null;
+            },
+            onChanged: (value) {
+              // 用户开始输入验证码时，清除错误信息
+              if (_errorMessage != null && value.isNotEmpty) {
+                setState(() { _errorMessage = null; });
+              }
             },
           ),
         ),
@@ -439,6 +451,11 @@ class _LoginPageState extends State<LoginPage> {
     final String? phone = _phoneController.text;
     debugPrint('📱 尝试发送验证码到: $phone');
     
+    // 清除之前的错误信息
+    if (_errorMessage != null) {
+      setState(() { _errorMessage = null; });
+    }
+    
     // 只验证手机号，不验证验证码字段
     if (phone == null || phone.isEmpty) {
       debugPrint('❌ 手机号为空');
@@ -501,12 +518,12 @@ class _LoginPageState extends State<LoginPage> {
   /// 获取验证码后的倒计时功能
   void _startCountdown() {
     Future.delayed(const Duration(seconds: 1), () {
-      if (_countdownSeconds > 0) {
+      if (mounted && _countdownSeconds > 0) {
         setState(() {
           _countdownSeconds--;
         });
         _startCountdown();
-      } else {
+      } else if (mounted) {
         setState(() {
           _isCodeRequested = false;
         });
@@ -539,9 +556,18 @@ class _LoginPageState extends State<LoginPage> {
         if (context.mounted) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => const HomePage()),
+            MaterialPageRoute(builder: (_) => const MainPageRefactored()),
           );
         }
+        return;
+      } else if (_tempCode != null) {
+        // 临时验证码验证失败时，重置验证码按钮状态
+        if (context.mounted) Navigator.pop(context);
+        setState(() { 
+          _errorMessage = '验证码错误，请重新获取验证码';
+          _isCodeRequested = false;
+          _countdownSeconds = 60;
+        });
         return;
       }
 
@@ -560,15 +586,25 @@ class _LoginPageState extends State<LoginPage> {
           if (context.mounted) {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (_) => const HomePage()),
+              MaterialPageRoute(builder: (_) => const MainPageRefactored()),
             );
           }
         } else {
-          setState(() { _errorMessage = '验证码无效'; });
+          // 验证码无效时，重置验证码按钮状态，允许用户重新获取验证码
+          setState(() { 
+            _errorMessage = '验证码无效，请重新获取验证码';
+            _isCodeRequested = false;
+            _countdownSeconds = 60;
+          });
         }
       } catch (e) {
         debugPrint('❌ Supabase 验证失败: $e');
-        setState(() { _errorMessage = '验证码无效或已过期'; });
+        // 验证码验证失败时，重置验证码按钮状态，允许用户重新获取验证码
+        setState(() { 
+          _errorMessage = '验证码无效或已过期，请重新获取验证码';
+          _isCodeRequested = false;
+          _countdownSeconds = 60;
+        });
       }
     } catch (e) {
       if (context.mounted) Navigator.pop(context);
