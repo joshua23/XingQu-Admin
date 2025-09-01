@@ -29,6 +29,7 @@ import 'providers/ai_chat_provider.dart'; // 新增：AI对话状态管理
 import 'providers/subscription_provider.dart';
 import 'providers/recommendation_provider.dart';
 import 'providers/agent_provider.dart';
+import 'providers/analytics_provider.dart'; // 新增：分析数据管理
 // import 'pages/sprint2/memory_book_page.dart';
 // import 'pages/sprint2/recommendation_page.dart';
 // import 'models/sprint2/memory_models.dart';
@@ -44,6 +45,7 @@ import 'pages/agent_detail_page.dart';
 import 'pages/analytics_test_page.dart'; // 新增：分析测试页面
 import 'pages/ai_chat_enhanced_page.dart'; // 新增：增强版AI聊天页面
 import 'pages/comprehensive_page.dart'; // 新增：综合页面
+import 'pages/admin_dashboard_page.dart'; // 新增：后台管理系统
 import 'models/subscription_plan.dart';
 import 'models/custom_agent.dart';
 import 'services/analytics_service.dart'; // 新增：分析服务
@@ -183,6 +185,11 @@ class XinQuApp extends StatelessWidget {
           create: (_) => AgentProvider(),
         ),
         
+        // 后台管理系统 Provider
+        ChangeNotifierProvider<AnalyticsProvider>(
+          create: (_) => AnalyticsProvider(),
+        ),
+        
         // Sprint 3 Providers (暂时注释掉复杂依赖)
         // ChangeNotifierProvider<Sprint3StateProvider>(
         //   create: (_) => Sprint3StateProvider(Sprint3ApiService(SupabaseService.instance)),
@@ -237,6 +244,7 @@ class XinQuApp extends StatelessWidget {
       '/test_database': (context) => const TestDatabasePage(),
       '/analytics_test': (context) => const AnalyticsTestPage(), // 新增：分析测试页面
       '/comprehensive': (context) => const ComprehensivePage(), // 新增：综合页面
+      '/admin': (context) => const AdminDashboardPage(), // 新增：后台管理系统
       
       // Sprint 2 路由 (暂时注释掉)
       // '/memory_book': (context) => const MemoryBookPage(),

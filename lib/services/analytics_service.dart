@@ -1,854 +1,344 @@
-import 'dart:convert';
-import 'dart:io';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
-import 'package:device_info_plus/device_info_plus.dart';
-import 'supabase_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../models/analytics_models.dart';
 
-/// 用户行为分析服务（增强版）
-/// 负责收集和上报用户行为数据到后台管理系统
-/// 特性：数据验证、降级机制、重试逻辑、错误恢复
+/// 数据分析服务
+/// 负责与xq_前缀表进行数据交互，为后台仪表板提供数据
 class AnalyticsService {
-  static AnalyticsService? _instance;
-  final SupabaseService _supabaseService = SupabaseService.instance;
-  
-  String? _sessionId;
-  Map<String, dynamic>? _deviceInfo;
-  bool _isEnabled = true;
-  
-  // 增强功能配置
-  bool _enableFallback = true; // 降级机制开关
-  int _maxRetryAttempts = 3; // 最大重试次数
-  int _retryDelayMs = 1000; // 重试延迟（毫秒）
-  List<Map<String, dynamic>> _offlineQueue = []; // 离线队列
-  bool _isProcessingQueue = false; // 队列处理状态
-  
-  AnalyticsService._internal();
-  
-  /// 获取单例实例
-  static AnalyticsService get instance {
-    _instance ??= AnalyticsService._internal();
-    return _instance!;
-  }
-  
-  /// 初始化分析服务
-  Future<void> initialize() async {
+  final SupabaseClient _client = Supabase.instance.client;
+
+  // xq_前缀表名常量
+  static const String trackingEventsTable = 'xq_tracking_events';
+  static const String userProfilesTable = 'xq_user_profiles'; 
+  static const String userSessionsTable = 'xq_user_sessions';
+
+  /// 获取总览数据
+  Future<OverviewData> getOverviewData() async {
     try {
-      // 生成会话ID
-      _sessionId = DateTime.now().millisecondsSinceEpoch.toString();
-      
-      // 获取设备信息
-      await _collectDeviceInfo();
-      
-      // 上报应用启动事件
-      await trackEvent('app_launch', {
-        'session_id': _sessionId,
-        'device_info': _deviceInfo,
-        'app_version': await _getAppVersion(),
-        'timestamp': DateTime.now().toIso8601String(),
-      });
-      
-      print('Analytics service initialized with session: $_sessionId');
+      // 并行查询所有统计数据
+      final results = await Future.wait([
+        _getTotalUsers(),
+        _getTotalSessions(),
+        _getTotalEvents(),
+        _getActiveUsersToday(),
+        _getNewUsersToday(),
+        _getAverageSessionDuration(),
+      ]);
+
+      return OverviewData(
+        totalUsers: results[0] as int,
+        totalSessions: results[1] as int,
+        totalEvents: results[2] as int,
+        activeUsersToday: results[3] as int,
+        newUsersToday: results[4] as int,
+        averageSessionDuration: results[5] as double,
+        lastUpdated: DateTime.now(),
+      );
     } catch (e) {
-      print('Failed to initialize analytics: $e');
+      throw Exception('获取总览数据失败: $e');
     }
   }
-  
-  /// 收集设备信息
-  Future<void> _collectDeviceInfo() async {
+
+  /// 获取用户分析数据
+  Future<UserAnalyticsData> getUserAnalytics() async {
     try {
-      final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-      
-      if (Platform.isIOS) {
-        final IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
-        _deviceInfo = {
-          'platform': 'ios',
-          'device_model': iosInfo.model,
-          'os_version': iosInfo.systemVersion,
-          'device_name': iosInfo.name,
-          'is_simulator': !iosInfo.isPhysicalDevice,
-          'identifier': iosInfo.identifierForVendor,
-        };
-      } else if (Platform.isAndroid) {
-        final AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-        _deviceInfo = {
-          'platform': 'android',
-          'device_model': androidInfo.model,
-          'os_version': androidInfo.version.release,
-          'device_name': '${androidInfo.manufacturer} ${androidInfo.model}',
-          'is_simulator': !androidInfo.isPhysicalDevice,
-          'identifier': androidInfo.id,
-        };
-      } else {
-        _deviceInfo = {
-          'platform': 'unknown',
-          'device_model': 'unknown',
-          'os_version': 'unknown',
-          'is_simulator': false,
-        };
-      }
+      final profilesResponse = await _client
+          .from(userProfilesTable)
+          .select('*');
+
+      final userProfiles = (profilesResponse as List)
+          .map((json) => UserProfileData.fromJson(json))
+          .toList();
+
+      // 计算用户统计
+      final totalUsers = userProfiles.length;
+      final activeUsers = userProfiles.where((u) => u.accountStatus == 'active').length;
+      final memberUsers = userProfiles.where((u) => u.isMember).length;
+      final maleUsers = userProfiles.where((u) => u.gender == 'male').length;
+      final femaleUsers = userProfiles.where((u) => u.gender == 'female').length;
+
+      return UserAnalyticsData(
+        totalUsers: totalUsers,
+        activeUsers: activeUsers,
+        memberUsers: memberUsers,
+        genderDistribution: {
+          'male': maleUsers,
+          'female': femaleUsers,
+          'other': totalUsers - maleUsers - femaleUsers,
+        },
+        userProfiles: userProfiles,
+      );
     } catch (e) {
-      print('Failed to collect device info: $e');
-      _deviceInfo = {
-        'platform': Platform.operatingSystem,
-        'error': 'Failed to collect device info',
-      };
+      throw Exception('获取用户分析数据失败: $e');
     }
   }
-  
-  /// 获取应用版本
-  Future<String> _getAppVersion() async {
-    // 这里可以从pubspec.yaml或其他配置获取版本号
-    return '1.0.0'; // 临时版本号
-  }
-  
-  /// 跟踪用户事件（增强版）
-  /// 包含数据验证、重试机制和降级处理
-  Future<void> trackEvent(String eventType, Map<String, dynamic>? eventData) async {
-    if (!_isEnabled) return;
-    
-    // 验证基础数据
-    final validatedData = _validateAndEnrichEventData(eventType, eventData);
-    if (validatedData == null) {
-      if (kDebugMode) {
-        print('⚠️ 埋点数据验证失败，已跳过: $eventType');
-      }
-      return;
-    }
-    
-    // 尝试上报埋点，带有重试机制
-    await _trackEventWithRetry(eventType, validatedData);
-  }
-  
-  /// 验证和丰富事件数据
-  Map<String, dynamic>? _validateAndEnrichEventData(String eventType, Map<String, dynamic>? eventData) {
+
+  /// 获取行为分析数据
+  Future<BehaviorAnalyticsData> getBehaviorAnalytics() async {
     try {
-      // 基础数据验证
-      if (eventType.trim().isEmpty) {
-        print('❌ 埋点验证失败: event_type 为空');
-        return null;
-      }
-      
-      final userId = _supabaseService.currentUserId;
-      if (userId == null || userId.trim().isEmpty) {
-        if (kDebugMode) {
-          print('⚠️ 埋点警告: 用户ID为空，尝试匿名登录');
-        }
-        // 在后台尝试匿名登录，但不阻塞当前操作
-        _attemptAnonymousLogin();
-        return null; // 返回 null 以跳过本次埋点
-      }
-      
-      // 构建并验证完整数据
-      final Map<String, dynamic> enrichedData = {
-        'user_id': userId,
-        'event_type': eventType.trim(),
-        'event_data': eventData ?? {},
-        'session_id': _sessionId ?? 'unknown_session',
-        'device_info': _deviceInfo ?? {'platform': 'unknown'},
-        'timestamp': DateTime.now().toIso8601String(),
-        'platform': Platform.operatingSystem,
-        // 添加数据完整性标记
-        'data_version': '1.1',
-        'sdk_version': 'flutter_enhanced',
-      };
-      
-      // 特殊处理：确保 page_name 和action_type 不为空
-      if (eventType == 'page_view') {
-        final data = enrichedData['event_data'] as Map<String, dynamic>;
-        if (data['page_name'] == null || data['page_name'].toString().trim().isEmpty) {
-          data['page_name'] = 'unknown_page'; // 设置默认值
-          if (kDebugMode) {
-            print('⚠️ 埋点修复: page_name 为空，已设置为 unknown_page');
-          }
-        }
-      }
-      
-      if (eventType == 'social_interaction' || eventType == 'character_interaction') {
-        final data = enrichedData['event_data'] as Map<String, dynamic>;
-        if (data['action_type'] == null || data['action_type'].toString().trim().isEmpty) {
-          data['action_type'] = 'unknown_action'; // 设置默认值
-          if (kDebugMode) {
-            print('⚠️ 埋点修复: action_type 为空，已设置为 unknown_action');
-          }
-        }
-      }
-      
-      return enrichedData;
-      
-    } catch (e) {
-      print('❌ 埋点数据验证异常: $e');
-      return null;
-    }
-  }
-  
-  /// 尝试匿名登录（在后台进行）
-  Future<void> _attemptAnonymousLogin() async {
-    try {
-      if (!_supabaseService.isLoggedIn) {
-        await _supabaseService.client.auth.signInAnonymously();
-        if (kDebugMode) {
-          print('✅ 埋点服务: 匿名登录成功');
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('⚠️ 埋点服务: 匿名登录失败 (ignored): $e');
-      }
-    }
-  }
-  
-  /// 带重试机制的事件跟踪
-  Future<void> _trackEventWithRetry(String eventType, Map<String, dynamic> eventData) async {
-    int attempts = 0;
-    
-    while (attempts < _maxRetryAttempts) {
-      try {
-        attempts++;
+      final eventsResponse = await _client
+          .from(trackingEventsTable)
+          .select('*')
+          .order('timestamp', ascending: false)
+          .limit(1000);
+
+      final events = (eventsResponse as List)
+          .map((json) => TrackingEventData.fromJson(json))
+          .toList();
+
+      // 统计各种事件类型
+      final eventTypeStats = <String, int>{};
+      final platformStats = <String, int>{};
+      final dailyEventCounts = <String, int>{};
+
+      for (final event in events) {
+        // 事件类型统计
+        eventTypeStats[event.eventType] = 
+            (eventTypeStats[event.eventType] ?? 0) + 1;
         
-        final userId = eventData['user_id'] as String;
+        // 平台统计
+        final platform = event.eventData['device_info']?['platform'] as String? ?? 'unknown';
+        platformStats[platform] = (platformStats[platform] ?? 0) + 1;
         
-        // 尝试上报到 Supabase
-        await _supabaseService.recordUserAnalytics(
-          userId: userId,
-          eventType: eventType,
-          eventData: eventData,
-          sessionId: eventData['session_id'] as String?,
-        );
-        
-        // 成功日志
-        if (kDebugMode) {
-          print('✅ 埋点上报成功: $eventType (尝试 $attempts/$_maxRetryAttempts)');
-          print('   数据: ${jsonEncode(eventData['event_data'])}');
-        }
-        
-        // 成功则退出循环
-        return;
-        
-      } catch (e) {
-        if (kDebugMode) {
-          print('❌ 埋点上报失败 (尝试 $attempts/$_maxRetryAttempts): $e');
-        }
-        
-        // 最后一次尝试失败，执行降级逻辑
-        if (attempts >= _maxRetryAttempts) {
-          await _handleAnalyticsFallback(eventType, eventData, e);
-          return;
-        }
-        
-        // 重试前的延迟
-        await Future.delayed(Duration(milliseconds: _retryDelayMs * attempts));
+        // 每日事件统计
+        final dateKey = event.timestamp.toIso8601String().substring(0, 10);
+        dailyEventCounts[dateKey] = (dailyEventCounts[dateKey] ?? 0) + 1;
       }
-    }
-  }
-  
-  /// 埋点失败降级处理
-  Future<void> _handleAnalyticsFallback(String eventType, Map<String, dynamic> eventData, dynamic error) async {
-    if (!_enableFallback) {
-      if (kDebugMode) {
-        print('⚠️ 埋点降级已禁用，跳过处理');
-      }
-      return;
-    }
-    
-    try {
-      // 1. 添加到离线队列
-      _offlineQueue.add({
-        ...eventData,
-        'retry_count': _maxRetryAttempts,
-        'last_error': error.toString(),
-        'queued_at': DateTime.now().toIso8601String(),
-      });
-      
-      if (kDebugMode) {
-        print('📦 埋点已加入离线队列: $eventType (队列长度: ${_offlineQueue.length})');
-      }
-      
-      // 2. 限制队列大小（防止内存溢出）
-      if (_offlineQueue.length > 50) {
-        _offlineQueue.removeAt(0); // 移除最早的记录
-        if (kDebugMode) {
-          print('⚠️ 离线队列超限，已移除最早记录');
-        }
-      }
-      
-      // 3. 尝试处理队列（异步，不阻塞当前操作）
-      _processOfflineQueueAsync();
-      
+
+      return BehaviorAnalyticsData(
+        totalEvents: events.length,
+        eventTypeStats: eventTypeStats,
+        platformStats: platformStats,
+        dailyEventCounts: dailyEventCounts,
+        recentEvents: events.take(50).toList(),
+      );
     } catch (e) {
-      if (kDebugMode) {
-        print('❌ 埋点降级处理失败: $e');
-      }
+      throw Exception('获取行为分析数据失败: $e');
     }
   }
-  
-  /// 异步处理离线队列
-  Future<void> _processOfflineQueueAsync() async {
-    if (_isProcessingQueue || _offlineQueue.isEmpty) {
-      return;
-    }
-    
-    _isProcessingQueue = true;
-    
+
+  /// 获取会话分析数据
+  Future<SessionAnalyticsData> getSessionAnalytics() async {
     try {
-      // 等待一段时间再尝试（给网络恢复时间）
-      await Future.delayed(Duration(seconds: 5));
-      
-      final List<Map<String, dynamic>> queueCopy = List.from(_offlineQueue);
-      
-      for (int i = 0; i < queueCopy.length && i < 5; i++) { // 每次最多处理5条
-        final item = queueCopy[i];
-        try {
-          await _supabaseService.recordUserAnalytics(
-            userId: item['user_id'],
-            eventType: item['event_type'],
-            eventData: item,
-            sessionId: item['session_id'],
-          );
-          
-          // 成功则从队列中移除
-          _offlineQueue.removeWhere((e) => e['queued_at'] == item['queued_at']);
-          
-          if (kDebugMode) {
-            print('✅ 离线埋点重试成功: ${item['event_type']}');
-          }
-          
-        } catch (e) {
-          if (kDebugMode) {
-            print('⚠️ 离线埋点重试失败: ${item['event_type']}: $e');
-          }
-        }
-      }
-      
-    } finally {
-      _isProcessingQueue = false;
-    }
-  }
-  
-  /// 跟踪页面访问（增强版）
-  Future<void> trackPageView(String pageName, {Map<String, dynamic>? additionalData}) async {
-    // 数据验证
-    if (pageName.trim().isEmpty) {
-      if (kDebugMode) {
-        print('⚠️ 页面访问埋点: pageName 为空，已跳过');
-      }
-      return;
-    }
-    
-    await trackEvent('page_view', {
-      'page_name': pageName.trim(),
-      'page_title': additionalData?['page_title'] ?? pageName,
-      'timestamp': DateTime.now().toIso8601String(),
-      'visit_duration': 0, // 初始值，可后续更新
-      ...?additionalData,
-    });
-  }
-  
-  /// 跟踪用户登录
-  Future<void> trackLogin(String method, {bool isNewUser = false}) async {
-    await trackEvent('user_login', {
-      'method': method,
-      'is_new_user': isNewUser,
-      'timestamp': DateTime.now().toIso8601String(),
-    });
-  }
-  
-  /// 跟踪用户注销
-  Future<void> trackLogout() async {
-    await trackEvent('user_logout', {
-      'timestamp': DateTime.now().toIso8601String(),
-    });
-  }
-  
-  /// 跟踪AI角色交互（增强版）
-  Future<void> trackCharacterInteraction({
-    required String characterId,
-    required String interactionType,
-    String? pageName,
-    Map<String, dynamic>? additionalData,
-  }) async {
-    // 数据验证
-    if (characterId.trim().isEmpty || interactionType.trim().isEmpty) {
-      if (kDebugMode) {
-        print('⚠️ AI角色交互埋点: 必要参数为空，已跳过');
-      }
-      return;
-    }
-    
-    final data = {
-      'character_id': characterId.trim(),
-      'interaction_type': interactionType.trim(),
-      'action_type': interactionType.trim(), // 兼容字段
-      'page_name': pageName?.trim() ?? 'unknown_page',
-      'timestamp': DateTime.now().toIso8601String(),
-      'interaction_id': DateTime.now().millisecondsSinceEpoch.toString(),
-      ...?additionalData,
-    };
-    
-    await trackEvent('character_interaction', data);
-  }
-  
-  /// 跟踪音频播放
-  Future<void> trackAudioPlay({
-    required String audioId,
-    required int duration,
-    required int playPosition,
-    bool completed = false,
-  }) async {
-    await trackEvent('audio_play', {
-      'audio_id': audioId,
-      'duration': duration,
-      'play_position': playPosition,
-      'completed': completed,
-      'timestamp': DateTime.now().toIso8601String(),
-    });
-  }
-  
-  /// 跟踪内容创建
-  Future<void> trackContentCreation({
-    required String contentType,
-    required String contentId,
-    Map<String, dynamic>? contentMetadata,
-  }) async {
-    await trackEvent('content_create', {
-      'content_type': contentType,
-      'content_id': contentId,
-      'metadata': contentMetadata,
-      'timestamp': DateTime.now().toIso8601String(),
-    });
-  }
+      final sessionsResponse = await _client
+          .from(userSessionsTable)
+          .select('*')
+          .order('start_time', ascending: false);
 
-  /// 跟踪搜索行为
-  Future<void> trackSearch({
-    required String query,
-    required String searchType,
-    int? resultCount,
-    List<String>? resultIds,
-  }) async {
-    await trackEvent('search', {
-      'query': query,
-      'search_type': searchType,
-      'result_count': resultCount,
-      'result_ids': resultIds,
-      'query_length': query.length,
-      'timestamp': DateTime.now().toIso8601String(),
-    });
-  }
+      final sessions = (sessionsResponse as List)
+          .map((json) => UserSessionData.fromJson(json))
+          .toList();
 
-  /// 跟踪购买行为
-  Future<void> trackPurchase({
-    required String productId,
-    required String productType,
-    required double amount,
-    required String currency,
-    String? paymentMethod,
-  }) async {
-    await trackEvent('purchase', {
-      'product_id': productId,
-      'product_type': productType,
-      'amount': amount,
-      'currency': currency,
-      'payment_method': paymentMethod,
-      'timestamp': DateTime.now().toIso8601String(),
-    });
-  }
+      // 计算会话统计
+      final totalSessions = sessions.length;
+      final activeSessions = sessions.where((s) => s.isActive).length;
+      final avgDuration = sessions
+          .where((s) => s.durationSeconds > 0)
+          .map((s) => s.durationSeconds)
+          .fold<double>(0, (sum, duration) => sum + duration) / 
+          sessions.where((s) => s.durationSeconds > 0).length;
 
-  /// 跟踪会员订阅
-  Future<void> trackSubscription({
-    required String planId,
-    required String planType,
-    required String action, // 'subscribe', 'upgrade', 'downgrade', 'cancel'
-    double? amount,
-  }) async {
-    await trackEvent('subscription_$action', {
-      'plan_id': planId,
-      'plan_type': planType,
-      'amount': amount,
-      'timestamp': DateTime.now().toIso8601String(),
-    });
-  }
+      final platformDistribution = <String, int>{};
+      final hourlyDistribution = <int, int>{};
 
-  /// 跟踪AI对话
-  Future<void> trackAiChat({
-    required String sessionId,
-    required String characterId,
-    required int messageCount,
-    required int tokensUsed,
-    double? cost,
-    int? duration,
-  }) async {
-    await trackEvent('ai_chat', {
-      'session_id': sessionId,
-      'character_id': characterId,
-      'message_count': messageCount,
-      'tokens_used': tokensUsed,
-      'cost': cost,
-      'duration_seconds': duration,
-      'timestamp': DateTime.now().toIso8601String(),
-    });
-  }
-
-  /// 跟踪用户偏好变化
-  Future<void> trackPreferenceUpdate({
-    required String preferenceType,
-    required String oldValue,
-    required String newValue,
-  }) async {
-    await trackEvent('preference_update', {
-      'preference_type': preferenceType,
-      'old_value': oldValue,
-      'new_value': newValue,
-      'timestamp': DateTime.now().toIso8601String(),
-    });
-  }
-
-  /// 跟踪错误事件
-  Future<void> trackError({
-    required String errorType,
-    required String errorMessage,
-    String? stackTrace,
-    Map<String, dynamic>? context,
-  }) async {
-    await trackEvent('error', {
-      'error_type': errorType,
-      'error_message': errorMessage,
-      'stack_trace': stackTrace,
-      'context': context,
-      'timestamp': DateTime.now().toIso8601String(),
-    });
-  }
-
-  /// 跟踪性能指标
-  Future<void> trackPerformance({
-    required String metricName,
-    required double value,
-    String? unit,
-    Map<String, dynamic>? tags,
-  }) async {
-    await trackEvent('performance', {
-      'metric_name': metricName,
-      'value': value,
-      'unit': unit,
-      'tags': tags,
-      'timestamp': DateTime.now().toIso8601String(),
-    });
-  }
-
-  /// 跟踪用户留存关键行为
-  Future<void> trackRetentionEvent({
-    required String eventName,
-    int? daysSinceInstall,
-    int? daysSinceLastUse,
-    Map<String, dynamic>? metadata,
-  }) async {
-    await trackEvent('retention_event', {
-      'event_name': eventName,
-      'days_since_install': daysSinceInstall,
-      'days_since_last_use': daysSinceLastUse,
-      'metadata': metadata,
-      'timestamp': DateTime.now().toIso8601String(),
-    });
-  }
-
-  /// 批量上报事件（用于离线缓存后上报）
-  Future<void> trackBatchEvents(List<Map<String, dynamic>> events) async {
-    if (!_isEnabled) return;
-
-    try {
-      final userId = _supabaseService.currentUserId;
-      if (userId == null) return;
-
-      // 为每个事件添加基础信息
-      final enrichedEvents = events.map((event) => {
-        ...event,
-        'user_id': userId,
-        'session_id': _sessionId,
-        'device_info': _deviceInfo,
-        'batch_timestamp': DateTime.now().toIso8601String(),
-      }).toList();
-
-      // 使用现有的单个记录方法进行批量处理
-      for (final event in enrichedEvents) {
-        await _supabaseService.recordUserAnalytics(
-          userId: userId,
-          eventType: event['event_type'],
-          eventData: event,
-          sessionId: _sessionId,
-        );
+      for (final session in sessions) {
+        // 平台分布
+        platformDistribution[session.platform] = 
+            (platformDistribution[session.platform] ?? 0) + 1;
+        
+        // 每小时分布
+        final hour = session.startTime.hour;
+        hourlyDistribution[hour] = (hourlyDistribution[hour] ?? 0) + 1;
       }
 
-      if (kDebugMode) {
-        print('📊 Batch Analytics: ${events.length} events uploaded');
-      }
+      return SessionAnalyticsData(
+        totalSessions: totalSessions,
+        activeSessions: activeSessions,
+        averageDuration: avgDuration,
+        platformDistribution: platformDistribution,
+        hourlyDistribution: hourlyDistribution,
+        recentSessions: sessions.take(20).toList(),
+      );
     } catch (e) {
-      print('Failed to track batch events: $e');
+      throw Exception('获取会话分析数据失败: $e');
     }
   }
 
-  /// 启用/禁用分析
-  void setEnabled(bool enabled) {
-    _isEnabled = enabled;
-  }
-
-  /// 获取分析启用状态
-  bool get isEnabled => _isEnabled;
-
-  /// 获取当前会话ID
-  String? get sessionId => _sessionId;
-
-  /// 获取设备信息
-  Map<String, dynamic>? get deviceInfo => _deviceInfo;
-  
-  /// 跟踪社交互动（增强版）
-  Future<void> trackSocialInteraction({
-    required String actionType, // like, comment, follow, share
-    required String targetType, // character, audio, creation
-    required String targetId,
-    String? pageName,
-    Map<String, dynamic>? additionalData,
-  }) async {
-    // 数据验证
-    if (actionType.trim().isEmpty || targetType.trim().isEmpty || targetId.trim().isEmpty) {
-      if (kDebugMode) {
-        print('⚠️ 社交互动埋点: 必要参数为空，已跳过');
-      }
-      return;
-    }
-    
-    final data = {
-      'action_type': actionType.trim(),
-      'target_type': targetType.trim(),
-      'target_id': targetId.trim(),
-      'page_name': pageName?.trim() ?? 'unknown_page',
-      'timestamp': DateTime.now().toIso8601String(),
-      'interaction_id': DateTime.now().millisecondsSinceEpoch.toString(), // 用于去重
-      ...?additionalData,
-    };
-    
-    await trackEvent('social_interaction', data);
-  }
-  
-  /// 跟踪用户偏好设置
-  Future<void> trackPreferenceChange({
-    required String setting,
-    required dynamic oldValue,
-    required dynamic newValue,
-  }) async {
-    await trackEvent('preference_change', {
-      'setting': setting,
-      'old_value': oldValue,
-      'new_value': newValue,
-      'timestamp': DateTime.now().toIso8601String(),
-    });
-  }
-  
-  /// 发送实时心跳（用于在线状态监控）
-  Future<void> sendHeartbeat() async {
-    await trackEvent('heartbeat', {
-      'timestamp': DateTime.now().toIso8601String(),
-      'session_duration': _getSessionDuration(),
-    });
-  }
-  
-  /// 获取会话持续时间
-  int _getSessionDuration() {
-    if (_sessionId == null) return 0;
-    final startTime = int.parse(_sessionId!);
-    return DateTime.now().millisecondsSinceEpoch - startTime;
-  }
-  
-  
-  /// 清理资源
-  Future<void> dispose() async {
-    // 发送会话结束事件
-    await trackEvent('session_end', {
-      'session_duration': _getSessionDuration(),
-      'timestamp': DateTime.now().toIso8601String(),
-    });
-    
-    _sessionId = null;
-    _deviceInfo = null;
-  }
-  
-  /// 批量上报事件（用于离线数据同步）
-  Future<void> batchTrackEvents(List<Map<String, dynamic>> events) async {
-    if (!_isEnabled || events.isEmpty) return;
-    
+  /// 获取实时指标
+  Future<RealTimeMetrics> getRealTimeMetrics() async {
     try {
-      final userId = _supabaseService.currentUserId;
-      if (userId == null) return;
-      
-      // 为每个事件添加用户信息
-      final List<Map<String, dynamic>> enrichedEvents = events.map((event) => {
-        ...event,
-        'user_id': userId,
-        'session_id': _sessionId,
-        'device_info': _deviceInfo,
-        'uploaded_at': DateTime.now().toIso8601String(),
-      }).toList();
-      
-      // 批量插入到数据库
-      for (final event in enrichedEvents) {
-        await _supabaseService.recordUserAnalytics(
-          userId: userId,
-          eventType: event['event_type'],
-          eventData: event,
-          sessionId: _sessionId,
-        );
-      }
-      
-      print('📊 Batch uploaded ${events.length} analytics events');
-    } catch (e) {
-      print('Failed to batch upload events: $e');
-    }
-  }
-  
-  // ============================================================================
-  // 增强功能：调试和测试工具
-  // ============================================================================
-  
-  /// 获取离线队列状态
-  Map<String, dynamic> getOfflineQueueStatus() {
-    return {
-      'queue_length': _offlineQueue.length,
-      'is_processing': _isProcessingQueue,
-      'enabled_fallback': _enableFallback,
-      'max_retry_attempts': _maxRetryAttempts,
-      'retry_delay_ms': _retryDelayMs,
-    };
-  }
-  
-  /// 手动触发离线队列处理
-  Future<void> forceProcessOfflineQueue() async {
-    if (kDebugMode) {
-      print('🔧 手动触发离线队列处理...');
-    }
-    await _processOfflineQueueAsync();
-  }
-  
-  /// 清空离线队列
-  void clearOfflineQueue() {
-    if (kDebugMode) {
-      print('🗑️ 清空离线队列 (${_offlineQueue.length} 条记录)');
-    }
-    _offlineQueue.clear();
-  }
-  
-  /// 设置降级机制开关
-  void setFallbackEnabled(bool enabled) {
-    _enableFallback = enabled;
-    if (kDebugMode) {
-      print('⚙️ 埋点降级机制: ${enabled ? '已启用' : '已禁用'}');
-    }
-  }
-  
-  /// 设置重试参数
-  void setRetryConfig({int? maxAttempts, int? delayMs}) {
-    if (maxAttempts != null && maxAttempts > 0) {
-      _maxRetryAttempts = maxAttempts;
-    }
-    if (delayMs != null && delayMs > 0) {
-      _retryDelayMs = delayMs;
-    }
-    if (kDebugMode) {
-      print('⚙️ 埋点重试配置: 最大尝试 $_maxRetryAttempts 次，延迟 $_retryDelayMs ms');
-    }
-  }
-  
-  /// 测试埋点连通性
-  Future<bool> testAnalyticsConnection() async {
-    try {
-      if (kDebugMode) {
-        print('🔍 测试埋点连通性...');
-      }
-      
-      final testData = {
-        'test_type': 'connectivity_check',
-        'timestamp': DateTime.now().toIso8601String(),
-        'test_id': DateTime.now().millisecondsSinceEpoch.toString(),
-      };
-      
-      await trackEvent('analytics_test', testData);
-      
-      if (kDebugMode) {
-        print('✅ 埋点连通性测试成功');
-      }
-      return true;
-      
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ 埋点连通性测试失败: $e');
-      }
-      return false;
-    }
-  }
-  
-  /// 获取分析服务状态报告
-  Map<String, dynamic> getServiceStatus() {
-    return {
-      'service_enabled': _isEnabled,
-      'user_logged_in': _supabaseService.isLoggedIn,
-      'current_user_id': _supabaseService.currentUserId,
-      'session_id': _sessionId,
-      'device_info_loaded': _deviceInfo != null,
-      'fallback_enabled': _enableFallback,
-      'offline_queue': getOfflineQueueStatus(),
-      'service_version': '1.1.0-enhanced',
-    };
-  }
-}
+      final now = DateTime.now();
+      final oneHourAgo = now.subtract(const Duration(hours: 1));
 
-/// 分析事件包装器
-/// 用于简化事件跟踪调用
-class Analytics {
-  static final AnalyticsService _service = AnalyticsService.instance;
-  
-  // 页面访问
-  static Future<void> page(String pageName, [Map<String, dynamic>? data]) async {
-    return _service.trackPageView(pageName, additionalData: data);
+      // 获取最近1小时的数据
+      final recentEvents = await _client
+          .from(trackingEventsTable)
+          .select('*')
+          .gte('timestamp', oneHourAgo.toIso8601String())
+          .order('timestamp', ascending: false);
+
+      final recentSessions = await _client
+          .from(userSessionsTable)
+          .select('*')
+          .gte('start_time', oneHourAgo.toIso8601String())
+          .eq('is_active', true);
+
+      return RealTimeMetrics(
+        currentActiveUsers: (recentSessions as List).length,
+        eventsPerHour: (recentEvents as List).length,
+        lastUpdateTime: now,
+        systemStatus: 'healthy',
+      );
+    } catch (e) {
+      throw Exception('获取实时指标失败: $e');
+    }
   }
-  
-  // 用户行为
-  static Future<void> event(String eventType, [Map<String, dynamic>? data]) async {
-    return _service.trackEvent(eventType, data);
+
+  /// 获取追踪事件列表
+  Future<List<TrackingEventData>> getTrackingEvents({int limit = 100}) async {
+    try {
+      final response = await _client
+          .from(trackingEventsTable)
+          .select('*')
+          .order('timestamp', ascending: false)
+          .limit(limit);
+
+      return (response as List)
+          .map((json) => TrackingEventData.fromJson(json))
+          .toList();
+    } catch (e) {
+      throw Exception('获取追踪事件失败: $e');
+    }
   }
-  
-  // AI角色交互
-  static Future<void> character(String characterId, String action, [Map<String, dynamic>? data]) async {
-    return _service.trackCharacterInteraction(
-      characterId: characterId,
-      interactionType: action,
-      additionalData: data,
-    );
+
+  /// 获取用户会话列表
+  Future<List<UserSessionData>> getUserSessions({int limit = 50}) async {
+    try {
+      final response = await _client
+          .from(userSessionsTable)
+          .select('*')
+          .order('start_time', ascending: false)
+          .limit(limit);
+
+      return (response as List)
+          .map((json) => UserSessionData.fromJson(json))
+          .toList();
+    } catch (e) {
+      throw Exception('获取用户会话失败: $e');
+    }
   }
-  
-  // 音频播放
-  static Future<void> audio(String audioId, int duration, int position, [bool completed = false]) async {
-    return _service.trackAudioPlay(
-      audioId: audioId,
-      duration: duration,
-      playPosition: position,
-      completed: completed,
-    );
+
+  /// 获取指定日期范围的追踪事件
+  Future<List<TrackingEventData>> getTrackingEventsForDateRange(
+      DateTime startDate, DateTime endDate) async {
+    try {
+      final response = await _client
+          .from(trackingEventsTable)
+          .select('*')
+          .gte('timestamp', startDate.toIso8601String())
+          .lte('timestamp', endDate.toIso8601String())
+          .order('timestamp', ascending: false);
+
+      return (response as List)
+          .map((json) => TrackingEventData.fromJson(json))
+          .toList();
+    } catch (e) {
+      throw Exception('获取日期范围事件失败: $e');
+    }
   }
-  
-  // 社交互动
-  static Future<void> social(String action, String targetType, String targetId, [Map<String, dynamic>? data]) async {
-    return _service.trackSocialInteraction(
-      actionType: action,
-      targetType: targetType,
-      targetId: targetId,
-      additionalData: data,
-    );
+
+  /// 获取指定日期范围的用户会话
+  Future<List<UserSessionData>> getUserSessionsForDateRange(
+      DateTime startDate, DateTime endDate) async {
+    try {
+      final response = await _client
+          .from(userSessionsTable)
+          .select('*')
+          .gte('start_time', startDate.toIso8601String())
+          .lte('start_time', endDate.toIso8601String())
+          .order('start_time', ascending: false);
+
+      return (response as List)
+          .map((json) => UserSessionData.fromJson(json))
+          .toList();
+    } catch (e) {
+      throw Exception('获取日期范围会话失败: $e');
+    }
   }
-  
-  // 错误跟踪
-  static Future<void> error(String type, String message, [String? stackTrace, Map<String, dynamic>? context]) async {
-    return _service.trackError(
-      errorType: type,
-      errorMessage: message,
-      stackTrace: stackTrace,
-      context: context,
-    );
+
+  /// 根据事件类型获取事件
+  Future<List<TrackingEventData>> getEventsByType(String eventType) async {
+    try {
+      final response = await _client
+          .from(trackingEventsTable)
+          .select('*')
+          .eq('event_type', eventType)
+          .order('timestamp', ascending: false)
+          .limit(200);
+
+      return (response as List)
+          .map((json) => TrackingEventData.fromJson(json))
+          .toList();
+    } catch (e) {
+      throw Exception('获取特定类型事件失败: $e');
+    }
+  }
+
+  // 私有辅助方法
+  Future<int> _getTotalUsers() async {
+    final response = await _client
+        .from(userProfilesTable)
+        .select('id', const FetchOptions(count: CountOption.exact));
+    return response.count ?? 0;
+  }
+
+  Future<int> _getTotalSessions() async {
+    final response = await _client
+        .from(userSessionsTable)
+        .select('id', const FetchOptions(count: CountOption.exact));
+    return response.count ?? 0;
+  }
+
+  Future<int> _getTotalEvents() async {
+    final response = await _client
+        .from(trackingEventsTable)
+        .select('id', const FetchOptions(count: CountOption.exact));
+    return response.count ?? 0;
+  }
+
+  Future<int> _getActiveUsersToday() async {
+    final today = DateTime.now();
+    final startOfDay = DateTime(today.year, today.month, today.day);
+    
+    final response = await _client
+        .from(userSessionsTable)
+        .select('user_id', const FetchOptions(count: CountOption.exact))
+        .gte('start_time', startOfDay.toIso8601String())
+        .eq('is_active', true);
+    
+    return response.count ?? 0;
+  }
+
+  Future<int> _getNewUsersToday() async {
+    final today = DateTime.now();
+    final startOfDay = DateTime(today.year, today.month, today.day);
+    
+    final response = await _client
+        .from(userProfilesTable)
+        .select('id', const FetchOptions(count: CountOption.exact))
+        .gte('created_at', startOfDay.toIso8601String());
+    
+    return response.count ?? 0;
+  }
+
+  Future<double> _getAverageSessionDuration() async {
+    final response = await _client
+        .from(userSessionsTable)
+        .select('duration_seconds')
+        .gt('duration_seconds', 0);
+
+    if ((response as List).isEmpty) return 0.0;
+    
+    final durations = response.map((s) => s['duration_seconds'] as int).toList();
+    return durations.fold<double>(0, (sum, duration) => sum + duration) / durations.length;
   }
 }
