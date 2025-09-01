@@ -46,6 +46,17 @@ linked_*.ds
 unlinked.ds
 unlinked_spec.ds
 
+# Node.js dependencies
+**/node_modules/
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+**/.npm
+
+# Web admin build output
+web-admin/dist/
+web-admin/.vite/
+
 # Android related
 **/android/**/gradle-wrapper.jar
 .gradle/
