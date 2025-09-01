@@ -1,7 +1,23 @@
 import React, { useEffect, useState } from 'react'
-import { BarChart3, TrendingUp, Users, Activity, Calendar, Download, RefreshCw, Clock } from 'lucide-react'
+import { MetricCard } from '../components/MetricCard'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card'
+import { Badge } from '../components/ui/Badge'
 import { dataService } from '../services/supabase'
 import { useAutoRefresh } from '../hooks/useAutoRefresh'
+import {
+  BarChart3,
+  TrendingUp,
+  Users,
+  Activity,
+  Calendar,
+  Download,
+  RefreshCw,
+  Clock,
+  AlertTriangle,
+  DollarSign,
+  Eye,
+  Target
+} from 'lucide-react'
 
 interface AnalyticsData {
   userGrowth: Array<{ date: string; newUsers: number; activeUsers: number }>
