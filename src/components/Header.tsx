@@ -24,7 +24,7 @@ const Header: React.FC = () => {
           <ThemeToggle />
           <div className="flex items-center space-x-2 text-sm text-muted-foreground">
             <User size={16} />
-            <span>{user?.name || user?.email}</span>
+            <span>{user?.nickname || user?.user_id}</span>
           </div>
           <button
             onClick={handleSignOut}

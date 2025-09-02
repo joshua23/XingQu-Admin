@@ -1,12 +1,14 @@
 // 用户相关类型
 export interface User {
   id: string
-  email: string
-  name?: string
+  user_id: string
+  nickname?: string
   avatar_url?: string
   created_at: string
-  last_sign_in_at?: string
-  membership_status?: 'free' | 'basic' | 'premium' | 'lifetime'
+  updated_at?: string
+  account_status: 'active' | 'inactive' | 'suspended'
+  is_member: boolean
+  membership_expires_at?: string
 }
 
 // 管理员相关类型
