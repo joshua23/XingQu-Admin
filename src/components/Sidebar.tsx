@@ -37,21 +37,21 @@ const Sidebar: React.FC = () => {
       {/* Sidebar */}
       <div
         className={clsx(
-          'fixed inset-y-0 left-0 z-50 w-64 bg-gray-800 border-r border-gray-700 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0',
+          'fixed inset-y-0 left-0 z-50 w-64 bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0',
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-700">
+        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">星</span>
             </div>
-            <span className="text-white font-semibold text-lg">后台管理</span>
+            <span className="text-gray-900 dark:text-white font-semibold text-lg">后台管理</span>
           </div>
           <button
             onClick={toggle}
-            className="lg:hidden text-gray-400 hover:text-white"
+            className="lg:hidden text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
           >
             <X size={20} />
           </button>
@@ -70,8 +70,8 @@ const Sidebar: React.FC = () => {
                   className={clsx(
                     'flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors duration-200',
                     isActive
-                      ? 'bg-primary-500 text-white'
-                      : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                      ? 'bg-primary-500 text-gray-900 dark:bg-primary-500 dark:text-white'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
                   )}
                 >
                   <item.icon size={18} className="mr-3" />
@@ -83,8 +83,8 @@ const Sidebar: React.FC = () => {
         </nav>
 
         {/* Footer */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-700">
-          <div className="text-xs text-gray-400 text-center">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
             星趣App v1.0.0
           </div>
         </div>
@@ -94,7 +94,7 @@ const Sidebar: React.FC = () => {
       <div className="lg:hidden fixed top-4 left-4 z-40">
         <button
           onClick={toggle}
-          className="bg-gray-800 p-2 rounded-lg text-gray-400 hover:text-white border border-gray-700"
+          className="bg-white dark:bg-gray-800 p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-gray-200 dark:border-gray-700"
         >
           <Menu size={20} />
         </button>

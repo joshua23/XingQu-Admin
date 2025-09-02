@@ -44,10 +44,10 @@ const Settings: React.FC = () => {
     icon: React.ReactNode
     children: React.ReactNode
   }> = ({ title, icon, children }) => (
-    <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
       <div className="flex items-center space-x-3 mb-6">
         {icon}
-        <h3 className="text-lg font-semibold text-white">{title}</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h3>
       </div>
       <div className="space-y-4">
         {children}
@@ -62,9 +62,9 @@ const Settings: React.FC = () => {
   }> = ({ label, description, children }) => (
     <div className="flex items-center justify-between py-2">
       <div className="flex-1">
-        <label className="text-white font-medium">{label}</label>
+        <label className="text-gray-900 dark:text-white font-medium">{label}</label>
         {description && (
-          <p className="text-gray-400 text-sm mt-1">{description}</p>
+          <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">{description}</p>
         )}
       </div>
       <div className="ml-4">
@@ -78,8 +78,8 @@ const Settings: React.FC = () => {
       {/* 页面标题 */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">系统设置</h1>
-          <p className="text-gray-400 mt-1">管理系统配置和参数</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">系统设置</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">管理系统配置和参数</p>
         </div>
         <button
           onClick={handleSave}
@@ -106,7 +106,7 @@ const Settings: React.FC = () => {
               type="text"
               value={settings.appName}
               onChange={(e) => setSettings(prev => ({ ...prev, appName: e.target.value }))}
-              className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
           </SettingItem>
 
@@ -121,7 +121,7 @@ const Settings: React.FC = () => {
                 onChange={(e) => setSettings(prev => ({ ...prev, enableRegistration: e.target.checked }))}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-500/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
+              <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-500/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
             </label>
           </SettingItem>
 
@@ -133,7 +133,7 @@ const Settings: React.FC = () => {
               type="number"
               value={settings.maxFileSize}
               onChange={(e) => setSettings(prev => ({ ...prev, maxFileSize: parseInt(e.target.value) }))}
-              className="w-20 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-20 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
           </SettingItem>
         </SettingSection>
@@ -151,7 +151,7 @@ const Settings: React.FC = () => {
               type="text"
               value={settings.supabaseUrl}
               onChange={(e) => setSettings(prev => ({ ...prev, supabaseUrl: e.target.value }))}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
           </SettingItem>
 
@@ -166,7 +166,7 @@ const Settings: React.FC = () => {
                 onChange={(e) => setSettings(prev => ({ ...prev, enableApiLogs: e.target.checked }))}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-500/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+              <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-500/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
             </label>
           </SettingItem>
         </SettingSection>
@@ -187,7 +187,7 @@ const Settings: React.FC = () => {
                 onChange={(e) => setSettings(prev => ({ ...prev, enableTwoFactor: e.target.checked }))}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-500/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
+              <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-500/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
             </label>
           </SettingItem>
 
@@ -199,7 +199,7 @@ const Settings: React.FC = () => {
               type="number"
               value={settings.sessionTimeout}
               onChange={(e) => setSettings(prev => ({ ...prev, sessionTimeout: parseInt(e.target.value) }))}
-              className="w-20 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-20 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
           </SettingItem>
 
@@ -211,7 +211,7 @@ const Settings: React.FC = () => {
               type="number"
               value={settings.maxLoginAttempts}
               onChange={(e) => setSettings(prev => ({ ...prev, maxLoginAttempts: parseInt(e.target.value) }))}
-              className="w-20 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-20 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
           </SettingItem>
         </SettingSection>
@@ -232,7 +232,7 @@ const Settings: React.FC = () => {
                 onChange={(e) => setSettings(prev => ({ ...prev, emailNotifications: e.target.checked }))}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-500/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-500"></div>
+              <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-500/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-500"></div>
             </label>
           </SettingItem>
 
@@ -247,7 +247,7 @@ const Settings: React.FC = () => {
                 onChange={(e) => setSettings(prev => ({ ...prev, pushNotifications: e.target.checked }))}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-500/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-500"></div>
+              <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-500/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-500"></div>
             </label>
           </SettingItem>
 
@@ -262,7 +262,7 @@ const Settings: React.FC = () => {
                 onChange={(e) => setSettings(prev => ({ ...prev, smsNotifications: e.target.checked }))}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-500/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-500"></div>
+              <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-500/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-500"></div>
             </label>
           </SettingItem>
         </SettingSection>
@@ -274,18 +274,18 @@ const Settings: React.FC = () => {
         icon={<Database size={20} className="text-green-500" />}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-4 bg-gray-700 rounded-lg">
-            <h4 className="text-white font-medium mb-2">连接状态</h4>
+          <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
+            <h4 className="text-gray-900 dark:text-white font-medium mb-2">连接状态</h4>
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <span className="text-green-400 text-sm">已连接</span>
+              <span className="text-green-600 dark:text-green-400 text-sm">已连接</span>
             </div>
           </div>
-          <div className="p-4 bg-gray-700 rounded-lg">
-            <h4 className="text-white font-medium mb-2">数据同步</h4>
+          <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
+            <h4 className="text-gray-900 dark:text-white font-medium mb-2">数据同步</h4>
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-              <span className="text-blue-400 text-sm">同步中</span>
+              <span className="text-blue-600 dark:text-blue-400 text-sm">同步中</span>
             </div>
           </div>
         </div>

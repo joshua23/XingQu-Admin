@@ -143,51 +143,51 @@ const ContentModeration: React.FC = () => {
     <div className="space-y-6">
       {/* 页面标题 */}
       <div>
-        <h1 className="text-2xl font-bold text-white">内容审核</h1>
-        <p className="text-gray-400 mt-1">审核和管理用户提交的内容</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">内容审核</h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">审核和管理用户提交的内容</p>
       </div>
 
       {/* 统计卡片 */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center">
             <Clock className="text-yellow-500 mr-3" size={24} />
             <div>
-              <p className="text-gray-400 text-sm">待审核</p>
-              <p className="text-white text-2xl font-bold">
+              <p className="text-gray-600 dark:text-gray-400 text-sm">待审核</p>
+              <p className="text-gray-900 dark:text-white text-2xl font-bold">
                 {contents.filter(c => c.status === 'pending').length}
               </p>
             </div>
           </div>
         </div>
-        <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center">
             <Check className="text-green-500 mr-3" size={24} />
             <div>
-              <p className="text-gray-400 text-sm">已通过</p>
-              <p className="text-white text-2xl font-bold">
+              <p className="text-gray-600 dark:text-gray-400 text-sm">已通过</p>
+              <p className="text-gray-900 dark:text-white text-2xl font-bold">
                 {contents.filter(c => c.status === 'approved').length}
               </p>
             </div>
           </div>
         </div>
-        <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center">
             <X className="text-red-500 mr-3" size={24} />
             <div>
-              <p className="text-gray-400 text-sm">已拒绝</p>
-              <p className="text-white text-2xl font-bold">
+              <p className="text-gray-600 dark:text-gray-400 text-sm">已拒绝</p>
+              <p className="text-gray-900 dark:text-white text-2xl font-bold">
                 {contents.filter(c => c.status === 'rejected').length}
               </p>
             </div>
           </div>
         </div>
-        <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center">
             <AlertTriangle className="text-orange-500 mr-3" size={24} />
             <div>
-              <p className="text-gray-400 text-sm">高风险</p>
-              <p className="text-white text-2xl font-bold">
+              <p className="text-gray-600 dark:text-gray-400 text-sm">高风险</p>
+              <p className="text-gray-900 dark:text-white text-2xl font-bold">
                 {contents.filter(c => c.risk_level === 'high').length}
               </p>
             </div>
@@ -196,8 +196,8 @@ const ContentModeration: React.FC = () => {
       </div>
 
       {/* 标签页 */}
-      <div className="bg-gray-800 rounded-lg border border-gray-700">
-        <div className="border-b border-gray-700">
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="border-b border-gray-200 dark:border-gray-700">
           <div className="flex">
             {[
               { key: 'pending', label: '待审核', count: contents.filter(c => c.status === 'pending').length },
@@ -210,7 +210,7 @@ const ContentModeration: React.FC = () => {
                 className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === tab.key
                     ? 'border-primary-500 text-primary-500'
-                    : 'border-transparent text-gray-400 hover:text-white'
+                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
                 {tab.label} ({tab.count})
@@ -220,21 +220,21 @@ const ContentModeration: React.FC = () => {
         </div>
 
         {/* 内容列表 */}
-        <div className="divide-y divide-gray-700">
+        <div className="divide-y divide-gray-200 dark:divide-gray-700">
           {filteredContents.map((content) => (
-            <div key={content.id} className="p-6 hover:bg-gray-700">
+            <div key={content.id} className="p-6 hover:bg-gray-50 dark:hover:bg-gray-700">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center space-x-3 mb-2">
                     <span className="text-2xl">{getTypeIcon(content.type)}</span>
-                    <h3 className="text-lg font-medium text-white">{content.title}</h3>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">{content.title}</h3>
                     {getStatusBadge(content.status)}
                     {getRiskBadge(content.risk_level)}
                   </div>
 
-                  <div className="text-gray-300 mb-2">{content.content}</div>
+                  <div className="text-gray-700 dark:text-gray-300 mb-2">{content.content}</div>
 
-                  <div className="flex items-center space-x-4 text-sm text-gray-400">
+                  <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
                     <span>作者: {content.author}</span>
                     <span>提交时间: {content.submitted_at}</span>
                     {content.reviewed_at && (
@@ -262,7 +262,7 @@ const ContentModeration: React.FC = () => {
                       <X size={16} className="mr-1" />
                       拒绝
                     </button>
-                    <button className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm flex items-center">
+                    <button className="px-4 py-2 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm flex items-center">
                       <Eye size={16} className="mr-1" />
                       查看详情
                     </button>
@@ -274,7 +274,7 @@ const ContentModeration: React.FC = () => {
         </div>
 
         {filteredContents.length === 0 && (
-          <div className="p-12 text-center text-gray-400">
+          <div className="p-12 text-center text-gray-600 dark:text-gray-400">
             <Shield size={48} className="mx-auto mb-4 opacity-50" />
             <p>暂无{activeTab === 'pending' ? '待审核' : activeTab === 'approved' ? '已通过' : '已拒绝'}的内容</p>
           </div>

@@ -111,7 +111,7 @@
     line-height: 1.5;
     font-weight: 400;
 
-    color-scheme: dark;
+    color-scheme: light;
     color: hsl(var(--foreground));
     background-color: hsl(var(--background));
 
@@ -120,6 +120,10 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     -webkit-text-size-adjust: 100%;
+  }
+
+  html.dark {
+    color-scheme: dark;
   }
 
   body {
