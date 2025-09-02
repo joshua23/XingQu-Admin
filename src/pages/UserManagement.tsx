@@ -19,13 +19,14 @@ import {
 
 interface User {
   id: string
-  email: string
-  username?: string
+  user_id: string
+  nickname?: string
   avatar_url?: string
   created_at: string
-  last_sign_in_at?: string
-  subscription_type?: 'free' | 'basic' | 'premium' | 'lifetime'
-  is_active?: boolean
+  updated_at?: string
+  account_status: 'active' | 'inactive' | 'suspended'
+  is_member: boolean
+  membership_expires_at?: string
 }
 
 // 用户基础指标
@@ -188,11 +189,11 @@ const UserManagement: React.FC = () => {
   })
 
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch = user.nickname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         user.user_id.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = statusFilter === 'all' ||
-                         (statusFilter === 'active' && user.is_active) ||
-                         (statusFilter === 'inactive' && !user.is_active)
+                         (statusFilter === 'active' && user.account_status === 'active') ||
+                         (statusFilter === 'inactive' && user.account_status !== 'active')
     return matchesSearch && matchesStatus
   })
 
@@ -263,7 +264,7 @@ const UserManagement: React.FC = () => {
                 <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
                 <input
                   type="text"
-                  placeholder="搜索用户ID或邮箱..."
+                  placeholder="搜索用户ID或昵称..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 bg-background border border-input rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"

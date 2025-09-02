@@ -46,11 +46,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (session?.user) {
           setUser({
             id: session.user.id,
-            email: session.user.email || '',
-            name: session.user.user_metadata?.name,
+            user_id: session.user.id,
+            nickname: session.user.user_metadata?.name || session.user.email,
             avatar_url: session.user.user_metadata?.avatar_url,
             created_at: session.user.created_at,
-            last_sign_in_at: session.user.last_sign_in_at
+            updated_at: session.user.updated_at,
+            account_status: 'active',
+            is_member: false
           })
         } else {
           setUser(null)
@@ -68,11 +70,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (user) {
         setUser({
           id: user.id,
-          email: user.email || '',
-          name: user.user_metadata?.name,
+          user_id: user.id,
+          nickname: user.user_metadata?.name || user.email,
           avatar_url: user.user_metadata?.avatar_url,
           created_at: user.created_at,
-          last_sign_in_at: user.last_sign_in_at
+          updated_at: user.updated_at,
+          account_status: 'active',
+          is_member: false
         })
       }
     } catch (error) {
@@ -89,11 +93,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (isDevelopment && (!email || !password)) {
         const devUser = {
           id: 'dev-admin-001',
-          email: 'dev@admin.com',
-          name: '开发管理员',
-          avatar_url: null,
+          user_id: 'dev-admin-001',
+          nickname: '开发管理员',
+          avatar_url: undefined,
           created_at: new Date().toISOString(),
-          last_sign_in_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
+          account_status: 'active' as const,
+          is_member: false
         }
         localStorage.setItem('dev_admin_user', JSON.stringify(devUser))
         setUser(devUser)

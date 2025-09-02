@@ -183,6 +183,10 @@ VITE_SUPABASE_URL=your-supabase-project-url
 VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
+### 📚 Supabase 开发文档
+- [Supabase 最佳实践文档](./docs/supabase-best-practices.md) - 全面的 Supabase 使用指南
+- [项目专用 Supabase 指南](./docs/project-supabase-guide.md) - 本项目特定的配置和常见问题
+
 ## 📈 性能优化
 
 - **代码分割**: 按路由进行代码分割

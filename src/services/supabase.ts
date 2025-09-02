@@ -91,13 +91,14 @@ export const dataService = {
       .from('xq_user_profiles')
       .select(`
         id,
-        email,
-        username,
+        user_id,
+        nickname,
         avatar_url,
         created_at,
-        last_sign_in_at,
-        subscription_type,
-        is_active
+        updated_at,
+        account_status,
+        is_member,
+        membership_expires_at
       `)
       .order('created_at', { ascending: false })
       .limit(100)
