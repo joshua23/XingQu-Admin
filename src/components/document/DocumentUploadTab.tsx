@@ -136,7 +136,7 @@ const DEFAULT_DOCUMENT = `# 星趣用户协议
 **生效日期：2025年9月1日**`
 
 export const DocumentUploadTab: React.FC = () => {
-  const [document, setDocument] = useState(DEFAULT_DOCUMENT)
+  const [documentContent, setDocumentContent] = useState(DEFAULT_DOCUMENT)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadSuccess, setUploadSuccess] = useState<string | null>(null)
   const [uploadError, setUploadError] = useState<string | null>(null)
@@ -164,7 +164,7 @@ export const DocumentUploadTab: React.FC = () => {
 
     try {
       const text = await file.text()
-      setDocument(text)
+      setDocumentContent(text)
       setUploadSuccess(`文件 "${file.name}" 上传成功！内容已更新。`)
       
       // 3秒后清除成功提示
@@ -180,7 +180,7 @@ export const DocumentUploadTab: React.FC = () => {
 
   // 下载当前文档
   const handleDownload = () => {
-    const blob = new Blob([document], { type: 'text/markdown;charset=utf-8' })
+    const blob = new Blob([documentContent], { type: 'text/markdown;charset=utf-8' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
@@ -271,16 +271,16 @@ export const DocumentUploadTab: React.FC = () => {
         <CardContent>
           <div className="prose prose-sm max-w-none">
             <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed bg-muted/30 p-4 rounded-lg border">
-              {document}
+              {documentContent}
             </pre>
           </div>
           
           {/* 文档统计 */}
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-border text-sm text-muted-foreground">
             <div className="flex items-center space-x-4">
-              <span>字符数: {document.length.toLocaleString()}</span>
-              <span>行数: {document.split('\n').length}</span>
-              <span>大小: {Math.round(new Blob([document]).size / 1024 * 100) / 100} KB</span>
+              <span>字符数: {documentContent.length.toLocaleString()}</span>
+              <span>行数: {documentContent.split('\n').length}</span>
+              <span>大小: {Math.round(new Blob([documentContent]).size / 1024 * 100) / 100} KB</span>
             </div>
             <div>
               最后更新: {new Date().toLocaleString('zh-CN')}

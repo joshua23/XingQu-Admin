@@ -111,7 +111,3 @@ export const StatusBadge = ({ status }: { status: string }) => {
   return <Badge variant={getVariant()}>{status}</Badge>;
 };
 
-export const PercentageCell = ({ value }: { value: number }) => {
-  const color = value > 0 ? 'text-metric-positive' : value < 0 ? 'text-metric-negative' : 'text-metric-neutral';
-  return <span className={color}>{value}%</span>;
-};

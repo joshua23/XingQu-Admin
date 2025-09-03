@@ -42,8 +42,6 @@ export const SimpleDocumentTab: React.FC = () => {
   const handleSave = () => {
     setContent(editContent)
     setIsEditing(false)
-    // 这里可以添加实际的保存逻辑
-    console.log('文档已保存:', editContent.slice(0, 100) + '...')
   }
 
   const handleCancel = () => {

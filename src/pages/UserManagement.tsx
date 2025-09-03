@@ -6,12 +6,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
 import { dataService } from '../services/supabase'
 import { useAutoRefresh } from '../hooks/useAutoRefresh'
 import DocumentUploadTab from '../components/document/DocumentUploadTab'
+import { UserDetailModal } from '../components/user/UserDetailModal'
+import { BatchOperationsModal } from '../components/user/BatchOperationsModal'
 import {
   RefreshCw,
   Clock,
   AlertTriangle,
   Search,
-  Filter
+  Filter,
+  Eye,
+  Settings,
+  CheckSquare
 } from 'lucide-react'
 
 interface User {
@@ -59,32 +64,7 @@ const generateUserBasicMetrics = (userMetrics: any) => {
   ]
 }
 
-// 基础属性表格配置
-const basicAttributesColumns: TableColumn[] = [
-  { key: 'userId', label: '用户ID', width: '120px' },
-  { key: 'registerTime', label: '注册时间', width: '140px' },
-  { key: 'gender', label: '性别', width: '80px', align: 'center' },
-  { key: 'ageGroup', label: '年龄分层', width: '100px', align: 'center' },
-  { key: 'location', label: '地域', width: '120px' },
-  { key: 'device', label: '设备型号', width: '120px' },
-  { key: 'system', label: '系统版本', width: '100px' },
-  {
-    key: 'memberLevel',
-    label: '会员等级',
-    width: '100px',
-    align: 'center',
-    render: (value) => {
-      const levels = {
-        '普通会员': { variant: 'default' as const, text: '普通' },
-        '高级会员': { variant: 'warning' as const, text: '高级' },
-        'VIP会员': { variant: 'success' as const, text: 'VIP' },
-        '非会员': { variant: 'secondary' as const, text: '非会员' }
-      };
-      const level = levels[value as keyof typeof levels] || levels['非会员'];
-      return <span className={`px-2 py-1 text-xs rounded-full bg-${level.variant} text-${level.variant}-foreground`}>{level.text}</span>;
-    }
-  },
-];
+// 基础属性表格配置（将在组件内部重新定义）
 
 // 账户状态表格配置
 const accountStatusColumns: TableColumn[] = [
@@ -164,6 +144,11 @@ const UserManagement: React.FC = () => {
   const [_statusFilter, setStatusFilter] = useState<string>('all')
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [error, setError] = useState<string | null>(null)
+  
+  // 新增状态管理
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([])
+  const [showUserDetail, setShowUserDetail] = useState<string | null>(null)
+  const [showBatchOperations, setShowBatchOperations] = useState(false)
 
   // 加载真实用户数据
   const loadUsers = async () => {
@@ -208,15 +193,120 @@ const UserManagement: React.FC = () => {
     immediate: true
   })
 
-  // TODO: 实现用户过滤功能
-  // const filteredUsers = users.filter(user => {
-  //   const matchesSearch = user.nickname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //                        user.user_id.toLowerCase().includes(searchTerm.toLowerCase())
-  //   const matchesStatus = statusFilter === 'all' ||
-  //                        (statusFilter === 'active' && user.account_status === 'active') ||
-  //                        (statusFilter === 'inactive' && user.account_status !== 'active')
-  //   return matchesSearch && matchesStatus
-  // })
+  // 处理函数
+  const handleUserSelect = (userId: string, selected: boolean) => {
+    if (selected) {
+      setSelectedUsers(prev => [...prev, userId])
+    } else {
+      setSelectedUsers(prev => prev.filter(id => id !== userId))
+    }
+  }
+
+  const handleSelectAll = (selected: boolean) => {
+    if (selected) {
+      setSelectedUsers(users.map(user => user.user_id))
+    } else {
+      setSelectedUsers([])
+    }
+  }
+
+  const handleViewUserDetail = (userId: string) => {
+    setShowUserDetail(userId)
+  }
+
+  const handleBatchOperations = () => {
+    if (selectedUsers.length === 0) {
+      alert('请先选择要操作的用户')
+      return
+    }
+    setShowBatchOperations(true)
+  }
+
+  const handleModalClose = () => {
+    setShowUserDetail(null)
+    setShowBatchOperations(false)
+    setSelectedUsers([])
+    // 刷新数据
+    loadUsers()
+  }
+
+  // 增强的基础属性表格配置
+  const basicAttributesColumns: TableColumn[] = [
+    {
+      key: 'select',
+      label: (
+        <input
+          type="checkbox"
+          onChange={(e) => handleSelectAll(e.target.checked)}
+          checked={selectedUsers.length === users.length && users.length > 0}
+          className="rounded"
+        />
+      ),
+      width: '50px',
+      align: 'center',
+      render: (_value, row: any) => (
+        <input
+          type="checkbox"
+          checked={selectedUsers.includes(row.user_id)}
+          onChange={(e) => handleUserSelect(row.user_id, e.target.checked)}
+          className="rounded"
+        />
+      )
+    },
+    { key: 'user_id', label: '用户ID', width: '120px' },
+    { key: 'nickname', label: '昵称', width: '120px' },
+    { 
+      key: 'created_at', 
+      label: '注册时间', 
+      width: '140px',
+      render: (value) => value ? new Date(value).toLocaleDateString() : '-'
+    },
+    { 
+      key: 'gender', 
+      label: '性别', 
+      width: '80px', 
+      align: 'center',
+      render: (value) => value === 'male' ? '男' : value === 'female' ? '女' : '-'
+    },
+    {
+      key: 'is_member',
+      label: '会员等级',
+      width: '100px',
+      align: 'center',
+      render: (value) => (
+        <span className={`px-2 py-1 text-xs rounded-full ${
+          value ? 'bg-yellow-500 text-white' : 'bg-gray-500 text-white'
+        }`}>
+          {value ? '会员' : '非会员'}
+        </span>
+      )
+    },
+    {
+      key: 'account_status',
+      label: '账户状态',
+      width: '100px',
+      align: 'center',
+      render: (value) => <StatusBadge status={value} />
+    },
+    {
+      key: 'actions',
+      label: '操作',
+      width: '120px',
+      align: 'center',
+      render: (_value, row: any) => (
+        <div className="flex items-center justify-center space-x-2">
+          <button
+            onClick={() => handleViewUserDetail(row.user_id)}
+            className="p-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+            title="查看详情"
+          >
+            <Eye size={16} />
+          </button>
+        </div>
+      )
+    }
+  ]
+
 
   if (loading && !lastUpdated) {
     return (
@@ -292,17 +382,33 @@ const UserManagement: React.FC = () => {
                 />
               </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <Filter size={20} className="text-muted-foreground" />
-              <select
-                value={_statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 bg-background border border-input rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                <option value="all">全部状态</option>
-                <option value="active">正常</option>
-                <option value="inactive">未激活</option>
-              </select>
+            <div className="flex items-center space-x-4">
+              {selectedUsers.length > 0 && (
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-muted-foreground">
+                    已选中 {selectedUsers.length} 个用户
+                  </span>
+                  <button
+                    onClick={handleBatchOperations}
+                    className="flex items-center space-x-1 px-3 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors"
+                  >
+                    <Settings size={16} />
+                    <span>批量操作</span>
+                  </button>
+                </div>
+              )}
+              <div className="flex items-center space-x-2">
+                <Filter size={20} className="text-muted-foreground" />
+                <select
+                  value={_statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="px-3 py-2 bg-background border border-input rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  <option value="all">全部状态</option>
+                  <option value="active">正常</option>
+                  <option value="inactive">未激活</option>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -318,7 +424,7 @@ const UserManagement: React.FC = () => {
               <DataTable
                 title="用户基础属性统计"
                 columns={basicAttributesColumns}
-                data={generateBasicAttributesData(users)}
+                data={users}
               />
             </TabsContent>
 
@@ -336,6 +442,24 @@ const UserManagement: React.FC = () => {
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* 用户详情模态框 */}
+      {showUserDetail && (
+        <UserDetailModal
+          userId={showUserDetail}
+          onClose={handleModalClose}
+          onUpdate={handleModalClose}
+        />
+      )}
+
+      {/* 批量操作模态框 */}
+      {showBatchOperations && (
+        <BatchOperationsModal
+          selectedUsers={selectedUsers}
+          onClose={handleModalClose}
+          onSuccess={handleModalClose}
+        />
+      )}
     </div>
   )
 }

@@ -132,15 +132,7 @@ class DocumentServiceImpl implements DocumentService {
       // 这里先更新缓存
       this.cache.set(filePath, updatedContent)
 
-      // TODO: 实际项目中需要调用后端API保存文件
-      // const response = await fetch('/api/documents/save', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ filePath, content: updatedContent })
-      // })
-      // if (!response.ok) throw new Error('保存失败')
 
-      console.log(`文档已保存到缓存: ${filePath}`)
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '保存文档失败'
       throw new Error(errorMessage)
