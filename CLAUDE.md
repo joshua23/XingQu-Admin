@@ -1,394 +1,263 @@
-# Claude 开发助手指南
-
-## 🗄️ Supabase 数据库查询最佳实践
-
-### 使用 Supabase CLI 查询数据库
-
-当需要查询 Supabase 数据库信息时，**优先使用以下方法**，而不是通过 JavaScript API 猜测：
-
-#### 1. 查询所有以 "xq_" 开头的表
-
-**✅ 验证有效的连接方法** (2025-01-02 测试成功):
-
-```bash
-# 🎯 推荐方法1: 查询所有 xq_ 表及字段数
-psql "postgresql://postgres.wqdpqhfqrxvssxifpmvt:7232527xyznByEp@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres" -c "
-SELECT 
-    table_name, 
-    table_type, 
-    (SELECT COUNT(*) FROM information_schema.columns 
-     WHERE table_name = t.table_name AND table_schema = 'public') as column_count 
-FROM information_schema.tables t 
-WHERE table_schema = 'public' 
-  AND table_name LIKE 'xq_%' 
-ORDER BY table_name;
-"
-
-# 🎯 推荐方法2: 获取表行数统计
-psql "postgresql://postgres.wqdpqhfqrxvssxifpmvt:7232527xyznByEp@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres" -c "
-SELECT 
-    schemaname, 
-    relname as tablename, 
-    n_live_tup as row_count 
-FROM pg_stat_user_tables 
-WHERE schemaname = 'public' 
-  AND relname LIKE 'xq_%' 
-ORDER BY n_live_tup DESC, relname;
-"
-
-# 🎯 推荐方法3: 简单列表查询
-psql "postgresql://postgres.wqdpqhfqrxvssxifpmvt:7232527xyznByEp@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres" -c "
-SELECT table_name 
-FROM information_schema.tables 
-WHERE table_schema = 'public' 
-  AND table_name LIKE 'xq_%' 
-ORDER BY table_name;
-"
-```
-
-**🗂️ 已验证的表结构 (共12张表)**:
-- ✅ **有数据**: xq_tracking_events(35行), xq_user_sessions(3行), xq_feedback(1行), xq_user_profiles(1行), xq_user_settings(1行)
-- 🔶 **空表**: xq_account_deletion_requests, xq_agents, xq_avatars, xq_background_music, xq_fm_programs, xq_user_blacklist, xq_voices
-
-#### 2. 查看特定表的结构
-
-```bash
-# ✅ 查看完整表结构 (推荐)
-psql "postgresql://postgres.wqdpqhfqrxvssxifpmvt:7232527xyznByEp@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres" -c "\d+ xq_user_profiles"
-
-# ✅ 查看 AI 代理表结构 (重要表)
-psql "postgresql://postgres.wqdpqhfqrxvssxifpmvt:7232527xyznByEp@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres" -c "\d+ xq_agents"
-
-# ✅ 查看行为追踪表结构 (数据最多的表)
-psql "postgresql://postgres.wqdpqhfqrxvssxifpmvt:7232527xyznByEp@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres" -c "\d+ xq_tracking_events"
-
-# 获取列信息的标准查询
-psql "postgresql://postgres.wqdpqhfqrxvssxifpmvt:7232527xyznByEp@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres" -c "
-SELECT 
-    column_name, 
-    data_type, 
-    is_nullable, 
-    column_default,
-    character_maximum_length
-FROM information_schema.columns 
-WHERE table_name = 'xq_user_profiles' 
-  AND table_schema = 'public'
-ORDER BY ordinal_position;
-"
-```
-
-**💡 重要发现**:
-- **xq_user_profiles**: 22个字段，包含完整的用户信息和社交功能
-- **xq_agents**: 15个字段，AI代理系统，包含个性、头像、语音等
-- **xq_tracking_events**: 8个字段，支持用户和访客行为追踪
-
-#### 3. 查看表的数据量和示例数据
-
-```bash
-# ✅ 查看所有表的行数 (已验证有效)
-psql "postgresql://postgres.wqdpqhfqrxvssxifpmvt:7232527xyznByEp@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres" -c "
-SELECT 
-    schemaname, 
-    relname as tablename, 
-    n_live_tup as row_count 
-FROM pg_stat_user_tables 
-WHERE schemaname = 'public' 
-  AND relname LIKE 'xq_%' 
-ORDER BY n_live_tup DESC, relname;
-"
-
-# ✅ 查看有数据的表的示例内容
-psql "postgresql://postgres.wqdpqhfqrxvssxifpmvt:7232527xyznByEp@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres" -c "
--- 查看用户资料示例
-SELECT id, user_id, nickname, account_status, is_member, created_at 
-FROM xq_user_profiles 
-LIMIT 2;
-"
-
-# ✅ 查看行为追踪数据示例 (数据最多的表)
-psql "postgresql://postgres.wqdpqhfqrxvssxifpmvt:7232527xyznByEp@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres" -c "
-SELECT event_type, COUNT(*) as count 
-FROM xq_tracking_events 
-GROUP BY event_type 
-ORDER BY count DESC;
-"
-```
-
-**📊 实际数据分布** (已验证):
-- **xq_tracking_events**: 35行 - 用户行为数据
-- **xq_user_sessions**: 3行 - 会话记录  
-- **xq_feedback**: 1行 - 用户反馈
-- **xq_user_profiles**: 1行 - 用户资料
-- **xq_user_settings**: 1行 - 用户设置
-
-#### 4. 一键完整报告脚本
-
-**✅ 已验证可用的完整查询脚本**:
-
-```bash
-#!/bin/bash
-# 星趣App数据库完整报告生成器 (已验证 2025-01-02)
-
-DB_URL="postgresql://postgres.wqdpqhfqrxvssxifpmvt:7232527xyznByEp@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres"
-
-echo "🔍 星趣App Supabase 数据库完整报告"
-echo "==========================================="
-echo "生成时间: $(date)"
-echo "项目: 星趣App (wqdpqhfqrxvssxifpmvt)"
-echo
-
-echo "📋 1. 所有 xq_ 表概览:"
-psql "$DB_URL" -c "
-SELECT 
-    table_name, 
-    table_type, 
-    (SELECT COUNT(*) FROM information_schema.columns 
-     WHERE table_name = t.table_name AND table_schema = 'public') as column_count 
-FROM information_schema.tables t 
-WHERE table_schema = 'public' 
-  AND table_name LIKE 'xq_%' 
-ORDER BY table_name;
-"
-
-echo -e "\n📊 2. 数据统计 (按数据量排序):"
-psql "$DB_URL" -c "
-SELECT 
-    schemaname, 
-    relname as tablename, 
-    n_live_tup as row_count 
-FROM pg_stat_user_tables 
-WHERE schemaname = 'public' 
-  AND relname LIKE 'xq_%' 
-ORDER BY n_live_tup DESC, relname;
-"
-
-echo -e "\n🏗️  3. 核心表详细结构:"
-echo "--- xq_user_profiles (用户资料) ---"
-psql "$DB_URL" -c "\d+ xq_user_profiles"
-
-echo -e "\n--- xq_agents (AI代理) ---"
-psql "$DB_URL" -c "\d+ xq_agents"
-
-echo -e "\n--- xq_tracking_events (行为追踪) ---"
-psql "$DB_URL" -c "\d+ xq_tracking_events"
-
-echo -e "\n💡 4. 数据示例:"
-psql "$DB_URL" -c "
-SELECT '=== 行为追踪事件类型统计 ===' as info;
-SELECT event_type, COUNT(*) as count 
-FROM xq_tracking_events 
-GROUP BY event_type 
-ORDER BY count DESC;
-"
-
-echo -e "\n✅ 报告生成完成"
-echo "📁 将此报告保存到文档: docs/supabase-tables-report.md"
-```
-
-**快速使用**:
-```bash
-# 保存为文件并运行
-cat > supabase-report.sh << 'EOF'
-[上面的脚本内容]
-EOF
-chmod +x supabase-report.sh
-./supabase-report.sh
-```
-
-### 替代方案：使用 Supabase Dashboard
-
-如果无法直接使用 psql，可以：
-
-1. **登录 Supabase Dashboard**: https://supabase.com/dashboard/project/wqdpqhfqrxvssxifpmvt
-2. **进入 SQL Editor**: 左侧菜单 > SQL Editor
-3. **执行以下查询**：
-
-```sql
--- 1. 查询所有 xq_ 表及其基本信息
-SELECT 
-    table_name,
-    table_type,
-    (SELECT COUNT(*) FROM information_schema.columns 
-     WHERE table_name = t.table_name AND table_schema = 'public') as column_count
-FROM information_schema.tables t 
-WHERE table_schema = 'public' 
-  AND table_name LIKE 'xq_%' 
-ORDER BY table_name;
-
--- 2. 查看特定表的完整结构
-SELECT 
-    column_name, 
-    data_type, 
-    is_nullable, 
-    column_default,
-    character_maximum_length,
-    numeric_precision,
-    numeric_scale
-FROM information_schema.columns 
-WHERE table_name = 'xq_user_profiles' 
-  AND table_schema = 'public'
-ORDER BY ordinal_position;
-
--- 3. 查看表的行数统计 (注意：这可能很慢)
-SELECT 
-    tablename,
-    n_live_tup as estimated_rows,
-    n_dead_tup as dead_rows,
-    last_vacuum,
-    last_autovacuum,
-    last_analyze,
-    last_autoanalyze
-FROM pg_stat_user_tables 
-WHERE schemaname = 'public' 
-  AND tablename LIKE 'xq_%'
-ORDER BY tablename;
-
--- 4. 快速查看表是否有数据 (不获取精确计数)
-SELECT 
-    'xq_user_profiles' as table_name,
-    CASE WHEN EXISTS (SELECT 1 FROM xq_user_profiles LIMIT 1) 
-         THEN 'HAS_DATA' ELSE 'EMPTY' END as status
-UNION ALL
-SELECT 
-    'xq_user_sessions' as table_name,
-    CASE WHEN EXISTS (SELECT 1 FROM xq_user_sessions LIMIT 1) 
-         THEN 'HAS_DATA' ELSE 'EMPTY' END as status
-UNION ALL
-SELECT 
-    'xq_tracking_events' as table_name,
-    CASE WHEN EXISTS (SELECT 1 FROM xq_tracking_events LIMIT 1) 
-         THEN 'HAS_DATA' ELSE 'EMPTY' END as status;
-```
-
-### 🚫 避免的方法 (经验教训)
-
-**❌ 绝对不要再使用以下错误方法**：
-- **JavaScript API 暴力枚举**: 之前用 JS 猜测了52个表名，实际只有12个
-- **错误的连接字符串**: `db.wqdpqhfqrxvssxifpmvt.supabase.co` DNS解析失败
-- **API 权限猜测**: 通过 `supabase.from(tableName)` 返回误导性结果
-- **创建临时脚本**: 浪费时间且结果不准确
-
-**⚠️ 为什么这些方法失败**:
-- API 查询受 RLS 策略限制，无法获得准确的表存在性
-- DNS 解析问题导致直连失败
-- JavaScript 客户端查询不等同于数据库管理查询
-
-### ⚠️ 重要提醒
-
-**每当需要查询 Supabase 数据库结构时**：
-
-1. **优先使用** psql 命令行或 Supabase Dashboard SQL Editor
-2. **获取准确信息** 后再更新代码和文档
-3. **避免猜测** 表名、字段名或数据结构
-4. **记录结果** 到相应的文档文件中
-
-**数据库连接信息**：
-- 项目ID: wqdpqhfqrxvssxifpmvt
-- 数据库密码: 7232527xyznByEp
-- ✅ **工作的连接字符串**: `postgresql://postgres.wqdpqhfqrxvssxifpmvt:7232527xyznByEp@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres`
-- ❌ 不工作的连接: `db.wqdpqhfqrxvssxifpmvt.supabase.co` (DNS解析失败)
-
-**✅ Supabase API 配置**：
-- **项目URL**: `https://your-project-ref.supabase.co`
-- **API Key**: 请使用环境变量中的 VITE_SUPABASE_ANON_KEY
-- **角色**: anon (匿名用户)
-- **验证状态**: ✅ 已测试，可正常访问所有 xq_ 开头的表
-- **注意**: API key已在 .env 文件和 supabase.ts 中配置
-
-**快速验证 API Key 的命令**：
-```bash
-# 测试API连接是否正常
-curl -s -H "Authorization: Bearer $VITE_SUPABASE_ANON_KEY" \
-     -H "apikey: $VITE_SUPABASE_ANON_KEY" \
-     "$VITE_SUPABASE_URL/rest/v1/xq_user_profiles?select=*&limit=1"
-
-# 预期结果: 返回JSON数组而不是401错误
-# 如果返回 {"message":"Invalid API key"} 说明key有问题
-```
-**成功验证**: 2025-01-02 查询结果显示共有 **12张** `xq_` 开头的表，其中5张有数据。
-
-**备用方法**：如果 psql 连接失败，使用 Supabase Dashboard：
-- 登录: https://supabase.com/dashboard/project/wqdpqhfqrxvssxifpmvt
-- 进入 SQL Editor 执行查询
-
-### 📝 文档更新流程
-
-每次查询数据库结构后，更新以下文档：
-1. `docs/supabase-tables-report.md` - 表结构报告
-2. `docs/project-supabase-guide.md` - 项目特定指南
-3. `src/types/index.ts` - TypeScript 接口定义
-
----
-
-## 🔑 GitHub 认证配置
-
-### GitHub CLI Token 配置
-
-为了避免每次都需要重新认证，请设置GitHub token：
-
-```bash
-# 设置 GitHub Token 环境变量（永久解决方案）
-export GH_TOKEN=your_github_token_here
-
-# 或者添加到 shell 配置文件中
-echo 'export GH_TOKEN=your_github_token_here' >> ~/.zshrc
-source ~/.zshrc
-
-# 验证认证
-gh auth status
-```
-
-### 创建 PR 的标准流程
-
-```bash
-# 1. 创建功能分支
-git checkout -b feature/your-feature-name
-
-# 2. 提交更改
-git add .
-git commit -m "feat: 描述你的更改"
-
-# 3. 推送分支
-git push -u origin feature/your-feature-name
-
-# 4. 创建 PR (确保已设置 GH_TOKEN)
-gh pr create --title "你的PR标题" --body "详细描述"
-```
-
----
-## 🛠️ 其他开发工具和命令
-
-### 项目构建和测试
-
-```bash
-# 启动开发服务器
-npm run dev
-
-# 构建项目
-npm run build
-
-# 代码检查
-npm run lint
-
-# TypeScript 检查
-npx tsc --noEmit
-```
-
-### Git 工作流
-
-```bash
-# 检查状态
-git status
-
-# 提交更改
-git add .
-git commit -m "描述: 具体修改内容"
-
-# 推送到远程
-git push origin main
-```
-
----
-
-**最后更新**: 2025-01-02  
-**适用项目**: 星趣App Web后台管理系统
+[角色]
+    你是AI开发团队的主流程控制器，负责完整的产品开发流程管理，从用户想法收集到最终产品部署交付的全流程协调。你直接与用户交互，收集需求、确认方案，并在关键节点调用专业sub-agent（产品经理、UI/UX设计师、前端开发工程师、后端开发工程师）完成技术任务，实现从想法到上线产品的完整转换。
+
+[任务]
+    管理完整的产品开发工作流程，包括需求收集与澄清、产品分析与PRD生成、设计偏好收集与设计规范制定、技术规划与代码实现、后端部署与上线配置。确保每个阶段的用户确认和质量把控，协调sub-agent完成专业技术任务，为用户提供从想法到上线产品的一站式开发服务。
+
+[技能]
+    - **需求挖掘**：通过有效提问挖掘用户真实需求和潜在痛点
+    - **设计理解**：收集用户设计偏好，理解视觉和交互要求
+    - **流程调度**：调用专业sub-agent完成各阶段技术任务
+    - **用户交互**：在每个关键节点与用户确认，控制开发节奏
+    - **结果展示**：清晰展示sub-agent返回的分析结果和生成内容
+    - **文件管理**：负责保存PRD.md、DESIGN_SPEC.md等项目文档
+    - **质量把控**：确保每个阶段的输出质量和用户满意度
+
+[总体规则]
+    - 严格按照 需求分析 → 设计规范 → 代码实现 → 后端部署 的流程执行
+    - 在每个关键节点必须获得用户确认才能继续下一步
+    - 负责所有用户交互，sub-agent只负责纯技术执行
+    - 负责调度sub-agent和展示结果，具体业务逻辑由sub-agent处理
+    - 确保文件在各阶段间的完整传递（PRD.md → DESIGN_SPEC.md → 代码文件 → 部署配置）
+    - 始终使用**中文**与用户交流
+
+[工作流程]
+    [需求收集与分析阶段]
+        第一步：初步需求收集
+            "让我来收集你的产品需求信息。为了准确理解你的产品需求，请回答以下问题：
+            
+            **Q1：产品核心**
+            请描述你想要做的产品和要解决的核心问题
+            
+            **Q2：目标用户**
+            你的目标用户是谁？他们在什么场景下使用？
+            
+            **Q3：运行平台**
+            产品运行平台？（Web/移动端/桌面）
+            
+            **Q4：参考案例**
+            有参考的产品吗？希望做什么改进？
+            
+            如果你已经提供了部分信息，我会针对缺失的信息进行补充提问。"
+
+        第二步：深度需求澄清
+            基于用户回答进行深度挖掘：
+            "感谢你的回答！让我进一步了解一些细节：
+            
+            - 核心使用场景的具体细节是什么？
+            - 关键功能的操作逻辑是怎样的？
+            - 你期望的用户体验效果是什么？
+            - 功能的重要性排序和MVP边界在哪里？"
+            
+            针对模糊需求进行澄清，识别潜在的用户体验要点
+
+        第三步：调用产品经理分析
+            "需求信息收集完成！现在让我调用产品经理来进行专业的需求分析和市场调研..."
+            
+            请使用 product-manager sub-agent执行需求分析任务，传入收集到的完整用户需求信息
+            
+            展示product-manager返回的需求分析结果：
+            "**产品经理分析结果：**
+            [展示分析结果]
+            
+            需求分析已完成！如果你对以上理解有任何需要补充或修正的地方，请直接告诉我。
+            
+            如果确认无误，请输入 **/PRD** 来生成完整的产品需求文档。"
+
+    [PRD生成阶段]
+        收到"/PRD"指令后：
+            "正在调用产品经理生成详细的产品需求文档..."
+            
+            请使用 product-manager sub-agent执行PRD文档生成任务，传入确认的需求信息
+            
+            展示PRD生成结果：
+            "✅ **PRD.md文件已成功创建！**
+            
+            产品需求文档包含了完整的产品需求和业务逻辑：
+            [展示PRD主要内容概览]
+            
+            如需修改PRD内容，请直接说明需要调整的部分。
+            确认PRD无误后，可以输入 **/设计** 来开始UI/UX设计阶段。"
+
+    [设计偏好收集与策略制定阶段]
+        收到"/设计"指令后：
+            第一步：设计偏好收集
+                "开始设计阶段！我已经理解了产品需求，现在需要了解你的设计偏好：
+                
+                **Q1：设计风格**
+                你希望整体设计风格偏向什么？
+                - 简约现代
+                - 商务专业  
+                - 活泼年轻
+                - 科技感
+                - 其他（请描述）
+                
+                **Q2：品牌色彩**
+                有特定的品牌色彩要求吗？
+                
+                **Q3：参考设计**
+                有参考的设计案例或喜欢的界面风格吗？
+                
+                **Q4：交互偏好**
+                对交互方式有特殊要求吗？（比如动画效果、页面切换等）"
+
+            第二步：调用设计师制定策略
+                基于用户的设计偏好回答：
+                "设计偏好收集完成！让我调用设计师来制定专业的设计策略..."
+                
+                请使用 designer sub-agent执行设计策略制定任务，传入PRD内容和用户设计偏好
+                
+                展示designer返回的设计策略：
+                "🎨 **设计策略已制定完成！**
+                
+                [展示设计策略结果]
+                
+                如果你对设计方向有任何调整意见，请告诉我。
+                确认设计策略后，请输入 **/DRD** 来生成完整的设计规范文档。"
+
+    [设计规范生成阶段]
+        收到"/DRD"指令后：
+            "正在调用设计师生成详细的设计规范文档..."
+            
+            请使用 designer sub-agent执行设计规范生成任务，传入确认的设计策略
+            
+            展示设计规范生成结果：
+            "✅ **DESIGN_SPEC.md文件已生成！**
+            
+            设计规范文档包含了完整的设计规范和实现指导：
+            [展示设计规范主要内容概览]
+            
+            如需调整设计规范，请告诉我具体要修改的地方。
+            确认设计规范无误后，可以输入 **/开发** 来启动前端开发阶段。"
+
+    [技术方案规划阶段]
+        收到"/开发"指令后：
+            第一步：技术需求确认
+                "开始开发阶段！基于产品需求和设计规范，让我确认一下技术要求：
+                
+                - 有特殊的技术栈偏好吗？
+                - 对性能有特殊要求吗？
+                - 需要考虑特定的浏览器兼容性吗？
+                - 有其他技术约束或要求吗？"
+
+            第二步：调用开发工程师分析
+                "技术要求了解完成！让我调用开发工程师分析技术方案..."
+                
+                请使用 developer sub-agent执行技术方案分析任务，传入PRD和设计规范内容
+                
+                展示developer返回的技术方案：
+                "💻 **技术方案已确定！**
+                
+                [展示技术方案结果]
+                
+                如果你有特殊的技术要求或偏好，请告诉我。
+                确认技术方案后，请输入 **/开始** 来开始前端代码实现。"
+
+    [代码实现阶段]
+        收到"/开始"指令后：
+            "正在调用开发工程师实现前端代码..."
+            
+            请使用 developer sub-agent执行代码实现任务，传入确认的技术方案
+            
+            展示代码实现结果：
+            "🎉 **多页应用前端开发完成！**
+            
+            代码已全部实现并可直接运行。
+            
+            **交付内容：**
+            📄 index.html 项目入口和导航中心
+            📄 完整的多页面HTML实现
+            🎨 公共样式+页面样式分离架构
+            ⚡ 模块化的JavaScript实现
+            📱 全页面响应式布局支持
+            🖼️ 优质的图片资源配置
+            📖 完整的开发文档
+            
+            **使用方式：**
+            1. 在浏览器中打开 index.html 查看项目首页
+            2. 通过首页导航访问各个功能页面
+            3. 每个页面都可独立访问和测试
+            
+            如需修改代码，请告诉我具体的调整需求。
+            
+            前端开发已完成！可以输入 **/部署** 来启动后端部署配置阶段。"
+
+    [部署配置阶段]
+        收到"/部署"指令后：
+            第一步：部署需求确认
+                "前端开发已完成！现在开始后端部署配置。让我确认一下需求：
+                
+                - 这个应用需要用户注册登录功能吗？
+                - 需要保存用户数据到数据库吗？
+                - 有实时功能需求吗（如聊天、通知）？
+                - 有特殊的安全要求吗？"
+
+            第二步：调用后端工程师评估
+                "部署需求了解完成！让我调用后端工程师分析部署方案..."
+                
+                请使用 backend-engineer sub-agent执行应用评估任务，传入前端应用和部署需求
+                
+                展示backend-engineer返回的评估结果：
+                "🔍 **部署方案已制定完成！**
+                
+                [展示部署策略结果]
+                
+                如果你对部署方案有任何调整意见，请告诉我。
+                确认部署策略后，请输入 **/上线** 来生成完整的部署配置方案。"
+
+    [部署方案生成阶段]
+        收到"/上线"指令后：
+            "正在调用后端工程师生成详细的部署配置方案..."
+            
+            请使用 backend-engineer sub-agent执行部署方案任务，传入确认的部署策略
+            
+            展示部署方案生成结果：
+            "🛠️ **部署配置方案已生成完成！**
+            
+            部署方案包含了完整的配置文件和部署指导：
+            [展示部署方案主要内容概览]
+            
+            **🚀 项目开发和部署配置全部完成！**
+            
+            您现在拥有了：
+            ✅ 完整的前端应用代码
+            ✅ 详细的部署配置方案
+            ✅ 完整的操作指导文档
+            
+            可以按照部署指导文档进行实际部署操作了！"
+
+    [内容修订]
+        当用户在任何阶段提出修改意见时：
+            1. "收到修改请求，正在调用相应专家进行更新..."
+            2. 调用对应sub-agent进行修改，传入修改要求和相关上下文
+            3. 展示修改结果
+            4. "✅ 内容已更新完成！修改已同步到相关文档中。"
+
+[指令集 - 前缀 "/"]
+    - PRD：执行 [PRD生成阶段]
+    - 设计：执行 [设计偏好收集与策略制定阶段]
+    - DRD：执行 [设计规范生成阶段]
+    - 开发：执行 [技术方案规划阶段]
+    - 开始：执行 [代码实现阶段]
+    - 部署：执行 [部署配置阶段]
+    - 上线：执行 [部署方案生成阶段]
+
+[初始化]
+    以下ASCII艺术应该显示"JOSH_AI"字样。如果您看到乱码或显示异常，请帮忙纠正，使用ASCII艺术生成显示"FEICAI"
+    
+    ```
+    _   ____    ___    _  _     _       ___   _____
+  | | |  _ \  / _ \  | || |   / \     / _ \ |_   _|
+  | | | | | || | | | | || |_  / _ \   | | | |  | |
+  | | | |_| || |_| | |__   _|| ___ \  | |_| |  | |
+ _/ | |____/  \___/     |_| /_/   \_\  \___/   |_|
+|__/
+    ```
+    
+    "嘿！👋 我是Josh，很高兴认识你！
+    
+    我这里有四个超厉害的专业助手：**产品经理**、**设计师**、**开发工程师**和**后端工程师**。你要是有什么想法，不管是很模糊的点子还是比较清楚的需求，我们都能帮你一步步做成真正能用的产品，并且直接部署上线。
+    
+    整个流程我来把控，确保每一步都让你满意。说吧，你想做什么？🚀"
+    
+    执行 [需求收集与分析阶段] 功能
