@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { MetricCard } from '../components/MetricCard'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card'
 import { Badge } from '../components/ui/Badge'
@@ -7,8 +7,6 @@ import { useAutoRefresh } from '../hooks/useAutoRefresh'
 import {
   Users,
   Activity,
-  TrendingUp,
-  Eye,
   Clock,
   DollarSign,
   RefreshCw,
@@ -24,6 +22,8 @@ interface DashboardStats {
   averageSessionTime: number
   totalRevenue: number
   conversionRate: number
+  memberUsers?: number
+  pageViews?: number
 }
 
 // 实时活动数据
@@ -54,37 +54,6 @@ const recentActivities = [
   },
 ]
 
-// 快速统计数据
-const quickStats = [
-  {
-    icon: Users,
-    title: "用户概况",
-    stats: [
-      { label: "新用户注册", value: "1,234", trend: "+12%" },
-      { label: "活跃用户", value: "8,650", trend: "+8%" },
-      { label: "会员用户", value: "12,847", trend: "+16%" },
-    ]
-  },
-  {
-    icon: MousePointer,
-    title: "用户行为",
-    stats: [
-      { label: "页面访问量", value: "234,567", trend: "+15%" },
-      { label: "平均停留时长", value: "3分42秒", trend: "+9%" },
-      { label: "跳出率", value: "32.5%", trend: "-5%" },
-    ]
-  },
-  {
-    icon: DollarSign,
-    title: "财务数据",
-    stats: [
-      { label: "今日收入", value: "¥45,280", trend: "+13%" },
-      { label: "广告投放", value: "¥32,150", trend: "-8%" },
-      { label: "净利润", value: "¥10,790", trend: "+22%" },
-    ]
-  },
-]
-
 const Dashboard: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
@@ -92,7 +61,9 @@ const Dashboard: React.FC = () => {
     totalSessions: 0,
     averageSessionTime: 0,
     totalRevenue: 0,
-    conversionRate: 0
+    conversionRate: 0,
+    memberUsers: 0,
+    pageViews: 0
   })
   const [loading, setLoading] = useState(true)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
@@ -107,7 +78,7 @@ const Dashboard: React.FC = () => {
       const { data, error: apiError } = await dataService.getDashboardStats()
 
       if (apiError) {
-        throw new Error(apiError.message || '加载数据失败')
+        throw new Error((apiError as Error)?.message || '加载数据失败')
       }
 
       if (data) {
@@ -116,7 +87,7 @@ const Dashboard: React.FC = () => {
       }
     } catch (error) {
       console.error('加载Dashboard数据失败:', error)
-      setError(error instanceof Error ? error.message : '加载数据失败')
+      setError((error as Error)?.message || '加载数据失败')
     } finally {
       setLoading(false)
     }
@@ -129,12 +100,43 @@ const Dashboard: React.FC = () => {
     immediate: true
   })
 
-  // 主要指标数据
+  // 主要指标数据（使用真实数据）
   const overviewMetrics = [
-    { title: "总用户数", value: stats.totalUsers || 128540, change: 12.5, changeLabel: "较上月" },
-    { title: "今日活跃", value: stats.activeUsers || 8650, change: 8.2, changeLabel: "较昨日" },
-    { title: "今日收入", value: stats.totalRevenue ? `¥${stats.totalRevenue}` : "¥45,280", change: 15.6, changeLabel: "较昨日" },
-    { title: "转化率", value: `${Math.round((stats.conversionRate || 0.032) * 1000) / 10}%`, change: -2.1, changeLabel: "较昨日" },
+    { title: "总用户数", value: stats.totalUsers, change: stats.totalUsers > 0 ? 100 : 0, changeLabel: "新增" },
+    { title: "今日活跃", value: stats.activeUsers, change: stats.activeUsers > 0 ? 100 : 0, changeLabel: "24小时内" },
+    { title: "今日收入", value: stats.totalRevenue > 0 ? `¥${stats.totalRevenue}` : "¥0", change: 0, changeLabel: "暂无数据" },
+    { title: "转化率", value: `${Math.round(stats.conversionRate * 10) / 10}%`, change: stats.conversionRate > 0 ? stats.conversionRate : 0, changeLabel: "活跃率" },
+  ]
+
+  // 快速统计数据（使用动态数据）
+  const quickStats = [
+    {
+      icon: Users,
+      title: "用户概况",
+      stats: [
+        { label: "新用户注册", value: stats.totalUsers.toString(), trend: stats.totalUsers > 0 ? "+100%" : "0%" },
+        { label: "活跃用户", value: stats.activeUsers.toString(), trend: stats.activeUsers > 0 ? "+100%" : "0%" },
+        { label: "会员用户", value: (stats.memberUsers || 0).toString(), trend: "0%" },
+      ]
+    },
+    {
+      icon: MousePointer,
+      title: "用户行为",
+      stats: [
+        { label: "页面访问量", value: (stats.pageViews || 0).toString(), trend: (stats.pageViews || 0) > 0 ? "+100%" : "0%" },
+        { label: "平均停留时长", value: `${stats.averageSessionTime}分钟`, trend: "0%" },
+        { label: "会话总数", value: stats.totalSessions.toString(), trend: stats.totalSessions > 0 ? "+100%" : "0%" },
+      ]
+    },
+    {
+      icon: DollarSign,
+      title: "财务数据",
+      stats: [
+        { label: "今日收入", value: `¥${stats.totalRevenue}`, trend: "0%" },
+        { label: "广告投放", value: "¥0", trend: "0%" },
+        { label: "净利润", value: "¥0", trend: "0%" },
+      ]
+    },
   ]
 
   if (loading && !lastUpdated) {
@@ -146,173 +148,195 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* 页面标题和状态 */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">数据总览</h1>
-          <div className="flex items-center space-x-4 mt-1">
-            <p className="text-muted-foreground">系统关键指标和实时数据监控</p>
-            {lastUpdated && (
-              <div className="flex items-center text-sm text-muted-foreground">
-                <Clock size={14} className="mr-1" />
-                最后更新: {lastUpdated.toLocaleTimeString()}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* 手动刷新按钮 */}
-        <button
-          onClick={() => refresh()}
-          disabled={loading}
-          className="flex items-center space-x-2 px-4 py-2 bg-secondary hover:bg-secondary/80 disabled:bg-secondary/50 disabled:cursor-not-allowed text-secondary-foreground rounded-lg transition-colors"
-        >
-          <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-          <span>刷新</span>
-        </button>
-      </div>
-
-      {/* 错误提示 */}
-      {error && (
-        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
-          <div className="flex items-center space-x-2">
-            <AlertTriangle size={16} className="text-destructive" />
-            <p className="text-destructive font-medium">数据加载失败</p>
-          </div>
-          <p className="text-destructive/80 text-sm mt-1">{error}</p>
-        </div>
-      )}
-
-      {/* 主要指标卡片 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {overviewMetrics.map((metric, index) => (
-          <MetricCard key={index} {...metric} />
-        ))}
-      </div>
-
-      {/* 快速统计和实时活动 */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {quickStats.map((section, index) => {
-          const Icon = section.icon;
-          return (
-            <Card key={index}>
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <Icon className="w-5 h-5 text-primary" />
-                  <CardTitle className="text-base">{section.title}</CardTitle>
+    <div className="grid-container">
+      <div className="section-spacing">
+        {/* 页面标题和状态 */}
+        <div className="flex items-start justify-between animate-slide-up">
+          <div className="content-spacing max-w-2xl">
+            <h1 className="text-display-2 text-foreground">数据总览</h1>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              <p className="text-body text-muted-foreground">
+                系统关键指标和实时数据监控
+              </p>
+              {lastUpdated && (
+                <div className="flex items-center text-sm text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-md border border-border/50">
+                  <Clock size={14} className="mr-2 text-primary" />
+                  <span className="font-mono">
+                    最后更新: {lastUpdated.toLocaleTimeString()}
+                  </span>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {section.stats.map((stat, statIndex) => (
-                  <div key={statIndex} className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">{stat.label}</span>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-sm font-medium">{stat.value}</span>
-                      <Badge
-                        variant="secondary"
-                        className={`text-xs ${
-                          stat.trend.startsWith('+')
-                            ? 'text-metric-positive'
-                            : stat.trend.startsWith('-')
-                              ? 'text-metric-negative'
-                              : 'text-metric-neutral'
-                        }`}
-                      >
-                        {stat.trend}
-                      </Badge>
+              )}
+            </div>
+          </div>
+
+          {/* 手动刷新按钮 */}
+          <button
+            onClick={() => refresh()}
+            disabled={loading}
+            className="btn-secondary flex items-center space-x-2 min-w-[100px]"
+          >
+            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+            <span>刷新</span>
+          </button>
+        </div>
+
+        {/* 错误提示 */}
+        {error && (
+          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 animate-slide-up">
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center justify-center w-8 h-8 bg-destructive/20 rounded-full">
+                <AlertTriangle size={16} className="text-destructive" />
+              </div>
+              <div>
+                <p className="text-destructive font-semibold text-lg">数据加载失败</p>
+                <p className="text-destructive/80 text-sm mt-1 leading-relaxed">{error}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 主要指标卡片 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 animate-fade-in">
+          {overviewMetrics.map((metric, index) => (
+            <div key={index} className="animate-scale-in" style={{ animationDelay: `${index * 100}ms` }}>
+              <MetricCard {...metric} />
+            </div>
+          ))}
+        </div>
+
+        {/* 快速统计和实时活动 */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {quickStats.map((section, index) => {
+            const Icon = section.icon;
+            return (
+              <Card key={index} variant="default" className="animate-slide-up" style={{ animationDelay: `${(index + 4) * 100}ms` }}>
+                <CardHeader className="pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-lg">
+                      <Icon className="w-5 h-5 text-primary" />
+                    </div>
+                    <CardTitle className="text-lg font-bold">{section.title}</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="element-spacing">
+                  {section.stats.map((stat, statIndex) => (
+                    <div key={statIndex} className="flex justify-between items-center p-3 bg-muted/30 rounded-lg border border-border/30">
+                      <span className="text-sm font-medium text-muted-foreground">{stat.label}</span>
+                      <div className="flex items-center gap-3">
+                        <span className="font-mono text-base font-bold text-foreground">{stat.value}</span>
+                        <Badge
+                          variant="secondary"
+                          className={`text-xs font-medium px-2 py-1 ${
+                            stat.trend.startsWith('+')
+                              ? 'status-positive'
+                              : stat.trend.startsWith('-')
+                                ? 'status-negative'
+                                : 'status-neutral'
+                          }`}
+                        >
+                          {stat.trend}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
+        {/* 实时活动和今日目标 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <Card variant="elevated" className="animate-slide-up" style={{ animationDelay: '700ms' }}>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-lg">
+                  <Activity className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl font-bold">实时活动</CardTitle>
+                  <CardDescription className="mt-1">系统最新动态和异常提醒</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {recentActivities.map((activity, index) => (
+                  <div key={index} className="flex gap-4 p-4 bg-muted/20 rounded-lg border border-border/30 interactive-element">
+                    <div className="text-xs text-muted-foreground font-mono min-w-[48px] flex-shrink-0 mt-1 bg-background px-2 py-1 rounded border border-border/50">
+                      {activity.time}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h4 className="text-sm font-semibold text-foreground">{activity.action}</h4>
+                        <Badge
+                          variant="outline"
+                          className={`text-xs font-medium ${
+                            activity.type === 'warning'
+                              ? 'border-warning/50 text-warning bg-warning/10'
+                              : activity.type === 'success'
+                                ? 'border-success/50 text-success bg-success/10'
+                                : 'border-primary/50 text-primary bg-primary/10'
+                          }`}
+                        >
+                          {activity.type === 'warning' ? '警告' : activity.type === 'success' ? '正常' : '信息'}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{activity.description}</p>
                     </div>
                   </div>
                 ))}
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* 实时活动和今日目标 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Activity className="w-4 h-4" />
-              实时活动
-            </CardTitle>
-            <CardDescription>系统最新动态和异常提醒</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentActivities.map((activity, index) => (
-                <div key={index} className="flex gap-3">
-                  <div className="text-xs text-muted-foreground font-mono w-12 flex-shrink-0 mt-1">
-                    {activity.time}
+          <Card variant="elevated" className="animate-slide-up" style={{ animationDelay: '800ms' }}>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-lg">
+                  <Target className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl font-bold">今日目标</CardTitle>
+                  <CardDescription className="mt-1">关键指标完成情况</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                <div className="p-4 bg-muted/20 rounded-lg border border-border/30">
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-sm font-medium text-foreground">收入目标</span>
+                    <span className="text-sm font-mono font-bold text-foreground">¥{stats.totalRevenue} / ¥1,000</span>
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className="text-sm font-medium">{activity.action}</h4>
-                      <Badge
-                        variant="outline"
-                        className={`text-xs ${
-                          activity.type === 'warning'
-                            ? 'border-warning text-warning'
-                            : activity.type === 'success'
-                              ? 'border-success text-success'
-                              : 'border-primary text-primary'
-                        }`}
-                      >
-                        {activity.type === 'warning' ? '警告' : activity.type === 'success' ? '正常' : '信息'}
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-muted-foreground">{activity.description}</p>
+                  <div className="w-full bg-muted rounded-full h-3 border border-border/30">
+                    <div className="bg-primary rounded-full h-3 transition-all duration-1000 ease-out" style={{ width: `${Math.min((stats.totalRevenue / 1000) * 100, 100)}%` }}></div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Target className="w-4 h-4" />
-              今日目标
-            </CardTitle>
-            <CardDescription>关键指标完成情况</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm">收入目标</span>
-                  <span className="text-sm font-mono">¥45,280 / ¥50,000</span>
+                <div className="p-4 bg-muted/20 rounded-lg border border-border/30">
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-sm font-medium text-foreground">新用户注册</span>
+                    <span className="text-sm font-mono font-bold text-foreground">{stats.totalUsers} / 100</span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-3 border border-border/30">
+                    <div className="bg-success rounded-full h-3 transition-all duration-1000 ease-out" style={{ width: `${Math.min((stats.totalUsers / 100) * 100, 100)}%` }}></div>
+                  </div>
                 </div>
-                <div className="w-full bg-muted rounded-full h-2">
-                  <div className="bg-primary rounded-full h-2" style={{ width: '90.6%' }}></div>
+
+                <div className="p-4 bg-muted/20 rounded-lg border border-border/30">
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-sm font-medium text-foreground">活跃用户</span>
+                    <span className="text-sm font-mono font-bold text-foreground">{stats.activeUsers} / 10</span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-3 border border-border/30">
+                    <div className="bg-chart-3 rounded-full h-3 transition-all duration-1000 ease-out" style={{ width: `${Math.min((stats.activeUsers / 10) * 100, 100)}%` }}></div>
+                  </div>
                 </div>
               </div>
-
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm">新用户注册</span>
-                  <span className="text-sm font-mono">1,234 / 1,000</span>
-                </div>
-                <div className="w-full bg-muted rounded-full h-2">
-                  <div className="bg-success rounded-full h-2" style={{ width: '100%' }}></div>
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm">活跃用户</span>
-                  <span className="text-sm font-mono">{stats.activeUsers || 8650} / 10,000</span>
-                </div>
-                <div className="w-full bg-muted rounded-full h-2">
-                  <div className="bg-chart-3 rounded-full h-2" style={{ width: `${Math.min(((stats.activeUsers || 8650) / 10000) * 100, 100)}%` }}></div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   )

@@ -1,4 +1,3 @@
-import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { SidebarProvider } from './contexts/SidebarContext'
 import { ThemeProvider } from './contexts/ThemeContext'
@@ -17,7 +16,12 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <Router>
+        <Router 
+          future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true
+          }}
+        >
           <div className="min-h-screen bg-background text-foreground">
             <Routes>
               <Route path="/login" element={<Login />} />
@@ -26,18 +30,20 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <SidebarProvider>
-                      <div className="flex">
+                      <div className="flex min-h-screen">
                         <Sidebar />
-                        <div className="flex-1 flex flex-col">
+                        <div className="flex-1 flex flex-col min-w-0">
                           <Header />
-                          <main className="flex-1 p-6 overflow-auto bg-background">
-                            <Routes>
-                              <Route path="/" element={<Dashboard />} />
-                              <Route path="/users" element={<UserManagement />} />
-                              <Route path="/content" element={<ContentModeration />} />
-                              <Route path="/analytics" element={<Analytics />} />
-                              <Route path="/settings" element={<Settings />} />
-                            </Routes>
+                          <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto bg-background">
+                            <div className="animate-fade-in">
+                              <Routes>
+                                <Route path="/" element={<Dashboard />} />
+                                <Route path="/users" element={<UserManagement />} />
+                                <Route path="/content" element={<ContentModeration />} />
+                                <Route path="/analytics" element={<Analytics />} />
+                                <Route path="/settings" element={<Settings />} />
+                              </Routes>
+                            </div>
                           </main>
                         </div>
                       </div>
