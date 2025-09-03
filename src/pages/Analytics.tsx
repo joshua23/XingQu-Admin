@@ -168,28 +168,28 @@ const Analytics: React.FC = () => {
           <MetricCard
             title="总会话数"
             value={data.behaviorStats.totalSessions}
-            change="+12.5%"
+            change={data.behaviorStats.totalSessions > 0 ? "+100%" : "0%"}
             icon={<Activity size={24} className="text-white" />}
             color="bg-blue-500"
           />
           <MetricCard
             title="平均会话时长"
             value={`${data.behaviorStats.averageSessionTime}分钟`}
-            change="+5.2%"
+            change={data.behaviorStats.averageSessionTime > 0 ? "+100%" : "0%"}
             icon={<Calendar size={24} className="text-white" />}
             color="bg-green-500"
           />
           <MetricCard
             title="页面浏览量"
             value={data.behaviorStats.pageViews}
-            change="+18.3%"
+            change={data.behaviorStats.pageViews > 0 ? "+100%" : "0%"}
             icon={<BarChart3 size={24} className="text-white" />}
             color="bg-purple-500"
           />
           <MetricCard
             title="跳出率"
             value={`${Math.round(data.behaviorStats.bounceRate * 10) / 10}%`}
-            change="-2.1%"
+            change={data.behaviorStats.bounceRate < 50 ? "-低" : data.behaviorStats.bounceRate > 75 ? "+高" : "0%"}
             icon={<TrendingUp size={24} className="text-white" />}
             color="bg-orange-500"
           />
@@ -207,7 +207,7 @@ const Analytics: React.FC = () => {
                 <TrendingUp size={48} className="mx-auto mb-2" />
                 <p>用户增长图表</p>
                 <p className="text-sm">新用户: {data.userGrowth.reduce((sum, day) => sum + day.newUsers, 0)}</p>
-                <p className="text-sm">活跃用户: {data.userGrowth[data.userGrowth.length - 1]?.activeUsers}</p>
+                <p className="text-sm">活跃用户: {data.userGrowth.length > 0 ? data.userGrowth[data.userGrowth.length - 1]?.activeUsers || 0 : 0}</p>
               </div>
             </div>
           </div>
@@ -220,7 +220,7 @@ const Analytics: React.FC = () => {
                 <BarChart3 size={48} className="mx-auto mb-2" />
                 <p>收入趋势图表</p>
                 <p className="text-sm">本月收入: ¥{data.revenueStats.totalRevenue.toLocaleString()}</p>
-                <p className="text-sm">增长率: +22.1%</p>
+                <p className="text-sm">增长率: {data.revenueStats.totalRevenue > 0 ? "+100%" : "暂无数据"}</p>
               </div>
             </div>
           </div>

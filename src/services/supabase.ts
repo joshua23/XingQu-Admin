@@ -109,11 +109,59 @@ export const dataService = {
         updated_at,
         account_status,
         is_member,
-        membership_expires_at
+        membership_expires_at,
+        gender
       `)
       .order('created_at', { ascending: false })
       .limit(100)
     return { data, error }
+  },
+
+  // 用户基础指标统计
+  async getUserMetrics() {
+    try {
+      const [totalUsersResult, newUsersResult, activeUsersResult, memberUsersResult] = await Promise.all([
+        // 总用户数
+        supabase
+          .from('xq_user_profiles')
+          .select('id', { count: 'exact' }),
+        
+        // 新增用户（最近30天）
+        supabase
+          .from('xq_user_profiles')
+          .select('id', { count: 'exact' })
+          .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
+        
+        // 活跃用户（最近7天有行为追踪的用户）
+        supabase
+          .from('xq_tracking_events')
+          .select('user_id')
+          .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+          .not('user_id', 'is', null),
+        
+        // 会员用户
+        supabase
+          .from('xq_user_profiles')
+          .select('id', { count: 'exact' })
+          .eq('is_member', true)
+      ])
+
+      // 计算活跃用户（去重）
+      const activeUserIds = new Set(activeUsersResult.data?.map(event => event.user_id) || [])
+
+      return {
+        data: {
+          totalUsers: totalUsersResult.count || 0,
+          newUsers: newUsersResult.count || 0,
+          activeUsers: activeUserIds.size,
+          memberUsers: memberUsersResult.count || 0
+        },
+        error: null
+      }
+    } catch (error) {
+      console.error('User metrics error:', error)
+      return { data: null, error }
+    }
   },
 
   // 行为数据查询

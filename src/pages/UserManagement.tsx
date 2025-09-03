@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { MetricCard } from '../components/MetricCard'
 import { DataTable, StatusBadge, type TableColumn } from '../components/DataTable'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/Tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
 import { dataService } from '../services/supabase'
 import { useAutoRefresh } from '../hooks/useAutoRefresh'
+import DocumentUploadTab from '../components/document/DocumentUploadTab'
 import {
   RefreshCw,
   Clock,
@@ -20,18 +21,43 @@ interface User {
   avatar_url?: string
   created_at: string
   updated_at?: string
-  account_status: 'active' | 'inactive' | 'suspended'
+  account_status: 'active' | 'inactive' | 'suspended' | 'violation' | 'deactivated'
   is_member: boolean
   membership_expires_at?: string
+  gender?: 'male' | 'female' | 'hidden'
 }
 
-// 用户基础指标
-const userBasicMetrics = [
-  { title: "总用户数", value: 128540, change: 12.5, changeLabel: "较上月" },
-  { title: "新增用户", value: 3248, change: 8.2, changeLabel: "较上月" },
-  { title: "活跃用户", value: 45621, change: -2.1, changeLabel: "较上月" },
-  { title: "会员用户", value: 12847, change: 15.6, changeLabel: "较上月" },
-]
+// 用户基础指标 (动态生成)
+const generateUserBasicMetrics = (userMetrics: any) => {
+  const metrics = userMetrics || { totalUsers: 0, newUsers: 0, activeUsers: 0, memberUsers: 0 }
+  
+  return [
+    { 
+      title: "总用户数", 
+      value: metrics.totalUsers, 
+      change: metrics.totalUsers > 0 ? 100 : 0, 
+      changeLabel: "较上月" 
+    },
+    { 
+      title: "新增用户", 
+      value: metrics.newUsers, 
+      change: metrics.newUsers > 0 ? 100 : 0, 
+      changeLabel: "较上月" 
+    },
+    { 
+      title: "活跃用户", 
+      value: metrics.activeUsers, 
+      change: metrics.activeUsers > 0 ? 100 : 0, 
+      changeLabel: "较上月" 
+    },
+    { 
+      title: "会员用户", 
+      value: metrics.memberUsers, 
+      change: metrics.memberUsers > 0 ? 100 : 0, 
+      changeLabel: "较上月" 
+    },
+  ]
+}
 
 // 基础属性表格配置
 const basicAttributesColumns: TableColumn[] = [
@@ -78,75 +104,61 @@ const accountStatusColumns: TableColumn[] = [
   { key: 'activeDays', label: '近30天活跃天数', width: '120px', align: 'right' },
 ];
 
-// Mock 数据
-const basicAttributesData = [
-  {
-    userId: 'U001234',
-    registerTime: '2024-01-15',
-    gender: '男',
-    ageGroup: '25-35',
-    location: '北京市',
-    device: 'iPhone 14',
-    system: 'iOS 17.2',
-    memberLevel: '普通会员'
-  },
-  {
-    userId: 'U001235',
-    registerTime: '2024-01-16',
-    gender: '女',
-    ageGroup: '18-25',
-    location: '上海市',
-    device: 'Huawei P50',
-    system: 'Android 12',
-    memberLevel: '高级会员'
-  },
-  {
-    userId: 'U001236',
-    registerTime: '2024-01-17',
-    gender: '男',
-    ageGroup: '35-45',
-    location: '广州市',
-    device: 'Samsung S23',
-    system: 'Android 13',
-    memberLevel: '非会员'
-  },
-];
+// 基于真实数据生成表格数据的函数
+const generateBasicAttributesData = (users: User[]) => {
+  return users.map((user) => {
+    const genderMap = {
+      'male': '男',
+      'female': '女',
+      'hidden': '保密'
+    }
+    
+    const memberLevelMap = {
+      'true': '普通会员',
+      'false': '非会员'
+    }
+    
+    return {
+      userId: user.user_id.slice(0, 8), // 显示短ID
+      registerTime: user.created_at.split('T')[0],
+      gender: genderMap[user.gender || 'hidden' as keyof typeof genderMap] || '保密',
+      ageGroup: '25-35', // 暂时固定，后续可根据实际数据计算
+      location: '未知', // 暂无地理位置数据
+      device: 'Web应用', // 暂无设备信息
+      system: '未知', // 暂无系统信息
+      memberLevel: memberLevelMap[String(user.is_member) as keyof typeof memberLevelMap]
+    }
+  })
+}
 
-const accountStatusData = [
-  {
-    userId: 'U001234',
-    accountStatus: '正常',
-    lastLogin: '2024-01-30 14:30',
-    hasPhone: '是',
-    thirdParty: '微信',
-    registerChannel: '官网',
-    accountAge: 15,
-    activeDays: 12
-  },
-  {
-    userId: 'U001235',
-    accountStatus: '正常',
-    lastLogin: '2024-01-30 16:45',
-    hasPhone: '是',
-    thirdParty: 'QQ',
-    registerChannel: 'App Store',
-    accountAge: 14,
-    activeDays: 18
-  },
-  {
-    userId: 'U001236',
-    accountStatus: '冻结',
-    lastLogin: '2024-01-28 09:15',
-    hasPhone: '否',
-    thirdParty: '无',
-    registerChannel: '推广链接',
-    accountAge: 13,
-    activeDays: 5
-  },
-];
+const generateAccountStatusData = (users: User[]) => {
+  return users.map((user) => {
+    const statusMap = {
+      'active': '正常',
+      'inactive': '未激活',
+      'suspended': '冻结',
+      'violation': '违规',
+      'deactivated': '注销'
+    }
+    
+    const accountAge = Math.floor((Date.now() - new Date(user.created_at).getTime()) / (1000 * 60 * 60 * 24))
+    
+    return {
+      userId: user.user_id.slice(0, 8),
+      accountStatus: statusMap[user.account_status as keyof typeof statusMap] || '未知',
+      lastLogin: user.updated_at ? user.updated_at.replace('T', ' ').slice(0, 16) : '从未登录',
+      hasPhone: '未知', // 需要额外查询
+      thirdParty: '未知', // 需要分析登录方式
+      registerChannel: 'Web', // 暂时固定
+      accountAge: accountAge,
+      activeDays: Math.min(accountAge, 30) // 估算值
+    }
+  })
+}
 
 const UserManagement: React.FC = () => {
-  const [_users, setUsers] = useState<User[]>([])
+  const [users, setUsers] = useState<User[]>([])
+  const [userMetrics, setUserMetrics] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [_searchTerm, setSearchTerm] = useState('')
   const [_statusFilter, setStatusFilter] = useState<string>('all')
@@ -159,16 +171,28 @@ const UserManagement: React.FC = () => {
       setLoading(true)
       setError(null)
 
-      const { data, error: apiError } = await dataService.getUserStats()
+      const [userStatsResult, userMetricsResult] = await Promise.all([
+        dataService.getUserStats(),
+        dataService.getUserMetrics()
+      ])
 
-      if (apiError) {
-        throw new Error(apiError.message || '加载用户数据失败')
+      if (userStatsResult.error) {
+        throw new Error((userStatsResult.error as any)?.message || '加载用户数据失败')
       }
 
-      if (data) {
-        setUsers(data)
-        setLastUpdated(new Date())
+      if (userMetricsResult.error) {
+        throw new Error((userMetricsResult.error as any)?.message || '加载用户指标失败')
       }
+
+      if (userStatsResult.data) {
+        setUsers(userStatsResult.data)
+      }
+
+      if (userMetricsResult.data) {
+        setUserMetrics(userMetricsResult.data)
+      }
+
+      setLastUpdated(new Date())
     } catch (error) {
       console.error('加载用户数据失败:', error)
       setError(error instanceof Error ? error.message : '加载数据失败')
@@ -243,7 +267,7 @@ const UserManagement: React.FC = () => {
 
       {/* 用户基础指标 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {userBasicMetrics.map((metric, index) => (
+        {generateUserBasicMetrics(userMetrics).map((metric, index) => (
           <MetricCard key={index} {...metric} />
         ))}
       </div>
@@ -284,16 +308,17 @@ const UserManagement: React.FC = () => {
 
           {/* 数据表格 */}
           <Tabs defaultValue="basic-attributes" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="basic-attributes">基础属性</TabsTrigger>
               <TabsTrigger value="account-status">账户状态</TabsTrigger>
+              <TabsTrigger value="document-management">隐私/用户协议管理</TabsTrigger>
             </TabsList>
 
             <TabsContent value="basic-attributes">
               <DataTable
                 title="用户基础属性统计"
                 columns={basicAttributesColumns}
-                data={basicAttributesData}
+                data={generateBasicAttributesData(users)}
               />
             </TabsContent>
 
@@ -301,8 +326,12 @@ const UserManagement: React.FC = () => {
               <DataTable
                 title="用户账户状态统计"
                 columns={accountStatusColumns}
-                data={accountStatusData}
+                data={generateAccountStatusData(users)}
               />
+            </TabsContent>
+
+            <TabsContent value="document-management">
+              <DocumentUploadTab />
             </TabsContent>
           </Tabs>
         </CardContent>

@@ -1,4 +1,3 @@
-import { Badge } from './ui/Badge'
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -24,10 +23,6 @@ export function MetricCard({
     return change > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />;
   };
 
-  const getTrendColor = () => {
-    if (change === undefined || change === 0) return 'metric-neutral';
-    return change > 0 ? 'metric-positive' : 'metric-negative';
-  };
 
   const formatChange = () => {
     if (change === undefined) return null;
