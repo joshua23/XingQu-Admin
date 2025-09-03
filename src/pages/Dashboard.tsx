@@ -166,12 +166,12 @@ const Dashboard: React.FC = () => {
     },
     { 
       title: "今日收入", 
-      value: stats.totalRevenue > 0 ? `¥${stats.totalRevenue}` : "¥0", 
-      change: 12.7, 
+      value: stats.totalRevenue, 
+      change: stats.totalRevenue > 0 ? 12.7 : 0, 
       changeLabel: "较昨日", 
       icon: <CreditCard size={20} />,
       color: 'warning' as const,
-      sparklineData: generateSparklineData(Number(stats.totalRevenue) || 0),
+      sparklineData: generateSparklineData(stats.totalRevenue || 500, 0.2),
       target: 5000,
       description: "今日总收入金额"
     },
@@ -276,7 +276,7 @@ const Dashboard: React.FC = () => {
         )}
 
         {/* 主要指标卡片 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 animate-fade-in">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 animate-fade-in">
           {overviewMetrics.map((metric, index) => (
             <div key={index} className="animate-scale-in" style={{ animationDelay: `${index * 100}ms` }}>
               <MetricCard {...metric} />
@@ -285,7 +285,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* 数据分析图表 */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 animate-fade-in" style={{ animationDelay: '400ms' }}>
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 animate-fade-in" style={{ animationDelay: '400ms' }}>
           <UserGrowthChart data={userGrowthData} />
           <ActivityChart data={activityData} />
           <RevenueChart data={revenueData} />

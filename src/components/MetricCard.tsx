@@ -1,5 +1,5 @@
 import { TrendingUp, TrendingDown, Minus, Activity, Target, BarChart3 } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn } from '../lib/utils'
 
 interface MetricCardProps {
   title: string;
@@ -82,7 +82,7 @@ export function MetricCard({
     
     const points = data.map((value, index) => {
       const x = (index / (data.length - 1)) * 100;
-      const y = 100 - ((value - min) / range) * 100;
+      const y = 85 - ((value - min) / range) * 70; // Leave 15% padding top, 15% bottom
       return `${x},${y}`;
     }).join(' ');
 
@@ -92,9 +92,9 @@ export function MetricCard({
           <polyline
             fill="none"
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth="1.5"
             points={points}
-            className="opacity-60"
+            className="opacity-70"
           />
         </svg>
       </div>
@@ -135,12 +135,12 @@ export function MetricCard({
       "card-interactive bg-gradient-to-br border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg",
       colorClasses.card
     )}>
-      <div className="p-6">
+      <div className="p-5">
         {/* Header with icon and trend indicator */}
-        <div className="flex items-start justify-between mb-4">
+        <div className="flex items-start justify-between mb-3">
           <div className="flex items-center space-x-3">
             {icon && (
-              <div className={cn("p-2 rounded-lg", colorClasses.icon)}>
+              <div className={cn("p-1.5 rounded-lg", colorClasses.icon)}>
                 {icon}
               </div>
             )}
@@ -148,8 +148,12 @@ export function MetricCard({
               <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
                 {title}
               </h3>
-              <div className="text-3xl font-black text-foreground mt-1 tracking-tight">
-                {typeof value === 'number' ? value.toLocaleString() : value}
+              <div className="text-2xl font-black text-foreground mt-1 tracking-tight">
+                {typeof value === 'number' 
+                  ? title.includes('收入') || title.includes('Revenue') 
+                    ? `¥${value.toLocaleString()}`
+                    : value.toLocaleString()
+                  : value}
               </div>
             </div>
           </div>
@@ -177,7 +181,7 @@ export function MetricCard({
         </div>
 
         {/* Description and labels */}
-        <div className="space-y-2">
+        <div className="space-y-1">
           {description && (
             <p className="text-sm text-muted-foreground font-medium">{description}</p>
           )}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/Card';
 import { Badge } from './ui/Badge';
-import { cn } from '@/lib/utils';
+import { cn } from '../lib/utils';
 import { TrendingUp, TrendingDown, BarChart3, Users, Activity, Eye, DollarSign } from 'lucide-react';
 
 interface ChartDataPoint {
@@ -69,7 +69,7 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
   const colorClasses = getColorClasses();
 
   const BarChart = () => (
-    <div className="flex items-end justify-between space-x-2 h-32 px-1">
+    <div className="flex items-end justify-between space-x-1 h-32 px-2">
       {data.map((point, index) => {
         const height = ((point.value - minValue) / range) * 100;
         return (
@@ -93,8 +93,8 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
                 </div>
               </div>
             </div>
-            <div className="flex flex-col items-center mt-2">
-              <span className="text-xs text-muted-foreground font-medium truncate max-w-12">
+            <div className="flex flex-col items-center mt-2 w-full">
+              <span className="text-xs text-muted-foreground font-medium text-center w-full">
                 {point.label}
               </span>
               {showTrend && point.trend && (
@@ -119,7 +119,7 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
   const LineChart = () => {
     const points = data.map((point, index) => {
       const x = (index / (data.length - 1)) * 100;
-      const y = 100 - ((point.value - minValue) / range) * 80; // 留20%空间给标签
+      const y = 85 - ((point.value - minValue) / range) * 65; // 顶部15%，底部20%空间
       return `${x},${y}`;
     }).join(' ');
 
@@ -143,7 +143,7 @@ export const AnalyticsChart: React.FC<AnalyticsChartProps> = ({
           />
           {data.map((point, index) => {
             const x = (index / (data.length - 1)) * 100;
-            const y = 100 - ((point.value - minValue) / range) * 80;
+            const y = 85 - ((point.value - minValue) / range) * 65;
             return (
               <circle
                 key={index}

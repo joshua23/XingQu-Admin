@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { dataService } from '../services/supabase'
 import { useAutoRefresh } from '../hooks/useAutoRefresh'
+import { MetricCard } from '../components/MetricCard'
 import {
   BarChart3,
   TrendingUp,
@@ -69,37 +70,6 @@ const Analytics: React.FC = () => {
     loadAnalyticsData()
   }, [dateRange])
 
-  const MetricCard: React.FC<{
-    title: string
-    value: string | number
-    change?: string
-    icon: React.ReactNode
-    color: string
-  }> = ({ title, value, change, icon, color }) => (
-    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-gray-600 dark:text-gray-400 text-sm font-medium">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-            {typeof value === 'number' && title.includes('收入')
-              ? `¥${value.toLocaleString()}`
-              : typeof value === 'number' && title.includes('率')
-              ? `${value}%`
-              : value.toLocaleString()
-            }
-          </p>
-          {change && (
-            <p className={`text-sm mt-1 ${change.startsWith('+') ? 'text-green-400' : 'text-red-400'}`}>
-              {change}
-            </p>
-          )}
-        </div>
-        <div className={`p-3 rounded-lg ${color}`}>
-          {icon}
-        </div>
-      </div>
-    </div>
-  )
 
   if (loading && !data) {
     return (
@@ -164,63 +134,85 @@ const Analytics: React.FC = () => {
 
       {/* 关键指标 */}
       {data && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <MetricCard
             title="总会话数"
             value={data.behaviorStats.totalSessions}
-            change={data.behaviorStats.totalSessions > 0 ? "+100%" : "0%"}
-            icon={<Activity size={24} className="text-white" />}
-            color="bg-blue-500"
+            change={data.behaviorStats.totalSessions > 0 ? 15 : 0}
+            changeLabel="vs 上周"
+            icon={<Activity size={20} />}
+            color="primary"
+            description="用户会话总数"
           />
           <MetricCard
             title="平均会话时长"
             value={`${data.behaviorStats.averageSessionTime}分钟`}
-            change={data.behaviorStats.averageSessionTime > 0 ? "+100%" : "0%"}
-            icon={<Calendar size={24} className="text-white" />}
-            color="bg-green-500"
+            change={data.behaviorStats.averageSessionTime > 0 ? 8 : 0}
+            changeLabel="vs 上周"
+            icon={<Clock size={20} />}
+            color="success"
+            description="用户平均停留时间"
           />
           <MetricCard
             title="页面浏览量"
             value={data.behaviorStats.pageViews}
-            change={data.behaviorStats.pageViews > 0 ? "+100%" : "0%"}
-            icon={<BarChart3 size={24} className="text-white" />}
-            color="bg-purple-500"
+            change={data.behaviorStats.pageViews > 0 ? 25 : 0}
+            changeLabel="vs 上周"
+            icon={<BarChart3 size={20} />}
+            color="warning"
+            description="页面访问总次数"
           />
           <MetricCard
             title="跳出率"
             value={`${Math.round(data.behaviorStats.bounceRate * 10) / 10}%`}
-            change={data.behaviorStats.bounceRate < 50 ? "-低" : data.behaviorStats.bounceRate > 75 ? "+高" : "0%"}
-            icon={<TrendingUp size={24} className="text-white" />}
-            color="bg-orange-500"
+            change={data.behaviorStats.bounceRate < 50 ? -5 : data.behaviorStats.bounceRate > 75 ? 12 : 0}
+            changeLabel="vs 上周"
+            icon={<TrendingUp size={20} />}
+            color={data.behaviorStats.bounceRate > 75 ? "danger" : "success"}
+            description="单页访问后离开比例"
           />
         </div>
       )}
 
       {/* 图表区域 */}
       {data && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* 用户增长趋势 */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">用户增长趋势</h3>
-            <div className="h-64 flex items-center justify-center">
-              <div className="text-gray-600 dark:text-gray-400 text-center">
-                <TrendingUp size={48} className="mx-auto mb-2" />
-                <p>用户增长图表</p>
-                <p className="text-sm">新用户: {data.userGrowth.reduce((sum, day) => sum + day.newUsers, 0)}</p>
-                <p className="text-sm">活跃用户: {data.userGrowth.length > 0 ? data.userGrowth[data.userGrowth.length - 1]?.activeUsers || 0 : 0}</p>
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="p-6 pb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">用户增长趋势</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                新用户: {data.userGrowth.reduce((sum, day) => sum + day.newUsers, 0)} | 
+                活跃用户: {data.userGrowth.length > 0 ? data.userGrowth[data.userGrowth.length - 1]?.activeUsers || 0 : 0}
+              </p>
+            </div>
+            <div className="px-6 pb-6">
+              <div className="h-48 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-lg flex items-center justify-center">
+                <div className="text-center text-gray-600 dark:text-gray-400">
+                  <TrendingUp size={32} className="mx-auto mb-2 text-blue-500" />
+                  <p className="text-sm font-medium">图表组件待实现</p>
+                  <p className="text-xs opacity-70">基于 {data.userGrowth.length} 天数据</p>
+                </div>
               </div>
             </div>
           </div>
 
           {/* 收入分析 */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">收入分析</h3>
-            <div className="h-64 flex items-center justify-center">
-              <div className="text-gray-600 dark:text-gray-400 text-center">
-                <BarChart3 size={48} className="mx-auto mb-2" />
-                <p>收入趋势图表</p>
-                <p className="text-sm">本月收入: ¥{data.revenueStats.totalRevenue.toLocaleString()}</p>
-                <p className="text-sm">增长率: {data.revenueStats.totalRevenue > 0 ? "+100%" : "暂无数据"}</p>
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="p-6 pb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">收入分析</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                本月收入: ¥{data.revenueStats.totalRevenue.toLocaleString()} | 
+                增长率: {data.revenueStats.totalRevenue > 0 ? "+15.2%" : "暂无数据"}
+              </p>
+            </div>
+            <div className="px-6 pb-6">
+              <div className="h-48 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 rounded-lg flex items-center justify-center">
+                <div className="text-center text-gray-600 dark:text-gray-400">
+                  <BarChart3 size={32} className="mx-auto mb-2 text-green-500" />
+                  <p className="text-sm font-medium">图表组件待实现</p>
+                  <p className="text-xs opacity-70">基于 {data.revenueStats.monthlyRevenue.length} 月数据</p>
+                </div>
               </div>
             </div>
           </div>
@@ -229,7 +221,7 @@ const Analytics: React.FC = () => {
 
       {/* 详细数据表格 */}
       {data && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* 热门产品 */}
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">热门产品销售</h3>
@@ -268,31 +260,41 @@ const Analytics: React.FC = () => {
 
           {/* 用户行为分析 */}
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">用户行为分析</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-700 dark:text-gray-300">每日活跃用户</span>
-                <span className="text-gray-900 dark:text-white font-medium">
-                  {data.userGrowth.length > 0 ? data.userGrowth[data.userGrowth.length - 1]?.activeUsers : '0'}
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">用户行为分析</h3>
+            <div className="space-y-5">
+              <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700/50">
+                <span className="text-gray-700 dark:text-gray-300 font-medium">每日活跃用户</span>
+                <span className="text-gray-900 dark:text-white font-semibold text-lg">
+                  {data.userGrowth.length > 0 ? data.userGrowth[data.userGrowth.length - 1]?.activeUsers.toLocaleString() : '0'}
                 </span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-700 dark:text-gray-300">平均会话时长</span>
-                <span className="text-gray-900 dark:text-white font-medium">
+              <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700/50">
+                <span className="text-gray-700 dark:text-gray-300 font-medium">平均会话时长</span>
+                <span className="text-gray-900 dark:text-white font-semibold text-lg">
                   {data.behaviorStats.averageSessionTime}分钟
                 </span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-700 dark:text-gray-300">页面浏览量</span>
-                <span className="text-gray-900 dark:text-white font-medium">
+              <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700/50">
+                <span className="text-gray-700 dark:text-gray-300 font-medium">页面浏览量</span>
+                <span className="text-gray-900 dark:text-white font-semibold text-lg">
                   {data.behaviorStats.pageViews.toLocaleString()}
                 </span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-700 dark:text-gray-300">跳出率</span>
-                <span className="text-gray-900 dark:text-white font-medium">
-                  {Math.round(data.behaviorStats.bounceRate * 10) / 10}%
-                </span>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-gray-700 dark:text-gray-300 font-medium">跳出率</span>
+                <div className="text-right">
+                  <span className="text-gray-900 dark:text-white font-semibold text-lg">
+                    {Math.round(data.behaviorStats.bounceRate * 10) / 10}%
+                  </span>
+                  <p className={`text-xs mt-0.5 ${
+                    data.behaviorStats.bounceRate < 40 ? 'text-green-500' : 
+                    data.behaviorStats.bounceRate < 70 ? 'text-yellow-500' : 
+                    'text-red-500'
+                  }`}>
+                    {data.behaviorStats.bounceRate < 40 ? '优秀' : 
+                     data.behaviorStats.bounceRate < 70 ? '良好' : '需优化'}
+                  </p>
+                </div>
               </div>
             </div>
           </div>

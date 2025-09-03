@@ -375,7 +375,7 @@
 
   /* Professional Spacing Utilities */
   .section-spacing {
-    @apply space-y-8 lg:space-y-12;
+    @apply space-y-4 lg:space-y-6;
   }
 
   .content-spacing {
