@@ -288,6 +288,23 @@ SELECT
 - ✅ **工作的连接字符串**: `postgresql://postgres.wqdpqhfqrxvssxifpmvt:7232527xyznByEp@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres`
 - ❌ 不工作的连接: `db.wqdpqhfqrxvssxifpmvt.supabase.co` (DNS解析失败)
 
+**✅ Supabase API 配置**：
+- **项目URL**: `https://your-project-ref.supabase.co`
+- **API Key**: 请使用环境变量中的 VITE_SUPABASE_ANON_KEY
+- **角色**: anon (匿名用户)
+- **验证状态**: ✅ 已测试，可正常访问所有 xq_ 开头的表
+- **注意**: API key已在 .env 文件和 supabase.ts 中配置
+
+**快速验证 API Key 的命令**：
+```bash
+# 测试API连接是否正常
+curl -s -H "Authorization: Bearer $VITE_SUPABASE_ANON_KEY" \
+     -H "apikey: $VITE_SUPABASE_ANON_KEY" \
+     "$VITE_SUPABASE_URL/rest/v1/xq_user_profiles?select=*&limit=1"
+
+# 预期结果: 返回JSON数组而不是401错误
+# 如果返回 {"message":"Invalid API key"} 说明key有问题
+```
 **成功验证**: 2025-01-02 查询结果显示共有 **12张** `xq_` 开头的表，其中5张有数据。
 
 **备用方法**：如果 psql 连接失败，使用 Supabase Dashboard：
@@ -303,6 +320,42 @@ SELECT
 
 ---
 
+## 🔑 GitHub 认证配置
+
+### GitHub CLI Token 配置
+
+为了避免每次都需要重新认证，请设置GitHub token：
+
+```bash
+# 设置 GitHub Token 环境变量（永久解决方案）
+export GH_TOKEN=your_github_token_here
+
+# 或者添加到 shell 配置文件中
+echo 'export GH_TOKEN=your_github_token_here' >> ~/.zshrc
+source ~/.zshrc
+
+# 验证认证
+gh auth status
+```
+
+### 创建 PR 的标准流程
+
+```bash
+# 1. 创建功能分支
+git checkout -b feature/your-feature-name
+
+# 2. 提交更改
+git add .
+git commit -m "feat: 描述你的更改"
+
+# 3. 推送分支
+git push -u origin feature/your-feature-name
+
+# 4. 创建 PR (确保已设置 GH_TOKEN)
+gh pr create --title "你的PR标题" --body "详细描述"
+```
+
+---
 ## 🛠️ 其他开发工具和命令
 
 ### 项目构建和测试

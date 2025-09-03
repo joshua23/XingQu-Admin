@@ -39,34 +39,43 @@ export const dataService = {
   async getDashboardStats() {
     try {
       // 并行查询多个数据源
-      const [usersResult, sessionsResult, eventsResult] = await Promise.all([
-        // 总用户数和活跃用户
+      const [usersResult, sessionsResult, eventsResult, memberResult] = await Promise.all([
+        // 总用户数
         supabase
           .from('xq_user_profiles')
-          .select('id, created_at, last_sign_in_at', { count: 'exact' }),
+          .select('id, created_at, is_member', { count: 'exact' }),
         
-        // 会话数据
+        // 会话数据（使用正确的字段名 duration_seconds）
         supabase
           .from('xq_user_sessions')
-          .select('session_duration, created_at', { count: 'exact' })
+          .select('duration_seconds, page_views, created_at', { count: 'exact' })
           .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()),
         
-        // 最近活跃事件
+        // 最近活跃事件（24小时内）
         supabase
           .from('xq_tracking_events')
-          .select('user_id, created_at')
+          .select('user_id, event_type, created_at')
           .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-          .order('created_at', { ascending: false })
+          .order('created_at', { ascending: false }),
+        
+        // 会员用户数
+        supabase
+          .from('xq_user_profiles')
+          .select('id', { count: 'exact' })
+          .eq('is_member', true)
       ])
 
       // 计算活跃用户（24小时内有事件的用户）
-      const activeUserIds = new Set(eventsResult.data?.map(event => event.user_id) || [])
+      const activeUserIds = new Set(eventsResult.data?.map(event => event.user_id).filter(id => id) || [])
       
-      // 计算平均会话时长
-      const sessionDurations = sessionsResult.data?.filter(s => s.session_duration) || []
-      const averageSessionTime = sessionDurations.length > 0 
-        ? sessionDurations.reduce((sum, s) => sum + (s.session_duration || 0), 0) / sessionDurations.length / 60
+      // 计算平均会话时长（duration_seconds字段）
+      const sessions = sessionsResult.data || []
+      const averageSessionTime = sessions.length > 0 
+        ? sessions.reduce((sum, s) => sum + (s.duration_seconds || 0), 0) / sessions.length / 60
         : 0
+      
+      // 计算页面浏览量（从事件中统计page_view类型）
+      const pageViewCount = eventsResult.data?.filter(e => e.event_type === 'page_view').length || 0
 
       return {
         data: {
@@ -74,8 +83,10 @@ export const dataService = {
           activeUsers: activeUserIds.size,
           totalSessions: sessionsResult.count || 0,
           averageSessionTime: Math.round(averageSessionTime * 10) / 10,
-          totalRevenue: 0, // 需要从支付表获取
-          conversionRate: activeUserIds.size > 0 ? (activeUserIds.size / (usersResult.count || 1)) * 100 : 0
+          totalRevenue: 0, // 暂无支付数据
+          conversionRate: (usersResult.count || 0) > 0 ? (activeUserIds.size / (usersResult.count || 1)) * 100 : 0,
+          memberUsers: memberResult.count || 0,
+          pageViews: pageViewCount
         },
         error: null
       }
@@ -155,11 +166,11 @@ export const dataService = {
           activeUsers: Math.floor(newUsers * 1.5) // 估算活跃用户
         }))
 
-      // 计算会话统计
+      // 计算会话统计（使用正确的字段名 duration_seconds）
       const sessions = sessionData.data || []
       const totalSessions = sessions.length
       const averageSessionTime = sessions.length > 0
-        ? sessions.reduce((sum, s) => sum + (s.session_duration || 0), 0) / sessions.length / 60
+        ? sessions.reduce((sum, s) => sum + (s.duration_seconds || 0), 0) / sessions.length / 60
         : 0
 
       // 计算页面浏览量（基于事件数据）

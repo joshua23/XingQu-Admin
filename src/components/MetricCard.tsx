@@ -1,4 +1,3 @@
-import React from 'react'
 import { Badge } from './ui/Badge'
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -9,7 +8,7 @@ interface MetricCardProps {
   change?: number;
   changeLabel?: string;
   description?: string;
-  variant?: 'default' | 'success' | 'warning' | 'destructive';
+  // variant?: 'default' | 'success' | 'warning' | 'destructive';
 }
 
 export function MetricCard({
@@ -18,7 +17,7 @@ export function MetricCard({
   change,
   changeLabel,
   description,
-  variant = 'default'
+  // _variant = 'default'
 }: MetricCardProps) {
   const getTrendIcon = () => {
     if (change === undefined || change === 0) return <Minus className="w-3 h-3" />;
@@ -37,32 +36,35 @@ export function MetricCard({
   };
 
   return (
-    <div className="bg-card text-card-foreground border border-border rounded-lg shadow-sm transition-all duration-200 hover:shadow-md">
+    <div className="card-interactive bg-gradient-to-br from-card to-card/95">
       <div className="p-6">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-medium text-muted-foreground">
-            {title}
-          </h3>
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex flex-col">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+              {title}
+            </h3>
+            <div className="text-3xl font-black text-foreground mt-2 tracking-tight">
+              {typeof value === 'number' ? value.toLocaleString() : value}
+            </div>
+          </div>
           {change !== undefined && (
-            <Badge
-              variant="secondary"
-              className={cn(
-                "flex items-center gap-1 text-xs",
-                `text-${getTrendColor()}`
-              )}
-            >
+            <div className={cn(
+              "flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold border-2",
+              change > 0 
+                ? "bg-success/10 border-success/30 text-success"
+                : change < 0 
+                  ? "bg-destructive/10 border-destructive/30 text-destructive"
+                  : "bg-muted border-border text-muted-foreground"
+            )}>
               {getTrendIcon()}
               {formatChange()}
-            </Badge>
+            </div>
           )}
         </div>
 
-        <div className="space-y-2">
-          <div className="text-2xl font-bold text-foreground">
-            {typeof value === 'number' ? value.toLocaleString() : value}
-          </div>
+        <div className="space-y-1">
           {description && (
-            <p className="text-xs text-muted-foreground">{description}</p>
+            <p className="text-sm text-muted-foreground font-medium">{description}</p>
           )}
           {changeLabel && (
             <p className="text-xs text-muted-foreground">{changeLabel}</p>

@@ -1,22 +1,14 @@
-import React, { useEffect, useState } from 'react'
-import { MetricCard } from '../components/MetricCard'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card'
-import { Badge } from '../components/ui/Badge'
+import { useEffect, useState } from 'react'
 import { dataService } from '../services/supabase'
 import { useAutoRefresh } from '../hooks/useAutoRefresh'
 import {
   BarChart3,
   TrendingUp,
-  Users,
   Activity,
   Calendar,
   Download,
   RefreshCw,
-  Clock,
-  AlertTriangle,
-  DollarSign,
-  Eye,
-  Target
+  Clock
 } from 'lucide-react'
 
 interface AnalyticsData {
@@ -50,7 +42,7 @@ const Analytics: React.FC = () => {
       const { data: analyticsData, error: apiError } = await dataService.getAnalyticsData()
       
       if (apiError) {
-        throw new Error(apiError.message || '加载分析数据失败')
+        throw new Error((apiError as Error)?.message || '加载分析数据失败')
       }
       
       if (analyticsData) {
@@ -59,7 +51,7 @@ const Analytics: React.FC = () => {
       }
     } catch (error) {
       console.error('加载Analytics数据失败:', error)
-      setError(error instanceof Error ? error.message : '加载数据失败')
+      setError((error as Error)?.message || '加载数据失败')
     } finally {
       setLoading(false)
     }
