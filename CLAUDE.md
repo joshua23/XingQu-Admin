@@ -288,26 +288,23 @@ SELECT
 - ✅ **工作的连接字符串**: `postgresql://postgres.wqdpqhfqrxvssxifpmvt:7232527xyznByEp@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres`
 - ❌ 不工作的连接: `db.wqdpqhfqrxvssxifpmvt.supabase.co` (DNS解析失败)
 
-**✅ Supabase API 配置（已验证有效）**：
-- **项目URL**: `https://wqdpqhfqrxvssxifpmvt.supabase.co`
-- **✅ 正确的 Anon API Key**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndxZHBxaGZxcnh2c3N4aWZwbXZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIxNDI5NDYsImV4cCI6MjA2NzcxODk0Nn0.ua0dh3XH3Zt2VPB7UchtSdYzUenDHPejzyMm76k7o6w`
+**✅ Supabase API 配置**：
+- **项目URL**: `https://your-project-ref.supabase.co`
+- **API Key**: 请使用环境变量中的 VITE_SUPABASE_ANON_KEY
 - **角色**: anon (匿名用户)
-- **签发时间**: 2025年7月10日
-- **过期时间**: 2035年7月11日 (剩余约9.8年有效期)
 - **验证状态**: ✅ 已测试，可正常访问所有 xq_ 开头的表
-- **注意**: 此API key已在 .env 文件和 supabase.ts 中配置为默认值，请勿更改
+- **注意**: API key已在 .env 文件和 supabase.ts 中配置
 
 **快速验证 API Key 的命令**：
 ```bash
 # 测试API连接是否正常
-curl -s -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndxZHBxaGZxcnh2c3N4aWZwbXZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIxNDI5NDYsImV4cCI6MjA2NzcxODk0Nn0.ua0dh3XH3Zt2VPB7UchtSdYzUenDHPejzyMm76k7o6w" \
-     -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndxZHBxaGZxcnh2c3N4aWZwbXZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIxNDI5NDYsImV4cCI6MjA2NzcxODk0Nn0.ua0dh3XH3Zt2VPB7UchtSdYzUenDHPejzyMm76k7o6w" \
-     "https://wqdpqhfqrxvssxifpmvt.supabase.co/rest/v1/xq_user_profiles?select=*&limit=1"
+curl -s -H "Authorization: Bearer $VITE_SUPABASE_ANON_KEY" \
+     -H "apikey: $VITE_SUPABASE_ANON_KEY" \
+     "$VITE_SUPABASE_URL/rest/v1/xq_user_profiles?select=*&limit=1"
 
 # 预期结果: 返回JSON数组而不是401错误
 # 如果返回 {"message":"Invalid API key"} 说明key有问题
 ```
-
 **成功验证**: 2025-01-02 查询结果显示共有 **12张** `xq_` 开头的表，其中5张有数据。
 
 **备用方法**：如果 psql 连接失败，使用 Supabase Dashboard：
@@ -327,7 +324,7 @@ curl -s -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 
 ### GitHub CLI Token 配置
 
-为了避免每次都需要重新认证，使用以下 token：
+为了避免每次都需要重新认证，请设置GitHub token：
 
 ```bash
 # 设置 GitHub Token 环境变量（永久解决方案）
@@ -355,12 +352,10 @@ git commit -m "feat: 描述你的更改"
 git push -u origin feature/your-feature-name
 
 # 4. 创建 PR (确保已设置 GH_TOKEN)
-export GH_TOKEN=your_github_token_here
 gh pr create --title "你的PR标题" --body "详细描述"
 ```
 
 ---
-
 ## 🛠️ 其他开发工具和命令
 
 ### 项目构建和测试

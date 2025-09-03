@@ -42,7 +42,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // 监听认证状态变化
     const { data: { subscription } } = adminAuth.supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (_event, session) => {
         if (session?.user) {
           setUser({
             id: session.user.id,
@@ -106,7 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: true }
       }
 
-      const { data, error } = await adminAuth.signIn(email, password)
+      const { error } = await adminAuth.signIn(email, password)
       if (error) {
         return { success: false, error: error.message }
       }

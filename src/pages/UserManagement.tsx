@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { MetricCard } from '../components/MetricCard'
 import { DataTable, StatusBadge, type TableColumn } from '../components/DataTable'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/Tabs'
@@ -6,10 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
 import { dataService } from '../services/supabase'
 import { useAutoRefresh } from '../hooks/useAutoRefresh'
 import {
-  Users,
-  UserCheck,
-  UserX,
-  Crown,
   RefreshCw,
   Clock,
   AlertTriangle,
@@ -150,10 +146,10 @@ const accountStatusData = [
 ];
 
 const UserManagement: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([])
+  const [_users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [_searchTerm, setSearchTerm] = useState('')
+  const [_statusFilter, setStatusFilter] = useState<string>('all')
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -188,14 +184,15 @@ const UserManagement: React.FC = () => {
     immediate: true
   })
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = user.nickname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.user_id.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = statusFilter === 'all' ||
-                         (statusFilter === 'active' && user.account_status === 'active') ||
-                         (statusFilter === 'inactive' && user.account_status !== 'active')
-    return matchesSearch && matchesStatus
-  })
+  // TODO: 实现用户过滤功能
+  // const filteredUsers = users.filter(user => {
+  //   const matchesSearch = user.nickname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //                        user.user_id.toLowerCase().includes(searchTerm.toLowerCase())
+  //   const matchesStatus = statusFilter === 'all' ||
+  //                        (statusFilter === 'active' && user.account_status === 'active') ||
+  //                        (statusFilter === 'inactive' && user.account_status !== 'active')
+  //   return matchesSearch && matchesStatus
+  // })
 
   if (loading && !lastUpdated) {
     return (
@@ -265,7 +262,7 @@ const UserManagement: React.FC = () => {
                 <input
                   type="text"
                   placeholder="搜索用户ID或昵称..."
-                  value={searchTerm}
+                  value={_searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 bg-background border border-input rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 />
@@ -274,7 +271,7 @@ const UserManagement: React.FC = () => {
             <div className="flex items-center space-x-2">
               <Filter size={20} className="text-muted-foreground" />
               <select
-                value={statusFilter}
+                value={_statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="px-3 py-2 bg-background border border-input rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               >
