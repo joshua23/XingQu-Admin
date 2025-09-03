@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/Card';
 import { Badge } from './ui/Badge';
-import { cn } from '@/lib/utils';
+import { cn } from '../lib/utils';
 import { TrendingUp, TrendingDown, BarChart3, Users, Activity, Eye, DollarSign } from 'lucide-react';
 
 interface ChartDataPoint {
