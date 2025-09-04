@@ -2,13 +2,14 @@
 
 ## 🌟 概述
 
-这是一个基于React + TypeScript + Vite构建的现代化web后台管理系统，为星趣App提供完整的数据分析、用户管理、内容审核等运营管理功能。
+这是一个基于Next.js 14 + TypeScript构建的现代化web后台管理系统，为星趣App提供完整的数据分析、用户管理、内容审核等运营管理功能。系统采用App Router架构，专为Supabase数据驱动应用优化。
 
-## 📋 分支说明
+## 📋 项目状态
 
-**当前分支**: `web-components-only`
-**分支用途**: 独立的web后台管理系统项目，移除了所有Flutter相关代码
-**项目状态**: ✅ 纯净的web项目，可直接部署使用
+**架构版本**: Next.js 14 with App Router
+**项目类型**: 数据驱动的后台管理系统
+**项目状态**: ✅ 已完成Next.js迁移，可直接部署使用
+**技术特性**: 服务端渲染(SSR)、客户端渲染(CSR)混合架构
 
 ## 🚀 快速开始
 
@@ -24,7 +25,11 @@ npm install
 
 ### 启动开发服务器
 ```bash
+# 默认端口3000
 npm run dev
+
+# 指定端口3001（推荐）
+PORT=3001 npm run dev
 ```
 
 访问地址：`http://localhost:3001`
@@ -32,7 +37,7 @@ npm run dev
 ### 生产构建
 ```bash
 npm run build
-npm run preview
+npm run start
 ```
 
 ## 📊 功能模块
@@ -69,55 +74,57 @@ npm run preview
 
 ## 🔧 技术栈
 
-- **前端框架**: React 18 + TypeScript
-- **构建工具**: Vite
+- **前端框架**: Next.js 14 (App Router) + React 18 + TypeScript
+- **渲染方式**: SSR + CSR 混合模式
 - **UI框架**: Tailwind CSS
 - **图标库**: Lucide React
 - **状态管理**: React Context + Hooks
 - **图表库**: Recharts
 - **后端服务**: Supabase
-- **代码质量**: ESLint
+- **代码质量**: ESLint + Next.js内置优化
 
 ## 🏗️ 项目结构
 
 ```
 xingqu-admin/
-├── src/                   # 源代码目录
-│   ├── components/        # 可复用组件
-│   │   ├── Header.tsx    # 顶部导航栏
-│   │   ├── Sidebar.tsx   # 侧边栏导航
-│   │   └── ProtectedRoute.tsx # 路由保护
-│   ├── contexts/         # React Context
-│   │   ├── AuthContext.tsx     # 认证上下文
-│   │   └── SidebarContext.tsx  # 侧边栏上下文
-│   ├── hooks/            # 自定义Hooks
-│   │   └── useAutoRefresh.ts  # 自动刷新Hook
-│   ├── pages/           # 页面组件
-│   │   ├── Dashboard.tsx       # 数据总览
-│   │   ├── UserManagement.tsx  # 用户管理
-│   │   ├── ContentModeration.tsx # 内容审核
-│   │   ├── Analytics.tsx       # 数据分析
-│   │   ├── Settings.tsx        # 系统设置
-│   │   └── Login.tsx          # 登录页面
-│   ├── services/        # 服务层
-│   │   └── supabase.ts  # Supabase客户端
-│   ├── types/           # TypeScript类型定义
-│   │   └── index.ts     # 全局类型
-│   ├── utils/           # 工具函数目录
-│   ├── App.tsx          # 主应用组件
-│   ├── main.tsx         # 应用入口
-│   └── index.css        # 全局样式
-├── node_modules/        # 依赖包（已忽略）
-├── index.html           # HTML入口文件
-├── package.json         # 项目配置
-├── package-lock.json    # 依赖锁定文件
-├── vite.config.ts       # Vite构建配置
-├── tailwind.config.js   # Tailwind CSS配置
-├── postcss.config.js    # PostCSS配置
-├── tsconfig.json        # TypeScript配置
-├── tsconfig.node.json   # Node.js TypeScript配置
-├── .gitignore          # Git忽略文件
-└── README.md           # 项目说明文档
+├── app/                    # Next.js App Router目录
+│   ├── (dashboard)/        # 路由组 - 仪表板布局
+│   │   ├── dashboard/      
+│   │   │   └── page.tsx    # 数据总览页面
+│   │   ├── analytics/      
+│   │   │   └── page.tsx    # 数据分析页面
+│   │   ├── users/          
+│   │   │   └── page.tsx    # 用户管理页面
+│   │   ├── settings/       
+│   │   │   └── page.tsx    # 系统设置页面
+│   │   └── layout.tsx      # 仪表板布局
+│   ├── login/             
+│   │   └── page.tsx        # 登录页面
+│   ├── globals.css         # 全局样式
+│   ├── layout.tsx          # 根布局
+│   └── page.tsx            # 首页路由处理
+├── components/             # 可复用组件
+│   ├── providers/          # Context Providers
+│   │   └── AuthProvider.tsx # 认证提供者
+│   ├── Navigation.tsx      # 导航组件
+│   ├── MetricCard.tsx      # 指标卡片
+│   └── AnalyticsChart.tsx  # 图表组件
+├── lib/                   # 工具库和配置
+│   ├── services/          # 服务层
+│   │   └── supabase.ts    # Supabase客户端
+│   └── utils.ts           # 工具函数
+├── types/                 # TypeScript类型定义
+│   └── index.ts           # 全局类型
+├── public/                # 静态资源
+├── node_modules/          # 依赖包（已忽略）
+├── package.json           # 项目配置
+├── package-lock.json      # 依赖锁定文件
+├── next.config.mjs        # Next.js配置
+├── tailwind.config.js     # Tailwind CSS配置
+├── postcss.config.js      # PostCSS配置
+├── tsconfig.json          # TypeScript配置
+├── .gitignore            # Git忽略文件
+└── README.md             # 项目说明文档
 ```
 
 ## 🔐 认证系统
@@ -152,7 +159,7 @@ npm run dev
 ### 生产环境
 ```bash
 npm run build
-npm run preview
+npm run start
 ```
 
 ### Docker部署
@@ -163,24 +170,24 @@ COPY package*.json ./
 RUN npm ci --only=production
 COPY . .
 RUN npm run build
-EXPOSE 3001
-CMD ["npm", "run", "preview"]
+EXPOSE 3000
+CMD ["npm", "run", "start"]
 ```
 
 ## 🔧 配置说明
 
 ### Supabase配置
-在 `src/services/supabase.ts` 中配置：
+在 `lib/services/supabase.ts` 中配置：
 ```typescript
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'your-supabase-url'
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key'
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'your-supabase-url'
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'your-anon-key'
 ```
 
 ### 环境变量
-创建 `.env` 文件：
+创建 `.env.local` 文件：
 ```env
-VITE_SUPABASE_URL=your-supabase-project-url
-VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
 ### 📚 Supabase 开发文档
@@ -189,10 +196,12 @@ VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 
 ## 📈 性能优化
 
-- **代码分割**: 按路由进行代码分割
-- **懒加载**: 组件和页面的懒加载
-- **缓存策略**: 静态资源缓存优化
-- **压缩**: Gzip压缩和资源优化
+- **自动代码分割**: Next.js自动按页面进行代码分割
+- **图片优化**: 内置Next.js Image组件优化
+- **服务端渲染**: 首屏SSR提升加载速度
+- **静态生成**: 支持ISG和静态页面生成
+- **Tree Shaking**: 自动移除未使用的代码
+- **缓存策略**: 智能缓存和CDN优化
 
 ## 🛠️ 开发命令
 
@@ -206,11 +215,14 @@ npm run dev
 # 构建生产版本
 npm run build
 
-# 预览生产构建
-npm run preview
+# 启动生产服务器
+npm run start
 
 # 代码检查
 npm run lint
+
+# TypeScript类型检查
+npm run type-check
 ```
 
 ## 📞 技术支持

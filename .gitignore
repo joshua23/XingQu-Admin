@@ -52,3 +52,4 @@ app.*.symbols
 deploy_*.log
 database_backup_*
 
+.next/
