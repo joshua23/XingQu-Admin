@@ -1,38 +1,31 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
     "skipLibCheck": true,
-
-    /* Bundler mode */
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
     "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
-
-    /* Path mapping */
-    "baseUrl": ".",
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
     "paths": {
-      "@/*": ["./src/*"],
-      "@/components/*": ["./src/components/*"],
-      "@/pages/*": ["./src/pages/*"],
-      "@/services/*": ["./src/services/*"],
-      "@/contexts/*": ["./src/contexts/*"],
-      "@/hooks/*": ["./src/hooks/*"],
-      "@/lib/*": ["./src/lib/*"],
-      "@/utils/*": ["./src/utils/*"]
-    },
-
-    /* Linting */
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+      "@/*": ["./*"],
+      "@/components/*": ["./components/*"],
+      "@/lib/*": ["./lib/*"],
+      "@/hooks/*": ["./hooks/*"],
+      "@/types/*": ["./types/*"]
+    }
   },
-  "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
 }

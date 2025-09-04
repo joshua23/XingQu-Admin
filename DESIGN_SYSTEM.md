@@ -582,55 +582,84 @@ xl: '1280px',     /* 桌面 */
 
 ## 🏷️ 组件使用示例
 
-### 页面布局模板
+### Next.js页面布局模板
 ```jsx
-<div className="grid-container">
-  <div className="section-spacing">
-    {/* 页面标题 */}
-    <div className="animate-slide-up">
-      <h1 className="text-display-2">页面标题</h1>
-      <p className="text-body text-muted-foreground">页面描述</p>
+// app/(dashboard)/example/page.tsx
+'use client'
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+
+export default function ExamplePage() {
+  return (
+    <div className="grid-container">
+      <div className="section-spacing">
+        {/* 页面标题 */}
+        <div className="animate-slide-up">
+          <h1 className="text-display-2">页面标题</h1>
+          <p className="text-body text-muted-foreground">页面描述</p>
+        </div>
+        
+        {/* 内容网格 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+          {/* 内容卡片 */}
+          <Card className="animate-fade-in">
+            <CardHeader>
+              <CardTitle>卡片标题</CardTitle>
+              <CardDescription>卡片描述</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p>卡片内容</p>
+              <Button className="mt-4">操作按钮</Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
-    
-    {/* 内容网格 */}
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-      {/* 内容卡片 */}
-      <Card variant="default" className="animate-fade-in">
-        <CardHeader>
-          <CardTitle>卡片标题</CardTitle>
-          <CardDescription>卡片描述</CardDescription>
-        </CardHeader>
-        <CardContent>
-          卡片内容
-        </CardContent>
-      </Card>
-    </div>
-  </div>
-</div>
+  )
+}
 ```
 
-### 表单组件
+### Next.js表单组件
 ```jsx
-<form className="content-spacing">
-  <div className="element-spacing">
-    <label className="text-caption text-muted-foreground">
-      输入标签
-    </label>
-    <input 
-      className="input" 
-      placeholder="请输入内容"
-    />
-  </div>
-  
-  <div className="flex gap-4">
-    <Button variant="primary">
-      提交
-    </Button>
-    <Button variant="secondary">
-      取消
-    </Button>
-  </div>
-</form>
+// 使用shadcn/ui组件
+'use client'
+
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+
+export function ExampleForm() {
+  return (
+    <Card className="w-full max-w-md">
+      <CardHeader>
+        <CardTitle>表单标题</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="input-field" className="text-sm font-medium">
+            输入标签
+          </Label>
+          <Input 
+            id="input-field"
+            placeholder="请输入内容"
+            className="w-full"
+          />
+        </div>
+        
+        <div className="flex gap-2 pt-4">
+          <Button type="submit" className="flex-1">
+            提交
+          </Button>
+          <Button variant="outline" type="button" className="flex-1">
+            取消
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
 ```
 
 ### 状态指示
@@ -654,14 +683,17 @@ xl: '1280px',     /* 桌面 */
 
 ### CSS 文件结构
 ```
-src/
-├── index.css                 # 全局样式和设计系统
+xingqu-admin/
+├── app/
+│   └── globals.css           # Next.js全局样式和设计系统
 ├── components/
-│   └── ui/
-│       ├── Button.tsx        # 按钮组件
-│       ├── Card.tsx          # 卡片组件
-│       ├── Grid.tsx          # 布局组件
+│   └── ui/                   # Shadcn/ui组件库
+│       ├── button.tsx        # 按钮组件
+│       ├── card.tsx          # 卡片组件
+│       ├── input.tsx         # 输入组件
 │       └── ...
+├── lib/
+│   └── utils.ts              # 样式工具函数
 └── tailwind.config.js        # Tailwind配置
 ```
 
@@ -679,7 +711,15 @@ src/
 
 ## 🔄 版本更新记录
 
-### v1.0.0 (2025-01-02)
+### v2.0.0 (2025-09-04) - Next.js迁移版本
+- 🚀 **架构升级**: 从React+Vite迁移至Next.js 14 App Router
+- ✅ **组件更新**: 更新所有示例代码为Next.js规范
+- ✅ **文件结构**: 适配Next.js文件组织结构
+- ✅ **性能优化**: 利用Next.js内置性能优化
+- ✅ **SSR支持**: 添加服务端渲染能力
+- ✅ **开发体验**: 改进Hot Reload和开发工作流
+
+### v1.0.0 (2025-01-02) - 初始版本
 - ✅ 建立完整的色彩系统
 - ✅ 实现排版层级规范
 - ✅ 创建响应式栅格系统
@@ -688,6 +728,7 @@ src/
 - ✅ 确保可访问性合规
 
 ### 待优化项目
+- [ ] Next.js专用组件优化
 - [ ] 暗色主题细节调优
 - [ ] 图标系统标准化
 - [ ] 复杂表单组件规范
@@ -714,4 +755,4 @@ src/
 
 ---
 
-*设计系统版本: v1.0.0 | 更新日期: 2025-01-02 | 适用项目: 星趣App后台管理系统*
+*设计系统版本: v2.0.0 | 更新日期: 2025-09-04 | 适用项目: 星趣App后台管理系统 (Next.js版)*

@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  /* 设计系统间距类 */
+  .section-spacing {
+    padding: 3rem 0; /* 移动端 48px */
+  }
+  
+  .content-spacing {
+    margin-bottom: 2rem; /* 32px */
+  }
+  
+  .grid-container > .section-spacing > * + * {
+    margin-top: 0.75rem; /* 12px 区块间距，与gap-3保持一致 */
+  }
+  
+  @media (min-width: 1024px) {
+    .section-spacing {
+      padding: 4rem 0; /* 桌面端 64px */
+    }
+    
+    .grid-container > .section-spacing > * + * {
+      margin-top: 0.75rem; /* 12px 区块间距，与gap-3保持一致 */
+    }
+  }
+}
+
+@layer base {
+  :root {
+    /* 科技绿主色系 - 基于设计系统 */
+    --background: 0 0% 100%;
+    --foreground: 210 12% 16%;
+    --card: 0 0% 100%;
+    --card-foreground: 210 12% 16%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 12% 16%;
+    
+    /* 科技绿主色 #00D4AA (172 100% 42%) */
+    --primary: 172 100% 42%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* 科技绿辅助色 #10B981 (160 84% 39%) */
+    --secondary: 160 84% 39%;
+    --secondary-foreground: 0 0% 100%;
+    
+    /* 中性色系 */
+    --muted: 210 12% 97%;
+    --muted-foreground: 210 12% 45%;
+    --accent: 172 65% 95%;
+    --accent-foreground: 172 100% 25%;
+    
+    /* 功能色 */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --warning: 43 96% 56%;
+    --warning-foreground: 21 92% 14%;
+    --success: 160 84% 39%;
+    --success-foreground: 0 0% 100%;
+    
+    /* 边框和输入 */
+    --border: 210 12% 90%;
+    --input: 210 12% 90%;
+    --ring: 172 100% 42%;
+    --radius: 0.5rem;
+  }
+ 
+  .dark {
+    /* 深色模式 - 科技绿配色 */
+    --background: 210 15% 8%;
+    --foreground: 210 12% 92%;
+    --card: 210 15% 10%;
+    --card-foreground: 210 12% 92%;
+    --popover: 210 15% 10%;
+    --popover-foreground: 210 12% 92%;
+    
+    /* 科技绿在深色模式下更亮 */
+    --primary: 172 100% 50%;
+    --primary-foreground: 210 15% 8%;
+    
+    /* 科技绿辅助色 */
+    --secondary: 160 84% 45%;
+    --secondary-foreground: 210 15% 8%;
+    
+    /* 中性色系 */
+    --muted: 210 15% 15%;
+    --muted-foreground: 210 12% 60%;
+    --accent: 172 50% 15%;
+    --accent-foreground: 172 100% 80%;
+    
+    /* 功能色 */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --warning: 43 96% 56%;
+    --warning-foreground: 21 92% 14%;
+    --success: 160 84% 45%;
+    --success-foreground: 210 15% 8%;
+    
+    /* 边框和输入 */
+    --border: 210 15% 20%;
+    --input: 210 15% 20%;
+    --ring: 172 100% 50%;
+  }
+}
