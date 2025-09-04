@@ -230,18 +230,18 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="grid-container">
+    <div className="responsive-container">
       <div className="section-spacing">
         {/* 页面标题和状态 */}
-        <div className="flex items-start justify-between animate-slide-up">
-          <div className="content-spacing max-w-2xl">
+        <div className="flex items-start justify-between animate-slide-up mb-6">
+          <div className="max-w-2xl">
             <h1 className="text-display-2 text-foreground">数据总览</h1>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-              <p className="text-body text-muted-foreground">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-2">
+              <p className="text-sm sm:text-base text-muted-foreground">
                 系统关键指标和实时数据监控
               </p>
               {lastUpdated && (
-                <div className="flex items-center text-sm text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-md border border-border/50">
+                <div className="flex items-center text-xs sm:text-sm text-muted-foreground bg-muted/50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md border border-border/50">
                   <Clock size={14} className="mr-2 text-primary" />
                   <span className="font-mono">
                     最后更新: {lastUpdated.toLocaleTimeString()}
@@ -255,7 +255,7 @@ const Dashboard: React.FC = () => {
           <button
             onClick={() => refresh()}
             disabled={loading}
-            className="btn-secondary flex items-center space-x-2 min-w-[100px]"
+            className="btn-secondary flex items-center space-x-2 min-w-[80px] sm:min-w-[100px] text-sm px-3 py-2"
           >
             <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
             <span>刷新</span>
@@ -264,7 +264,7 @@ const Dashboard: React.FC = () => {
 
         {/* 错误提示 */}
         {error && (
-          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 animate-slide-up">
+          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 animate-slide-up mb-6">
             <div className="flex items-center space-x-3">
               <div className="flex items-center justify-center w-8 h-8 bg-destructive/20 rounded-full">
                 <AlertTriangle size={16} className="text-destructive" />
@@ -278,7 +278,7 @@ const Dashboard: React.FC = () => {
         )}
 
         {/* 主要指标卡片 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 animate-fade-in mt-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 responsive-grid-gap animate-fade-in">
           {overviewMetrics.map((metric, index) => (
             <div key={index} className="animate-scale-in" style={{ animationDelay: `${index * 100}ms` }}>
               <MetricCard {...metric} />
@@ -287,14 +287,14 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* 数据分析图表 */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-3 animate-fade-in mt-3" style={{ animationDelay: '400ms' }}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 responsive-grid-gap animate-fade-in" style={{ animationDelay: '400ms' }}>
           <UserGrowthChart data={userGrowthData} />
           <ActivityChart data={activityData} />
           <RevenueChart data={revenueData} />
         </div>
 
-        {/* 快速统计和实时活动 */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-3">
+        {/* 快速统计 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 responsive-grid-gap">
           {quickStats.map((section, index) => {
             const Icon = section.icon;
             return (
@@ -335,7 +335,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* 实时活动和今日目标 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 responsive-grid-gap">
           <Card variant="elevated" className="animate-slide-up" style={{ animationDelay: '700ms' }}>
             <CardHeader>
               <div className="flex items-center gap-3">

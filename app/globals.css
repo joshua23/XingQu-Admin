@@ -3,31 +3,110 @@
 @tailwind utilities;
 
 @layer utilities {
-  /* 设计系统间距类 */
+  /* 响应式容器 */
+  .responsive-container {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0 1rem; /* 16px mobile padding */
+  }
+  
+  @media (min-width: 640px) {
+    .responsive-container {
+      padding: 0 1.5rem; /* 24px tablet padding */
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .responsive-container {
+      padding: 0 2rem; /* 32px desktop padding */
+    }
+  }
+  
+  /* 设计系统间距类 - 修复过度的顶部空白 */
   .section-spacing {
-    padding: 3rem 0; /* 移动端 48px */
+    padding: 1rem 0; /* 移动端 16px */
   }
   
   .content-spacing {
-    margin-bottom: 2rem; /* 32px */
+    margin-bottom: 1rem; /* 16px mobile */
   }
   
   .grid-container > .section-spacing > * + * {
-    margin-top: 0.75rem; /* 12px 区块间距，与gap-3保持一致 */
+    margin-top: 0.75rem; /* 12px 区块间距 */
+  }
+  
+  @media (min-width: 768px) {
+    .section-spacing {
+      padding: 1.5rem 0; /* 平板端 24px */
+    }
+    
+    .content-spacing {
+      margin-bottom: 1.5rem; /* 24px */
+    }
   }
   
   @media (min-width: 1024px) {
     .section-spacing {
-      padding: 4rem 0; /* 桌面端 64px */
+      padding: 2rem 0; /* 桌面端 32px - 减少了 16px */
     }
-    
-    .grid-container > .section-spacing > * + * {
-      margin-top: 0.75rem; /* 12px 区块间距，与gap-3保持一致 */
+  }
+  
+  /* 响应式文字大小 - 修复过大的行高 */
+  .text-display-2 {
+    font-size: 1.875rem; /* 30px mobile */
+    line-height: 1.2; /* 紧凑的行高 */
+    font-weight: 700;
+  }
+  
+  @media (min-width: 768px) {
+    .text-display-2 {
+      font-size: 2.25rem; /* 36px tablet */
+      line-height: 1.2;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .text-display-2 {
+      font-size: 2.5rem; /* 40px desktop - 减小了字号 */
+      line-height: 1.2;
+    }
+  }
+  
+  /* 响应式网格间距 */
+  .responsive-grid-gap {
+    gap: 0.75rem; /* 12px mobile */
+  }
+  
+  @media (min-width: 768px) {
+    .responsive-grid-gap {
+      gap: 1rem; /* 16px tablet */
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .responsive-grid-gap {
+      gap: 1.5rem; /* 24px desktop */
     }
   }
 }
 
 @layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+  
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    overflow-x: hidden; /* Prevent horizontal scroll */
+  }
+  
+  /* 确保所有元素不会超出视口 */
+  html {
+    overflow-x: hidden;
+  }
+  
   :root {
     /* 科技绿主色系 - 基于设计系统 */
     --background: 0 0% 100%;

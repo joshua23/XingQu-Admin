@@ -32,13 +32,8 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="flex h-screen bg-background">
-      <Navigation />
-      <main className="flex-1 overflow-auto">
-        <div className="p-6 animate-fade-in">
-          {children}
-        </div>
-      </main>
-    </div>
+    <Navigation>
+      {children}
+    </Navigation>
   )
 }
