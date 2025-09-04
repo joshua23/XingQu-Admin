@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Users, Search, Filter, MoreHorizontal, Edit, Trash, UserPlus, Ban, CheckCircle, XCircle, FileText, Shield } from 'lucide-react'
+import { Users, Search, Filter, UserPlus, Ban, CheckCircle, XCircle, FileText, Upload, Download, Eye, Edit, Calendar, Clock } from 'lucide-react'
 import { AddUserModal } from '@/components/modals/AddUserModal'
 import { adminUserService, AdminUser } from '@/lib/services/adminUserService'
 
@@ -82,6 +82,9 @@ export default function UsersPage() {
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set())
   const [showUserDetail, setShowUserDetail] = useState<AdminUser | null>(null)
   const [showAddUserModal, setShowAddUserModal] = useState(false)
+  const [activeTab, setActiveTab] = useState('users')
+  const [showDocumentViewer, setShowDocumentViewer] = useState(false)
+  const [selectedDocument, setSelectedDocument] = useState<any>(null)
 
   // 加载用户数据
   const loadUsers = async () => {
@@ -196,13 +199,300 @@ export default function UsersPage() {
     }
   }
 
+  // 模拟的文档数据（包含docs中的实际文档）
+  const documents = [
+    {
+      id: '1',
+      name: '星趣用户协议',
+      type: '用户协议',
+      version: 'v2.1',
+      status: 'active',
+      lastUpdated: '2025-09-01',
+      fileSize: '12.5KB',
+      description: '星趣平台用户协议，包含用户权利义务、服务条款等',
+      content: `星趣用户协议
+
+更新日期：2025年9月1日
+欢迎您使用星趣！
+
+特别提示
+
+为了更好地为您提供服务，请您在开始使用星趣产品和服务之前，认真阅读并充分理解《星趣用户协议》（"本协议"或"用户协议"）及《星趣隐私政策》（"隐私政策"），特别是涉及免除或者限制责任的条款、权利许可和信息使用的条款、同意开通和使用特殊单项服务的条款、法律适用和争议解决条款等。该等内容将以加粗和/或划线形式提示您注意，您应重点阅读。
+
+您点击确认本协议、以其他方式同意本协议或实际使用星趣产品和服务的，即表示您同意、接受并承诺遵守本协议的全部内容。
+
+一、协议的范围
+
+1.1 本协议是您（即用户）与上海启垒应网络科技有限公司及其关联公司（合称"我们"）之间关于用户使用星趣产品和服务所订立的协议。
+1.3 我们根据本协议，通过星趣向用户提供的服务（"本服务"），包括但不限于人工智能（"AI"）相关的智能对话、问答等服务。
+1.4 就具体服务，您可能需要在与我们订立特定服务条款或具体产品协议（统称"具体产品协议"）后方可使用。
+
+二、服务内容
+
+2.1 用户在使用本服务前需要提前使用手机号注册认证以获得【星趣】账户。
+2.2 本产品的具体功能由星趣根据实际情况提供，包括但不限于虚拟智能体连结、对话、获得成就、客服服务等。
+2.3 我们将按照《个人信息保护法》等相关法律法规保护您的个人信息。
+
+三、服务使用规则
+
+3.1 用户在本服务中或通过本服务所传送、发布的任何内容并不反映或代表，也不得被视为反映或代表我们的观点、立场或政策。
+3.2 用户在本产品注册时，不得使用虚假身份信息。用户应当妥善保管其账户信息和密码。
+
+四、知识产权声明
+
+4.1 星趣在星趣软件及相关服务中提供的自有内容的知识产权及相关权益归属于我们。
+4.2 您理解并承诺，您在使用星趣软件及相关服务时上传的内容均由您原创或已获得合法授权。
+
+如对本协议内容有任何疑问、意见或建议，您可发送邮件至 report@xingquai.com 与星趣联系。`
+    },
+    {
+      id: '2', 
+      name: '隐私政策',
+      type: '隐私政策',
+      version: 'v1.8',
+      status: 'active',
+      lastUpdated: '2025-08-15',
+      fileSize: '8.2KB',
+      description: '数据收集、处理、存储和保护的相关规定',
+      content: '# 隐私政策\n\n生效日期：2025年8月15日\n\n我们非常重视您的隐私保护...'
+    },
+    {
+      id: '3',
+      name: '服务条款',
+      type: '服务条款', 
+      version: 'v1.5',
+      status: 'draft',
+      lastUpdated: '2025-08-30',
+      fileSize: '6.8KB',
+      description: '服务提供、使用规范和限制条款',
+      content: '# 服务条款\n\n更新日期：2025年8月30日\n\n本服务条款适用于...'
+    }
+  ]
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (files && files.length > 0) {
+      const file = files[0]
+      // 这里可以添加文件上传逻辑
+      console.log('上传文件:', file.name)
+      // 重置输入框
+      event.target.value = ''
+    }
+  }
+
+  const handleViewDocument = (doc: any) => {
+    setSelectedDocument(doc)
+    setShowDocumentViewer(true)
+  }
+
+  if (activeTab === 'documents') {
+    return (
+      <div className="space-y-3">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">用户管理</h1>
+            <p className="text-sm text-muted-foreground">管理系统中的所有用户账户和隐私协议</p>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="bg-card border border-border rounded-lg">
+          <div className="flex border-b border-border">
+            <button
+              onClick={() => setActiveTab('users')}
+              className="px-6 py-4 font-medium text-sm transition-colors text-muted-foreground hover:text-foreground"
+            >
+              <div className="flex items-center space-x-2">
+                <Users size={16} />
+                <span>用户列表</span>
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('documents')}
+              className="px-6 py-4 font-medium text-sm transition-colors border-b-2 border-primary text-primary bg-primary/5"
+            >
+              <div className="flex items-center space-x-2">
+                <FileText size={16} />
+                <span>隐私/用户协议管理</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        {/* Upload Section */}
+        <div className="bg-card border border-border rounded-lg p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-foreground">文档上传</h3>
+            <div className="flex items-center space-x-3">
+              <input
+                type="file"
+                id="document-upload"
+                accept=".md,.txt,.pdf,.doc,.docx"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+              <label
+                htmlFor="document-upload"
+                className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors cursor-pointer"
+              >
+                <Upload size={16} />
+                <span>上传文档</span>
+              </label>
+            </div>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            支持上传 .md、.txt、.pdf、.doc、.docx 格式的文档，用于更新用户协议和隐私政策。
+          </p>
+        </div>
+
+        {/* Documents List */}
+        <div className="bg-card border border-border rounded-lg overflow-hidden">
+          <div className="p-6 border-b border-border">
+            <h3 className="text-lg font-semibold text-foreground">协议文档管理</h3>
+            <p className="text-sm text-muted-foreground mt-1">管理当前生效的用户协议、隐私政策等法律文档</p>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-muted/50 border-b border-border">
+                <tr>
+                  <th className="text-left py-4 px-6 font-medium text-sm text-muted-foreground">文档信息</th>
+                  <th className="text-left py-4 px-6 font-medium text-sm text-muted-foreground">类型</th>
+                  <th className="text-left py-4 px-6 font-medium text-sm text-muted-foreground">版本</th>
+                  <th className="text-left py-4 px-6 font-medium text-sm text-muted-foreground">状态</th>
+                  <th className="text-left py-4 px-6 font-medium text-sm text-muted-foreground">最后更新</th>
+                  <th className="text-center py-4 px-6 font-medium text-sm text-muted-foreground">操作</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {documents.map((doc) => (
+                  <tr key={doc.id} className="hover:bg-muted/30 transition-colors">
+                    <td className="py-4 px-6">
+                      <div className="space-y-1">
+                        <div className="font-medium text-foreground">{doc.name}</div>
+                        <div className="text-xs text-muted-foreground">{doc.description}</div>
+                        <div className="text-xs text-muted-foreground">大小: {doc.fileSize}</div>
+                      </div>
+                    </td>
+                    <td className="py-4 px-6">
+                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+                        {doc.type}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6">
+                      <span className="text-sm font-medium text-foreground">{doc.version}</span>
+                    </td>
+                    <td className="py-4 px-6">
+                      {doc.status === 'active' ? (
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                          生效中
+                        </span>
+                      ) : (
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
+                          草稿
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                        <Calendar size={14} />
+                        <span>{doc.lastUpdated}</span>
+                      </div>
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="flex items-center justify-center space-x-2">
+                        <button
+                          onClick={() => handleViewDocument(doc)}
+                          className="p-1 rounded-lg hover:bg-muted transition-colors"
+                          title="查看内容"
+                        >
+                          <Eye size={16} className="text-primary" />
+                        </button>
+                        <button
+                          className="p-1 rounded-lg hover:bg-muted transition-colors"
+                          title="编辑文档"
+                        >
+                          <Edit size={16} className="text-blue-500" />
+                        </button>
+                        <button
+                          className="p-1 rounded-lg hover:bg-muted transition-colors"
+                          title="下载文档"
+                        >
+                          <Download size={16} className="text-green-500" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {documents.length === 0 && (
+            <div className="text-center py-12">
+              <FileText size={48} className="mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">暂无协议文档</h3>
+              <p className="text-muted-foreground">请上传用户协议或隐私政策文档</p>
+            </div>
+          )}
+        </div>
+
+        {/* Document Viewer Modal */}
+        {showDocumentViewer && selectedDocument && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-card border border-border rounded-lg max-w-4xl w-full max-h-[90vh] flex flex-col">
+              {/* Modal Header */}
+              <div className="p-6 border-b border-border flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground">{selectedDocument.name}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedDocument.type} · 版本 {selectedDocument.version} · 更新于 {selectedDocument.lastUpdated}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowDocumentViewer(false)}
+                  className="p-2 rounded-lg hover:bg-muted transition-colors"
+                >
+                  <XCircle size={20} className="text-muted-foreground" />
+                </button>
+              </div>
+
+              {/* Modal Content */}
+              <div className="flex-1 p-6 overflow-y-auto">
+                <div className="prose prose-sm max-w-none">
+                  <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground">
+                    {selectedDocument.content}
+                  </pre>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="p-6 border-t border-border flex items-center justify-end space-x-3">
+                <button
+                  onClick={() => setShowDocumentViewer(false)}
+                  className="px-4 py-2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  关闭
+                </button>
+                <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
+                  编辑文档
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-3">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">用户管理</h1>
-          <p className="text-sm text-muted-foreground">管理系统中的所有用户账户</p>
+          <p className="text-sm text-muted-foreground">管理系统中的所有用户账户和隐私协议</p>
         </div>
         <button 
           onClick={() => setShowAddUserModal(true)}
@@ -211,6 +501,30 @@ export default function UsersPage() {
           <UserPlus size={18} />
           <span>添加用户</span>
         </button>
+      </div>
+
+      {/* Tabs */}
+      <div className="bg-card border border-border rounded-lg">
+        <div className="flex border-b border-border">
+          <button
+            onClick={() => setActiveTab('users')}
+            className="px-6 py-4 font-medium text-sm transition-colors border-b-2 border-primary text-primary bg-primary/5"
+          >
+            <div className="flex items-center space-x-2">
+              <Users size={16} />
+              <span>用户列表</span>
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab('documents')}
+            className="px-6 py-4 font-medium text-sm transition-colors text-muted-foreground hover:text-foreground"
+          >
+            <div className="flex items-center space-x-2">
+              <FileText size={16} />
+              <span>隐私/用户协议管理</span>
+            </div>
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -285,8 +599,8 @@ export default function UsersPage() {
                     </div>
                   </td>
                   <td className="py-4 px-6">{getStatusBadge(user.account_status)}</td>
-                  <td className="py-4 px-6">{getMembershipBadge(user.is_member)}</td>
-                  <td className="py-4 px-6">{getAgreementBadge(user.agreement_accepted, user.agreement_version)}</td>
+                  <td className="py-4 px-6">{getMembershipBadge(user.role === 'premium' || user.role === 'admin')}</td>
+                  <td className="py-4 px-6">{getAgreementBadge(user.agreement_accepted || false, user.agreement_version)}</td>
                   <td className="py-4 px-6">
                     <div className="text-sm text-muted-foreground">
                       {user.last_login || '未登录'}
@@ -358,7 +672,7 @@ export default function UsersPage() {
         </div>
         <div className="bg-card border border-border rounded-lg p-6">
           <div className="text-2xl font-bold text-primary">
-            {users.filter(u => u.is_member).length}
+            {users.filter(u => u.role === 'premium' || u.role === 'admin').length}
           </div>
           <div className="text-sm text-muted-foreground">会员用户</div>
         </div>
