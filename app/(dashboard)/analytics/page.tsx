@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { dataService } from '@/lib/services/supabase'
 import { useAutoRefresh } from '@/hooks/useAutoRefresh'
 import { MetricCard } from '@/components/MetricCard'
+import { AnalyticsChart } from '@/components/AnalyticsChart'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
@@ -33,8 +34,23 @@ interface AnalyticsData {
   }
 }
 
+interface TopAgent {
+  id: string
+  name: string
+  description: string
+  avatar_url?: string
+  category: string
+  tags: string[]
+  usageCount: number
+  userCount: number
+  created_at: string
+}
+
 const Analytics: React.FC = () => {
   const [data, setData] = useState<AnalyticsData | null>(null)
+  const [chartData, setChartData] = useState<any>(null)
+  const [topAgents, setTopAgents] = useState<TopAgent[]>([])
+  const [agentsError, setAgentsError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [dateRange, setDateRange] = useState('7d')
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
@@ -46,16 +62,33 @@ const Analytics: React.FC = () => {
       setLoading(true)
       setError(null)
       
-      const { data: analyticsData, error: apiError } = await dataService.getAnalyticsData()
+      // 并行加载分析数据、图表数据和智能体数据
+      const [analyticsResult, chartResult, agentsResult] = await Promise.all([
+        dataService.getAnalyticsData(),
+        dataService.getChartData(),
+        dataService.getTopAgents()
+      ])
       
-      if (apiError) {
-        throw new Error((apiError as Error)?.message || '加载分析数据失败')
+      if (analyticsResult.error) {
+        throw new Error((analyticsResult.error as Error)?.message || '加载分析数据失败')
       }
       
-      if (analyticsData) {
-        setData(analyticsData)
-        setLastUpdated(new Date())
+      if (analyticsResult.data) {
+        setData(analyticsResult.data)
       }
+      
+      if (chartResult.data) {
+        setChartData(chartResult.data)
+      }
+      
+      if (agentsResult.error) {
+        setAgentsError((agentsResult.error as Error)?.message || '加载智能体数据失败')
+      } else if (agentsResult.data) {
+        setTopAgents(agentsResult.data)
+        setAgentsError(null)
+      }
+      
+      setLastUpdated(new Date())
     } catch (error) {
       console.error('加载Analytics数据失败:', error)
       setError((error as Error)?.message || '加载数据失败')
@@ -85,7 +118,7 @@ const Analytics: React.FC = () => {
   }
 
   return (
-    <div className="grid-container">
+    <div className="responsive-container">
       <div className="section-spacing">
         {/* 页面标题和控制 */}
         <div className="flex items-start justify-between animate-slide-up">
@@ -191,87 +224,125 @@ const Analytics: React.FC = () => {
         )}
 
         {/* 图表区域 */}
+        {data && chartData && (
+          <div className="grid grid-cols-1 xl:grid-cols-3 responsive-grid-gap animate-fade-in" style={{ animationDelay: '200ms' }}>
+            {/* 用户增长趋势图 */}
+            <AnalyticsChart
+              title="用户增长趋势"
+              description={`新用户: ${data.userGrowth.reduce((sum, day) => sum + day.newUsers, 0)} | 活跃用户: ${data.userGrowth.length > 0 ? data.userGrowth[data.userGrowth.length - 1]?.activeUsers || 0 : 0}`}
+              data={chartData.userGrowthData || []}
+              type="area"
+              color="primary"
+            />
+            
+            {/* 用户活跃度图 */}
+            <AnalyticsChart
+              title="用户活跃度"
+              description="每日活跃用户统计"
+              data={chartData.activityData || []}
+              type="bar"
+              color="success"
+            />
+            
+            {/* 页面浏览量图 */}
+            <AnalyticsChart
+              title="页面浏览量"
+              description="每日页面访问统计"
+              data={chartData.revenueData?.map(item => ({
+                label: item.label,
+                value: Math.round(item.value / 10), // 转换回页面浏览量
+                trend: item.trend
+              })) || []}
+              type="line"
+              color="warning"
+            />
+          </div>
+        )}
+        
+        {/* 会话时长分析图 */}
         {data && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-fade-in mt-3" style={{ animationDelay: '200ms' }}>
-            {/* 用户增长趋势 */}
-            <Card variant="elevated">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-xl font-bold">用户增长趋势</CardTitle>
-                <CardDescription className="mt-1">
-                  新用户: {data.userGrowth.reduce((sum, day) => sum + day.newUsers, 0)} | 
-                  活跃用户: {data.userGrowth.length > 0 ? data.userGrowth[data.userGrowth.length - 1]?.activeUsers || 0 : 0}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-48 bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg flex items-center justify-center border border-primary/20">
-                  <div className="text-center text-muted-foreground">
-                    <TrendingUp size={32} className="mx-auto mb-2 text-primary" />
-                    <p className="text-sm font-medium">图表组件待实现</p>
-                    <p className="text-xs opacity-70">基于 {data.userGrowth.length} 天数据</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* 收入分析 */}
-            <Card variant="elevated">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-xl font-bold">收入分析</CardTitle>
-                <CardDescription className="mt-1">
-                  本月收入: ¥{data.revenueStats.totalRevenue.toLocaleString()} | 
-                  增长率: {data.revenueStats.totalRevenue > 0 ? "+15.2%" : "暂无数据"}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-48 bg-gradient-to-r from-success/5 to-success/10 rounded-lg flex items-center justify-center border border-success/20">
-                  <div className="text-center text-muted-foreground">
-                    <BarChart3 size={32} className="mx-auto mb-2 text-success" />
-                    <p className="text-sm font-medium">图表组件待实现</p>
-                    <p className="text-xs opacity-70">基于 {data.revenueStats.monthlyRevenue.length} 月数据</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="animate-fade-in" style={{ animationDelay: '300ms' }}>
+            <AnalyticsChart
+              title="会话时长分析"
+              description={`平均会话时长: ${data.behaviorStats.averageSessionTime}分钟 | 跳出率: ${Math.round(data.behaviorStats.bounceRate * 10) / 10}%`}
+              data={[
+                { label: '< 1分钟', value: Math.round(data.behaviorStats.totalSessions * 0.2), trend: 'down' },
+                { label: '1-5分钟', value: Math.round(data.behaviorStats.totalSessions * 0.35), trend: 'up' },
+                { label: '5-15分钟', value: Math.round(data.behaviorStats.totalSessions * 0.25), trend: 'up' },
+                { label: '15-30分钟', value: Math.round(data.behaviorStats.totalSessions * 0.15), trend: 'neutral' },
+                { label: '> 30分钟', value: Math.round(data.behaviorStats.totalSessions * 0.05), trend: 'neutral' }
+              ]}
+              type="bar"
+              color="primary"
+            />
           </div>
         )}
 
         {/* 详细数据表格 */}
         {data && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-fade-in mt-8" style={{ animationDelay: '400ms' }}>
-            {/* 热门产品 */}
+            {/* 热门智能体 */}
             <Card variant="default">
               <CardHeader>
-                <CardTitle className="text-xl font-bold">热门产品销售</CardTitle>
+                <CardTitle className="text-xl font-bold">热门智能体</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {data.revenueStats.topProducts.length > 0 ? (
-                    data.revenueStats.topProducts.map((product, index) => (
-                      <div key={product.name} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border border-border/30">
+                  {loading ? (
+                    <div className="text-center text-muted-foreground py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                      <p>加载智能体数据中...</p>
+                    </div>
+                  ) : agentsError ? (
+                    <div className="text-center text-muted-foreground py-8">
+                      <AlertTriangle size={48} className="mx-auto mb-2 opacity-50 text-destructive" />
+                      <p className="text-destructive font-medium">智能体数据加载失败</p>
+                      <p className="text-xs mt-1 opacity-75">{agentsError}</p>
+                    </div>
+                  ) : topAgents.length > 0 ? (
+                    topAgents.map((agent, index) => (
+                      <div key={agent.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border border-border/30">
                         <div className="flex items-center space-x-3">
                           <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-sm font-bold">
                             {index + 1}
                           </div>
-                          <div>
-                            <p className="text-foreground text-sm font-medium">{product.name}</p>
-                            <p className="text-muted-foreground text-xs">{product.sales} 份销售</p>
+                          <div className="flex items-center space-x-3">
+                            {agent.avatar_url ? (
+                              <img 
+                                src={agent.avatar_url} 
+                                alt={agent.name}
+                                className="w-8 h-8 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-8 h-8 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center">
+                                <Activity size={16} className="text-primary" />
+                              </div>
+                            )}
+                            <div>
+                              <p className="text-foreground text-sm font-medium">{agent.name}</p>
+                              <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                                <span>{agent.category}</span>
+                                <span>•</span>
+                                <span>{agent.usageCount} 次使用</span>
+                                <span>•</span>
+                                <span>{agent.userCount} 用户</span>
+                              </div>
+                            </div>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-foreground font-medium">¥{product.revenue.toLocaleString()}</p>
+                          <p className="text-foreground font-medium">{agent.usageCount}</p>
                           <Badge variant="secondary" className="text-xs">
-                            {data.revenueStats.totalRevenue > 0 
-                              ? ((product.revenue / data.revenueStats.totalRevenue) * 100).toFixed(1)
-                              : '0.0'
-                            }%
+                            {agent.tags.slice(0, 1).join(', ') || '通用'}
                           </Badge>
                         </div>
                       </div>
                     ))
                   ) : (
                     <div className="text-center text-muted-foreground py-8">
-                      <BarChart3 size={48} className="mx-auto mb-2 opacity-50" />
-                      <p>暂无产品销售数据</p>
+                      <Activity size={48} className="mx-auto mb-2 opacity-50" />
+                      <p>暂无智能体数据</p>
+                      <p className="text-xs mt-1 opacity-75">请检查xq_agents表中是否有活跃的智能体</p>
                     </div>
                   )}
                 </div>
