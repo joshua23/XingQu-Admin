@@ -5,6 +5,7 @@ import { Users, Search, Filter, UserPlus, Ban, CheckCircle, XCircle, FileText, U
 import { AddUserModal } from '@/components/modals/AddUserModal'
 import { adminUserService } from '@/lib/services/adminUserService'
 import { AdminUser } from '@/lib/types'
+import { UserAgreementTooltip } from '@/components/ui/UserAgreementTooltip'
 
 interface User {
   id: string
@@ -86,6 +87,7 @@ export default function UsersPage() {
   const [activeTab, setActiveTab] = useState('users')
   const [showDocumentViewer, setShowDocumentViewer] = useState(false)
   const [selectedDocument, setSelectedDocument] = useState<any>(null)
+  const [agreementContent, setAgreementContent] = useState<string>('')
 
   // 加载用户数据
   const loadUsers = async () => {
@@ -109,9 +111,66 @@ export default function UsersPage() {
     }
   }
 
+  // 加载用户协议内容
+  const loadAgreementContent = async () => {
+    try {
+      const response = await fetch('/docs/用户协议.md')
+      if (response.ok) {
+        const content = await response.text()
+        setAgreementContent(content)
+      } else {
+        // 如果无法加载文件，使用默认内容
+        setAgreementContent(`星趣用户协议
+
+更新日期：2025年9月1日
+欢迎您使用星趣！
+
+特别提示
+
+为了更好地为您提供服务，请您在开始使用星趣产品和服务之前，认真阅读并充分理解《星趣用户协议》（"本协议"或"用户协议"）及《星趣隐私政策》（"隐私政策"），特别是涉及免除或者限制责任的条款、权利许可和信息使用的条款、同意开通和使用特殊单项服务的条款、法律适用和争议解决条款等。该等内容将以加粗和/或划线形式提示您注意，您应重点阅读。
+
+您点击确认本协议、以其他方式同意本协议或实际使用星趣产品和服务的，即表示您同意、接受并承诺遵守本协议的全部内容。
+
+关于您的个人信息的使用规则，请见隐私政策。特别提示您，您使用服务时，除注册等环节必须收集的个人信息外，我们不会主动收集能识别您身份的个人信息用于达成服务目的。在使用部分功能时，如果您需要使用部分信息来完善相应服务结果的，请您避免输入能识别您身份的个人信息，包括真实姓名、身份证件号码等，您应理解并接受，我们的服务仅能将您所输入的的前述个人信息视为一般输入内容进行处理并籍此反馈输出内容，我们尚无法从技术层面对您所输入的个人信息进行主动识别、清洗和删除，您明确知悉并确认不会就此向我们提出任何形式的侵权或违约索赔。
+
+
+一、协议的范围
+
+1.1 本协议是您（即用户）与上海启垒应网络科技有限公司及其关联公司（合称"我们"）之间关于用户使用星趣产品和服务所订立的协议。
+1.3 我们根据本协议，通过星趣向用户提供的服务（"本服务"），包括但不限于人工智能（"AI"）相关的智能对话、问答等服务。
+1.4 就具体服务，您可能需要在与我们订立特定服务条款或具体产品协议（统称"具体产品协议"）后方可使用。同时，我们可能就本服务制定、发布有关服务规则、操作文档、说明、标准、公告、通知等（统称为"服务规则"），该等服务规则以星趣相关页面展示的届时有效的内容为准。本协议、隐私政策、具体产品协议以及服务规则共同构成我们与您之间就星趣及其相关服务达成的约定，具有同等法律效力。
+1.5 您使用星趣，应当具备相应的民事行为能力。未满18周岁的未成年人需要在征得法定监护人的同意后方能使用本产品。作为未满18周岁的未成年人之监护人，您应合理引导和约束未成年人用户对本产品的使用，共同营造良好网络环境，帮助未成年人养成良好上网习惯，避免过度依赖或者沉迷本产品。
+1.6 您同意、接受本协议及隐私政策后，方可使用星趣产品和服务。如您不同意本协议，您应当停止使用星趣产品和服务。如您自主选择使用星趣产品和服务，则视为您已充分理解本协议，并同意作为本协议的一方当事人接受本协议的约束。我们有权在遵守相关法律法规规定的前提下，根据需要自主决定对本协议进行修改（包括适时制定、修订并发布服务规则），更新后的协议将通过官方网站、弹窗或星趣服务页面等适当的方式进行公示。如果您不同意修改后的协议，您应当停止使用本服务，如果您选择继续使用本服务，则视为您已经接受相关修改。
+1.7 如对本协议内容有任何疑问、意见或建议，您可发送邮件至 report@xingquai.com 与星趣联系。
+
+
+二、服务内容
+
+2.1 用户在使用本服务前需要提前使用手机号注册认证以获得【星趣】账户。
+2.2 本产品的具体功能由星趣根据实际情况提供，包括但不限于虚拟智能体连结、对话、获得成就、客服服务等。
+2.3 我们将按照《个人信息保护法》等相关法律法规保护您的个人信息，我们收集、处理您的个人信息的具体规则，请见隐私政策。
+2.4 星趣许可您一项个人的、可撤销的、不可转让的、非独占地和非商业的合法使用星趣软件及相关服务的权利。本协议未明示授权的其他一切权利仍由星趣保留，您在行使这些权利前须另行获得星趣的书面许可，同时星趣如未行使前述任何权利，并不构成对该权利的放弃。
+2.5 针对星趣功能的部分特性，我们制定了《增值服务协议》、《卡片权益协议》和《生成式人工智能服务的相关说明和呼吁》，请您在使用具体服务前仔细阅读。
+
+
+三、服务使用规则
+
+3.1 用户在本服务中或通过本服务所传送、发布的任何内容并不反映或代表，也不得被视为反映或代表我们的观点、立场或政策，我们对此不承担任何责任。
+3.2 用户在本产品注册时，不得使用虚假身份信息。用户应当妥善保管其账户信息和密码，由于用户泄密所导致的损失需由用户自行承担。如用户发现他人冒用或盗用其账户或密码，或其账户存在其他未经合法授权使用之情形，应立即以有效方式通知我们。用户理解并同意我们有权根据用户的通知、请求或依据判断，采取相应的行动或措施，包括但不限于冻结账户、限制账户功能等，我们对采取上述行动所导致的损失不承担除法律有明确规定外的责任。
+
+如对本协议内容有任何疑问、意见或建议，您可发送邮件至 report@xingquai.com 与星趣联系。`)
+      }
+    } catch (error) {
+      console.error('Error loading agreement content:', error)
+      // 使用默认内容作为fallback
+      setAgreementContent('星趣用户协议内容加载中...')
+    }
+  }
+
   // 页面加载时获取数据
   useEffect(() => {
     loadUsers()
+    loadAgreementContent()
   }, [])
 
   // 用户添加成功后重新加载数据
@@ -156,17 +215,6 @@ export default function UsersPage() {
     )
   }
 
-  const getAgreementBadge = (accepted: boolean, version?: string) => {
-    return accepted ? (
-      <span className="px-3 py-1 rounded-full text-xs font-medium bg-success/10 text-success border border-success/20">
-        已同意 {version}
-      </span>
-    ) : (
-      <span className="px-3 py-1 rounded-full text-xs font-medium bg-warning/10 text-warning border border-warning/20">
-        未同意
-      </span>
-    )
-  }
 
   const handleUserAction = async (userId: string, action: string) => {
     try {
@@ -284,6 +332,17 @@ export default function UsersPage() {
   const handleViewDocument = (doc: any) => {
     setSelectedDocument(doc)
     setShowDocumentViewer(true)
+  }
+
+  const handleAgreementUpdate = (newContent: string, newVersion: string) => {
+    // 更新协议内容
+    setAgreementContent(newContent)
+    
+    // 这里可以添加保存到服务器的逻辑
+    console.log('协议内容已更新:', { newVersion, contentLength: newContent.length })
+    
+    // 可以在这里调用API保存到服务器
+    // await saveAgreementToServer(newContent, newVersion)
   }
 
   if (activeTab === 'documents') {
@@ -411,6 +470,10 @@ export default function UsersPage() {
                           <Eye size={16} className="text-primary" />
                         </button>
                         <button
+                          onClick={() => {
+                            setSelectedDocument(doc)
+                            setShowDocumentViewer(true)
+                          }}
                           className="p-1 rounded-lg hover:bg-muted transition-colors"
                           title="编辑文档"
                         >
@@ -601,7 +664,14 @@ export default function UsersPage() {
                   </td>
                   <td className="py-4 px-6">{getStatusBadge(user.account_status)}</td>
                   <td className="py-4 px-6">{getMembershipBadge(user.role === 'admin' || user.role === 'super_admin')}</td>
-                  <td className="py-4 px-6">{getAgreementBadge(user.agreement_accepted || false, user.agreement_version)}</td>
+                  <td className="py-4 px-6">
+                    <UserAgreementTooltip 
+                      agreementContent={agreementContent}
+                      version={user.agreement_version || 'v2.1'}
+                      accepted={user.agreement_accepted || false}
+                      onContentUpdate={handleAgreementUpdate}
+                    />
+                  </td>
                   <td className="py-4 px-6">
                     <div className="text-sm text-muted-foreground">
                       {user.last_login || '未登录'}
