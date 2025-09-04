@@ -18,7 +18,8 @@ import {
   Activity,
   Shield,
   PanelLeftClose,
-  PanelLeft
+  PanelLeft,
+  Music
 } from 'lucide-react'
 
 interface NavigationProps {
@@ -51,6 +52,12 @@ const Navigation = ({ children }: NavigationProps) => {
       href: '/users',
       icon: Users,
       current: pathname === '/users'
+    },
+    {
+      name: '素材管理',
+      href: '/materials',
+      icon: Music,
+      current: pathname === '/materials'
     },
     {
       name: '内容审核',
