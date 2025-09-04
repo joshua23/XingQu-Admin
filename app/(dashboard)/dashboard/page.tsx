@@ -5,6 +5,7 @@ import { MetricCard } from '@/components/MetricCard'
 import { UserGrowthChart, ActivityChart, RevenueChart } from '@/components/AnalyticsChart'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
+import { MetricCardSkeleton, ChartSkeleton, QuickStatsSkeleton } from '@/components/ui/SkeletonLoader'
 import { dataService } from '@/lib/services/supabase'
 import { useAutoRefresh } from '@/hooks/useAutoRefresh'
 import {
@@ -78,10 +79,9 @@ const Dashboard: React.FC = () => {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  // 加载真实数据（优化：添加数据缓存）
+  // 分步加载数据（优化：减少并行请求压力）
   const loadDashboardData = async (forceRefresh = false) => {
     try {
-      setLoading(true)
       setError(null)
 
       // 检查缓存（5分钟有效期）
@@ -96,62 +96,72 @@ const Dashboard: React.FC = () => {
         setChartData(parsedData.chartData)
         setSparklineData(parsedData.sparklineData)
         setLastUpdated(new Date(parseInt(cacheTime)))
-        setLoading(false)
         return
       }
 
-      // 并行加载多种数据
-      const [statsResult, chartResult, sparklineResults] = await Promise.all([
-        dataService.getDashboardStats(),
-        dataService.getChartData(),
-        Promise.all([
-          dataService.getSparklineData('users'),
-          dataService.getSparklineData('activity'),
-          dataService.getSparklineData('revenue'),
-          dataService.getSparklineData('pageviews')
-        ])
-      ])
+      // 设置初始加载状态
+      setLoading(true)
 
+      // 第一步：优先加载基本统计数据（最重要的数据）
+      const statsResult = await dataService.getDashboardStats()
+      
       if (statsResult.error) {
         throw new Error((statsResult.error as Error)?.message || '加载统计数据失败')
       }
 
       if (statsResult.data) {
         setStats(statsResult.data)
+        // 基础数据加载完成，可以显示基本界面
+        setLoading(false)
       }
 
-      if (chartResult.data) {
-        setChartData(chartResult.data)
-      }
+      // 第二步：异步加载图表数据（不阻塞界面显示）
+      try {
+        const [chartResult, ...sparklineResults] = await Promise.all([
+          dataService.getChartData(),
+          dataService.getSparklineData('users'),
+          dataService.getSparklineData('activity'),
+          dataService.getSparklineData('revenue'),
+          dataService.getSparklineData('pageviews')
+        ])
 
-      // 设置sparkline数据
-      setSparklineData({
-        users: sparklineResults[0].data || [],
-        activity: sparklineResults[1].data || [],
-        revenue: sparklineResults[2].data || [],
-        pageviews: sparklineResults[3].data || []
-      })
+        if (chartResult.data) {
+          setChartData(chartResult.data)
+        }
 
-      const currentTime = Date.now()
-      setLastUpdated(new Date(currentTime))
-      
-      // 缓存数据
-      const cacheData = {
-        stats: statsResult.data,
-        chartData: chartResult.data,
-        sparklineData: {
+        // 设置sparkline数据
+        setSparklineData({
           users: sparklineResults[0].data || [],
           activity: sparklineResults[1].data || [],
           revenue: sparklineResults[2].data || [],
           pageviews: sparklineResults[3].data || []
+        })
+
+        const currentTime = Date.now()
+        setLastUpdated(new Date(currentTime))
+        
+        // 缓存所有数据
+        const cacheData = {
+          stats: statsResult.data,
+          chartData: chartResult.data,
+          sparklineData: {
+            users: sparklineResults[0].data || [],
+            activity: sparklineResults[1].data || [],
+            revenue: sparklineResults[2].data || [],
+            pageviews: sparklineResults[3].data || []
+          }
         }
+        localStorage.setItem(cacheKey, JSON.stringify(cacheData))
+        localStorage.setItem(`${cacheKey}_time`, currentTime.toString())
+      } catch (chartError) {
+        console.warn('图表数据加载失败，使用默认数据:', chartError)
+        // 图表加载失败不影响基础数据显示
+        setLastUpdated(new Date())
       }
-      localStorage.setItem(cacheKey, JSON.stringify(cacheData))
-      localStorage.setItem(`${cacheKey}_time`, currentTime.toString())
+
     } catch (error) {
       console.error('加载Dashboard数据失败:', error)
       setError((error as Error)?.message || '加载数据失败')
-    } finally {
       setLoading(false)
     }
   }
@@ -247,10 +257,41 @@ const Dashboard: React.FC = () => {
     },
   ]
 
-  if (loading && !lastUpdated) {
+  // 显示骨架屏而不是单纯的spinner
+  if (loading && !stats.totalUsers && !lastUpdated) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="responsive-container">
+        <div className="section-spacing">
+          <div className="flex items-start justify-between animate-slide-up mb-6">
+            <div className="max-w-2xl">
+              <h1 className="text-display-2 text-foreground">数据总览</h1>
+              <p className="text-sm sm:text-base text-muted-foreground mt-2">
+                正在加载系统关键指标和实时数据...
+              </p>
+            </div>
+          </div>
+
+          {/* 骨架屏 - 主要指标卡片 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 responsive-grid-gap animate-fade-in">
+            {[1, 2, 3, 4].map((i) => (
+              <MetricCardSkeleton key={i} />
+            ))}
+          </div>
+
+          {/* 骨架屏 - 图表 */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 responsive-grid-gap animate-fade-in section-gap">
+            {[1, 2, 3].map((i) => (
+              <ChartSkeleton key={i} />
+            ))}
+          </div>
+
+          {/* 骨架屏 - 快速统计 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 responsive-grid-gap section-gap">
+            {[1, 2, 3].map((i) => (
+              <QuickStatsSkeleton key={i} />
+            ))}
+          </div>
+        </div>
       </div>
     )
   }
