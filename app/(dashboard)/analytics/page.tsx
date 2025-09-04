@@ -248,7 +248,7 @@ const Analytics: React.FC = () => {
             <AnalyticsChart
               title="页面浏览量"
               description="每日页面访问统计"
-              data={chartData.revenueData?.map(item => ({
+              data={chartData.revenueData?.map((item: any) => ({
                 label: item.label,
                 value: Math.round(item.value / 10), // 转换回页面浏览量
                 trend: item.trend
