@@ -7,12 +7,20 @@ export async function middleware(req: NextRequest) {
   const supabase = createMiddlewareClient({ req, res })
   const { data: { session } } = await supabase.auth.getSession()
 
+  // 检查开发模式
+  const isDevelopment = process.env.NODE_ENV === 'development'
+  const devUserCookie = req.cookies.get('dev_admin_user')
+  const hasDevUser = isDevelopment && devUserCookie
+
+  // 检查是否已认证 (Supabase session 或开发模式用户)
+  const isAuthenticated = session || hasDevUser
+
   // 保护路由
-  if (!session && !req.nextUrl.pathname.startsWith('/login')) {
+  if (!isAuthenticated && !req.nextUrl.pathname.startsWith('/login')) {
     return NextResponse.redirect(new URL('/login', req.url))
   }
 
-  if (session && req.nextUrl.pathname === '/login') {
+  if (isAuthenticated && req.nextUrl.pathname === '/login') {
     return NextResponse.redirect(new URL('/', req.url))
   }
 

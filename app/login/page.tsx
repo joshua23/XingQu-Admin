@@ -13,8 +13,17 @@ export default function Login() {
   const { signIn } = useAuth()
   const router = useRouter()
   
-  // 开发模式检测
-  const isDevelopment = process.env.NODE_ENV === 'development'
+  // 开发模式检测 - 使用多种方式检测
+  const isDevelopment = process.env.NODE_ENV === 'development' || 
+                       (typeof window !== 'undefined' && (
+                         window.location.hostname === 'localhost' ||
+                         window.location.hostname === '127.0.0.1'
+                       ))
+  console.log('🔍 登录页面开发模式检测:', { 
+    nodeEnv: process.env.NODE_ENV,
+    hostname: typeof window !== 'undefined' ? window.location.hostname : 'unknown',
+    isDevelopment 
+  })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -34,15 +43,25 @@ export default function Login() {
 
   // 开发模式快速登录
   const handleDevLogin = async () => {
+    console.log('🚀 开发模式快速登录按钮被点击')
     setLoading(true)
     setError('')
     
-    const result = await signIn('', '') // 空账密触发开发模式
-    
-    if (result.success) {
-      router.push('/dashboard')
-    } else {
-      setError('开发模式登录失败')
+    try {
+      console.log('📞 调用 signIn 方法...')
+      const result = await signIn('', '') // 空账密触发开发模式
+      console.log('📝 登录结果:', result)
+      
+      if (result.success) {
+        console.log('✅ 登录成功，准备跳转到 /dashboard')
+        router.push('/dashboard')
+      } else {
+        console.log('❌ 登录失败:', result.error)
+        setError('开发模式登录失败: ' + (result.error || '未知错误'))
+      }
+    } catch (error) {
+      console.error('🔥 快速登录过程中发生错误:', error)
+      setError('快速登录发生错误: ' + String(error))
     }
     
     setLoading(false)

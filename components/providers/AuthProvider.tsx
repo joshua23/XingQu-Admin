@@ -90,9 +90,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
-      // 开发模式支持空账密登录
-      const isDevelopment = process.env.NODE_ENV === 'development'
+      // 开发模式支持空账密登录 - 使用多种方式检测开发模式
+      const isDevelopment = process.env.NODE_ENV === 'development' || 
+                           window.location.hostname === 'localhost' ||
+                           window.location.hostname === '127.0.0.1'
+      console.log('🚀 开发模式检查:', { 
+        nodeEnv: process.env.NODE_ENV, 
+        hostname: window.location.hostname,
+        isDevelopment, 
+        email, 
+        password 
+      })
+      
       if (isDevelopment && (!email || !password)) {
+        console.log('✅ 触发开发模式快速登录')
         const devUser = {
           id: 'dev-admin-001',
           user_id: 'dev-admin-001',
@@ -104,7 +115,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           is_member: false
         }
         localStorage.setItem('dev_admin_user', JSON.stringify(devUser))
+        
+        // 设置cookie供middleware使用
+        document.cookie = `dev_admin_user=${JSON.stringify(devUser)}; path=/; max-age=86400`
+        
         setUser(devUser)
+        console.log('✅ 开发模式登录完成:', devUser)
         return { success: true }
       }
 
@@ -121,8 +137,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     try {
       // 清除开发模式用户数据
-      if (process.env.NODE_ENV === 'development') {
+      const isDevelopment = process.env.NODE_ENV === 'development' || 
+                           (typeof window !== 'undefined' && (
+                             window.location.hostname === 'localhost' ||
+                             window.location.hostname === '127.0.0.1'
+                           ))
+      
+      if (isDevelopment) {
         localStorage.removeItem('dev_admin_user')
+        // 清除开发模式cookie
+        document.cookie = 'dev_admin_user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
       }
       
       await adminAuth.signOut()

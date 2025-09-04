@@ -14,13 +14,14 @@ import {
   Menu,
   X,
   ChevronDown,
-  Activity
+  Activity,
+  Shield
 } from 'lucide-react'
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
-  const { user, logout } = useAuth()
+  const { user, signOut } = useAuth()
   const pathname = usePathname()
   const router = useRouter()
 
@@ -44,6 +45,12 @@ const Navigation = () => {
       current: pathname === '/users'
     },
     {
+      name: '内容审核',
+      href: '/moderation',
+      icon: Shield,
+      current: pathname === '/moderation'
+    },
+    {
       name: '系统设置',
       href: '/settings',
       icon: Settings,
@@ -53,7 +60,7 @@ const Navigation = () => {
 
   const handleLogout = async () => {
     try {
-      await logout()
+      await signOut()
       router.push('/login')
     } catch (error) {
       console.error('注销失败:', error)
@@ -79,10 +86,13 @@ const Navigation = () => {
           {/* Logo */}
           <div className="flex items-center justify-between h-16 px-6 border-b border-border">
             <Link href="/dashboard" className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <Activity size={18} className="text-primary-foreground" />
+              <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center shadow-lg">
+                <Activity size={20} className="text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold text-foreground">兴趣管理</span>
+              <div>
+                <span className="text-xl font-bold text-foreground">星趣管理</span>
+                <div className="text-xs text-muted-foreground">社区管理平台</div>
+              </div>
             </Link>
             <button
               onClick={() => setIsOpen(false)}

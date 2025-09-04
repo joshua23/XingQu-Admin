@@ -150,7 +150,7 @@ const Analytics: React.FC = () => {
 
         {/* 关键指标 */}
         {data && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 animate-fade-in mt-3">
             <MetricCard
               title="总会话数"
               value={data.behaviorStats.totalSessions}
@@ -192,7 +192,7 @@ const Analytics: React.FC = () => {
 
         {/* 图表区域 */}
         {data && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-fade-in" style={{ animationDelay: '200ms' }}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-fade-in mt-3" style={{ animationDelay: '200ms' }}>
             {/* 用户增长趋势 */}
             <Card variant="elevated">
               <CardHeader className="pb-4">
@@ -237,7 +237,7 @@ const Analytics: React.FC = () => {
 
         {/* 详细数据表格 */}
         {data && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-fade-in" style={{ animationDelay: '400ms' }}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-fade-in mt-8" style={{ animationDelay: '400ms' }}>
             {/* 热门产品 */}
             <Card variant="default">
               <CardHeader>

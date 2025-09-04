@@ -205,7 +205,7 @@ const Dashboard: React.FC = () => {
       icon: MousePointer,
       title: "用户行为",
       stats: [
-        { label: "页面访问量", value: (stats.pageViews || 0).toString(), trend: (stats.pageViews || 0) > 0 ? "+100%" : "0%" },
+        { label: "页面访问量", value: (stats.pageViews || 0).toString(), trend: stats.pageViews && stats.pageViews > 0 ? "+100%" : "0%" },
         { label: "平均停留时长", value: `${stats.averageSessionTime}分钟`, trend: "0%" },
         { label: "会话总数", value: stats.totalSessions.toString(), trend: stats.totalSessions > 0 ? "+100%" : "0%" },
       ]
@@ -278,7 +278,7 @@ const Dashboard: React.FC = () => {
         )}
 
         {/* 主要指标卡片 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 animate-fade-in">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 animate-fade-in mt-3">
           {overviewMetrics.map((metric, index) => (
             <div key={index} className="animate-scale-in" style={{ animationDelay: `${index * 100}ms` }}>
               <MetricCard {...metric} />
@@ -287,14 +287,14 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* 数据分析图表 */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 animate-fade-in" style={{ animationDelay: '400ms' }}>
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-3 animate-fade-in mt-3" style={{ animationDelay: '400ms' }}>
           <UserGrowthChart data={userGrowthData} />
           <ActivityChart data={activityData} />
           <RevenueChart data={revenueData} />
         </div>
 
         {/* 快速统计和实时活动 */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-3">
           {quickStats.map((section, index) => {
             const Icon = section.icon;
             return (
