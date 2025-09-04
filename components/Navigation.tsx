@@ -15,7 +15,8 @@ import {
   X,
   ChevronDown,
   Activity,
-  Shield
+  Shield,
+  Music
 } from 'lucide-react'
 
 const Navigation = () => {
@@ -43,6 +44,12 @@ const Navigation = () => {
       href: '/users',
       icon: Users,
       current: pathname === '/users'
+    },
+    {
+      name: '素材管理',
+      href: '/materials',
+      icon: Music,
+      current: pathname === '/materials'
     },
     {
       name: '内容审核',
