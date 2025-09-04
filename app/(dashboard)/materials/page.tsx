@@ -12,7 +12,9 @@ import {
   Trash2, 
   Edit,
   FolderOpen,
-  Tag
+  Tag,
+  X,
+  Check
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -31,6 +33,9 @@ const MaterialsPage = () => {
   const [currentPlaying, setCurrentPlaying] = useState<string | null>(null)
   const [showUpload, setShowUpload] = useState(false)
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null)
+  const [showCategoryModal, setShowCategoryModal] = useState(false)
+  const [categories, setCategories] = useState<string[]>(['背景音乐', '音效', '语音', '其他'])
+  const [newCategoryName, setNewCategoryName] = useState('')
 
   // 加载数据
   const loadData = async () => {
@@ -167,6 +172,87 @@ const MaterialsPage = () => {
     }
   }
 
+  // 分类管理功能
+  const handleAddCategory = () => {
+    if (newCategoryName.trim() && !categories.includes(newCategoryName.trim())) {
+      setCategories([...categories, newCategoryName.trim()])
+      setNewCategoryName('')
+    }
+  }
+
+  const handleDeleteCategory = (category: string) => {
+    if (categories.length > 1) {
+      setCategories(categories.filter(c => c !== category))
+    }
+  }
+
+  const CategoryModal = () => {
+    if (!showCategoryModal) return null
+
+    return (
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+        <div className="bg-background rounded-lg shadow-xl w-full max-w-md mx-4">
+          <div className="flex items-center justify-between p-6 border-b">
+            <h2 className="text-lg font-semibold">管理分类</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowCategoryModal(false)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          <div className="p-6 space-y-4">
+            {/* 添加新分类 */}
+            <div className="flex space-x-2">
+              <Input
+                placeholder="输入分类名称..."
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleAddCategory()
+                  }
+                }}
+              />
+              <Button onClick={handleAddCategory} size="sm">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            {/* 现有分类列表 */}
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium text-muted-foreground">现有分类</h3>
+              {categories.map((category, index) => (
+                <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                  <span className="font-medium">{category}</span>
+                  {categories.length > 1 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteCategory(category)}
+                      className="text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <div className="flex justify-end p-6 border-t">
+            <Button onClick={() => setShowCategoryModal(false)}>
+              <Check className="h-4 w-4 mr-2" />
+              确定
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="flex-1 p-8">
@@ -196,7 +282,7 @@ const MaterialsPage = () => {
             <Plus className="h-4 w-4 mr-2" />
             上传素材
           </Button>
-          <Button>
+          <Button onClick={() => setShowCategoryModal(true)}>
             <FolderOpen className="h-4 w-4 mr-2" />
             管理分类
           </Button>
@@ -285,6 +371,9 @@ const MaterialsPage = () => {
           onClose={() => setShowUpload(false)}
         />
       )}
+
+      {/* 分类管理模态框 */}
+      <CategoryModal />
 
       {/* 素材列表 */}
       <Card>
