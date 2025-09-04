@@ -8,6 +8,7 @@ import { AnalyticsChart } from '@/components/AnalyticsChart'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
+import { MetricCardSkeleton, ChartSkeleton, QuickStatsSkeleton } from '@/components/ui/SkeletonLoader'
 import {
   BarChart3,
   TrendingUp,
@@ -56,10 +57,9 @@ const Analytics: React.FC = () => {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  // 加载真实分析数据（优化：添加数据缓存）
+  // 分步加载分析数据（优化：减少并行请求压力）
   const loadAnalyticsData = async (forceRefresh = false) => {
     try {
-      setLoading(true)
       setError(null)
       
       // 检查缓存（5分钟有效期）
@@ -75,16 +75,14 @@ const Analytics: React.FC = () => {
         setTopAgents(parsedData.topAgents || [])
         setAgentsError(null)
         setLastUpdated(new Date(parseInt(cacheTime)))
-        setLoading(false)
         return
       }
       
-      // 并行加载分析数据、图表数据和智能体数据
-      const [analyticsResult, chartResult, agentsResult] = await Promise.all([
-        dataService.getAnalyticsData(),
-        dataService.getChartData(),
-        dataService.getTopAgents()
-      ])
+      // 设置初始加载状态
+      setLoading(true)
+      
+      // 第一步：优先加载核心分析数据
+      const analyticsResult = await dataService.getAnalyticsData()
       
       if (analyticsResult.error) {
         throw new Error((analyticsResult.error as Error)?.message || '加载分析数据失败')
@@ -92,34 +90,47 @@ const Analytics: React.FC = () => {
       
       if (analyticsResult.data) {
         setData(analyticsResult.data)
+        // 基础数据加载完成，显示界面
+        setLoading(false)
       }
       
-      if (chartResult.data) {
-        setChartData(chartResult.data)
+      // 第二步：异步加载图表和智能体数据
+      try {
+        const [chartResult, agentsResult] = await Promise.all([
+          dataService.getChartData(),
+          dataService.getTopAgents()
+        ])
+
+        if (chartResult.data) {
+          setChartData(chartResult.data)
+        }
+        
+        if (agentsResult.error) {
+          setAgentsError((agentsResult.error as Error)?.message || '加载智能体数据失败')
+        } else if (agentsResult.data) {
+          setTopAgents(agentsResult.data)
+          setAgentsError(null)
+        }
+        
+        const currentTime = Date.now()
+        setLastUpdated(new Date(currentTime))
+        
+        // 缓存完整数据
+        const cacheData = {
+          data: analyticsResult.data,
+          chartData: chartResult.data,
+          topAgents: agentsResult.data || []
+        }
+        localStorage.setItem(cacheKey, JSON.stringify(cacheData))
+        localStorage.setItem(`${cacheKey}_time`, currentTime.toString())
+      } catch (chartError) {
+        console.warn('图表和智能体数据加载失败，使用默认数据:', chartError)
+        setLastUpdated(new Date())
       }
-      
-      if (agentsResult.error) {
-        setAgentsError((agentsResult.error as Error)?.message || '加载智能体数据失败')
-      } else if (agentsResult.data) {
-        setTopAgents(agentsResult.data)
-        setAgentsError(null)
-      }
-      
-      const currentTime = Date.now()
-      setLastUpdated(new Date(currentTime))
-      
-      // 缓存数据
-      const cacheData = {
-        data: analyticsResult.data,
-        chartData: chartResult.data,
-        topAgents: agentsResult.data || []
-      }
-      localStorage.setItem(cacheKey, JSON.stringify(cacheData))
-      localStorage.setItem(`${cacheKey}_time`, currentTime.toString())
+
     } catch (error) {
       console.error('加载Analytics数据失败:', error)
       setError((error as Error)?.message || '加载数据失败')
-    } finally {
       setLoading(false)
     }
   }
@@ -136,10 +147,41 @@ const Analytics: React.FC = () => {
     loadAnalyticsData()
   }, [dateRange])
 
-  if (loading && !data) {
+  // 显示骨架屏而不是单纯的spinner
+  if (loading && !data && !lastUpdated) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="responsive-container">
+        <div className="section-spacing">
+          <div className="flex items-start justify-between animate-slide-up mb-6">
+            <div className="max-w-2xl">
+              <h1 className="text-display-2 text-foreground">数据分析</h1>
+              <p className="text-body text-muted-foreground mt-2">
+                正在加载详细的用户行为分析和智能体使用数据...
+              </p>
+            </div>
+          </div>
+
+          {/* 骨架屏 - 关键指标 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 responsive-grid-gap animate-fade-in">
+            {[1, 2, 3, 4].map((i) => (
+              <MetricCardSkeleton key={i} />
+            ))}
+          </div>
+
+          {/* 骨架屏 - 分析图表 */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 responsive-grid-gap animate-fade-in section-gap">
+            {[1, 2].map((i) => (
+              <ChartSkeleton key={i} />
+            ))}
+          </div>
+
+          {/* 骨架屏 - 详细数据 */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 responsive-grid-gap section-gap">
+            {[1, 2].map((i) => (
+              <QuickStatsSkeleton key={i} />
+            ))}
+          </div>
+        </div>
       </div>
     )
   }

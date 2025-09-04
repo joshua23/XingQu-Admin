@@ -35,57 +35,56 @@ export const adminAuth = {
 
 // 数据查询服务
 export const dataService = {
-  // Dashboard 统计数据
+  // Dashboard 统计数据（优化：减少数据库查询复杂度）
   async getDashboardStats() {
     try {
-      // 并行查询多个数据源
-      const [usersResult, sessionsResult, eventsResult, memberResult] = await Promise.all([
-        // 总用户数
+      // 优化：减少并行查询，合并部分查询逻辑
+      const [usersResult, recentSessionsResult, recentEventsResult] = await Promise.all([
+        // 获取用户基础统计（包含会员信息）
         supabase
           .from('xq_user_profiles')
-          .select('id, created_at, is_member', { count: 'exact' }),
+          .select('id, created_at, is_member', { count: 'exact' })
+          .order('created_at', { ascending: false })
+          .limit(1000), // 限制查询量提升性能
         
-        // 会话数据（使用正确的字段名 duration_seconds）
+        // 最近会话数据（限制查询范围）
         supabase
           .from('xq_user_sessions')
           .select('duration_seconds, page_views, created_at', { count: 'exact' })
-          .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()),
+          .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()) // 缩短到24小时
+          .limit(500), // 限制查询量
         
-        // 最近活跃事件（24小时内）
+        // 最近活跃事件（限制查询）
         supabase
           .from('xq_tracking_events')
           .select('user_id, event_type, created_at')
           .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-          .order('created_at', { ascending: false }),
-        
-        // 会员用户数
-        supabase
-          .from('xq_user_profiles')
-          .select('id', { count: 'exact' })
-          .eq('is_member', true)
+          .limit(1000) // 限制查询量
+          .order('created_at', { ascending: false })
       ])
 
-      // 计算活跃用户（24小时内有事件的用户）
-      const activeUserIds = new Set(eventsResult.data?.map(event => event.user_id).filter(id => id) || [])
+      // 优化：从单次查询结果中计算多个指标
+      const activeUserIds = new Set(recentEventsResult.data?.map(event => event.user_id).filter(id => id) || [])
+      const memberUsers = usersResult.data?.filter(user => user.is_member).length || 0
       
-      // 计算平均会话时长（duration_seconds字段）
-      const sessions = sessionsResult.data || []
+      // 计算平均会话时长
+      const sessions = recentSessionsResult.data || []
       const averageSessionTime = sessions.length > 0 
         ? sessions.reduce((sum, s) => sum + (s.duration_seconds || 0), 0) / sessions.length / 60
         : 0
       
-      // 计算页面浏览量（从事件中统计page_view类型）
-      const pageViewCount = eventsResult.data?.filter(e => e.event_type === 'page_view').length || 0
+      // 计算页面浏览量
+      const pageViewCount = recentEventsResult.data?.filter(e => e.event_type === 'page_view').length || 0
 
       return {
         data: {
           totalUsers: usersResult.count || 0,
           activeUsers: activeUserIds.size,
-          totalSessions: sessionsResult.count || 0,
+          totalSessions: recentSessionsResult.count || 0,
           averageSessionTime: Math.round(averageSessionTime * 10) / 10,
           totalRevenue: 0, // 暂无支付数据
           conversionRate: (usersResult.count || 0) > 0 ? (activeUserIds.size / (usersResult.count || 1)) * 100 : 0,
-          memberUsers: memberResult.count || 0,
+          memberUsers: memberUsers,
           pageViews: pageViewCount
         },
         error: null
