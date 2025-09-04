@@ -56,11 +56,28 @@ const Analytics: React.FC = () => {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  // 加载真实分析数据
-  const loadAnalyticsData = async () => {
+  // 加载真实分析数据（优化：添加数据缓存）
+  const loadAnalyticsData = async (forceRefresh = false) => {
     try {
       setLoading(true)
       setError(null)
+      
+      // 检查缓存（5分钟有效期）
+      const cacheKey = 'analytics_data'
+      const cachedData = localStorage.getItem(cacheKey)
+      const cacheTime = localStorage.getItem(`${cacheKey}_time`)
+      const fiveMinutesAgo = Date.now() - 5 * 60 * 1000
+
+      if (!forceRefresh && cachedData && cacheTime && parseInt(cacheTime) > fiveMinutesAgo) {
+        const parsedData = JSON.parse(cachedData)
+        setData(parsedData.data)
+        setChartData(parsedData.chartData)
+        setTopAgents(parsedData.topAgents || [])
+        setAgentsError(null)
+        setLastUpdated(new Date(parseInt(cacheTime)))
+        setLoading(false)
+        return
+      }
       
       // 并行加载分析数据、图表数据和智能体数据
       const [analyticsResult, chartResult, agentsResult] = await Promise.all([
@@ -88,7 +105,17 @@ const Analytics: React.FC = () => {
         setAgentsError(null)
       }
       
-      setLastUpdated(new Date())
+      const currentTime = Date.now()
+      setLastUpdated(new Date(currentTime))
+      
+      // 缓存数据
+      const cacheData = {
+        data: analyticsResult.data,
+        chartData: chartResult.data,
+        topAgents: agentsResult.data || []
+      }
+      localStorage.setItem(cacheKey, JSON.stringify(cacheData))
+      localStorage.setItem(`${cacheKey}_time`, currentTime.toString())
     } catch (error) {
       console.error('加载Analytics数据失败:', error)
       setError((error as Error)?.message || '加载数据失败')
@@ -97,9 +124,9 @@ const Analytics: React.FC = () => {
     }
   }
 
-  // 设置15分钟自动刷新
+  // 设置30分钟自动刷新，减少加载频率
   const { refresh } = useAutoRefresh(loadAnalyticsData, {
-    interval: 15 * 60 * 1000, // 15分钟
+    interval: 30 * 60 * 1000, // 30分钟
     enabled: true,
     immediate: true
   })
@@ -152,7 +179,7 @@ const Analytics: React.FC = () => {
             </select>
             <Button
               variant="secondary"
-              onClick={() => refresh()}
+              onClick={() => loadAnalyticsData(true)}
               disabled={loading}
               className="flex items-center space-x-2"
             >
@@ -183,7 +210,7 @@ const Analytics: React.FC = () => {
 
         {/* 关键指标 */}
         {data && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 animate-fade-in mt-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 responsive-grid-gap animate-fade-in section-gap">
             <MetricCard
               title="总会话数"
               value={data.behaviorStats.totalSessions}
@@ -225,7 +252,7 @@ const Analytics: React.FC = () => {
 
         {/* 图表区域 */}
         {data && chartData && (
-          <div className="grid grid-cols-1 xl:grid-cols-3 responsive-grid-gap animate-fade-in" style={{ animationDelay: '200ms' }}>
+          <div className="grid grid-cols-1 xl:grid-cols-3 responsive-grid-gap animate-fade-in section-gap" style={{ animationDelay: '200ms' }}>
             {/* 用户增长趋势图 */}
             <AnalyticsChart
               title="用户增长趋势"
@@ -280,7 +307,7 @@ const Analytics: React.FC = () => {
 
         {/* 详细数据表格 */}
         {data && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-fade-in mt-8" style={{ animationDelay: '400ms' }}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 responsive-grid-gap animate-fade-in section-gap" style={{ animationDelay: '400ms' }}>
             {/* 热门智能体 */}
             <Card variant="default">
               <CardHeader>
@@ -405,7 +432,7 @@ const Analytics: React.FC = () => {
             <CardTitle className="text-xl font-bold">数据导出</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 responsive-grid-gap">
               <button className="p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors interactive-element">
                 <div className="text-center">
                   <BarChart3 size={24} className="mx-auto mb-2 text-primary" />

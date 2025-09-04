@@ -73,20 +73,43 @@
     }
   }
   
-  /* 响应式网格间距 */
+  /* 响应式网格间距 - 确保行列间距一致 */
   .responsive-grid-gap {
-    gap: 0.75rem; /* 12px mobile */
+    gap: 1.5rem; /* 24px - 统一使用桌面间距 */
+    row-gap: 1.5rem; /* 明确设置行间距 */
+    column-gap: 1.5rem; /* 明确设置列间距 */
   }
   
-  @media (min-width: 768px) {
+  @media (max-width: 767px) {
     .responsive-grid-gap {
-      gap: 1rem; /* 16px tablet */
+      gap: 1rem; /* 16px mobile */
+      row-gap: 1rem;
+      column-gap: 1rem;
     }
   }
   
-  @media (min-width: 1024px) {
+  @media (min-width: 768px) and (max-width: 1023px) {
     .responsive-grid-gap {
-      gap: 1.5rem; /* 24px desktop */
+      gap: 1.25rem; /* 20px tablet */
+      row-gap: 1.25rem;
+      column-gap: 1.25rem;
+    }
+  }
+  
+  /* 统一的区块间距 */
+  .section-gap {
+    margin-top: 1.5rem; /* 24px */
+  }
+  
+  @media (max-width: 767px) {
+    .section-gap {
+      margin-top: 1rem; /* 16px mobile */
+    }
+  }
+  
+  @media (min-width: 768px) and (max-width: 1023px) {
+    .section-gap {
+      margin-top: 1.25rem; /* 20px tablet */
     }
   }
 }

@@ -78,11 +78,27 @@ const Dashboard: React.FC = () => {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  // 加载真实数据
-  const loadDashboardData = async () => {
+  // 加载真实数据（优化：添加数据缓存）
+  const loadDashboardData = async (forceRefresh = false) => {
     try {
       setLoading(true)
       setError(null)
+
+      // 检查缓存（5分钟有效期）
+      const cacheKey = 'dashboard_data'
+      const cachedData = localStorage.getItem(cacheKey)
+      const cacheTime = localStorage.getItem(`${cacheKey}_time`)
+      const fiveMinutesAgo = Date.now() - 5 * 60 * 1000
+
+      if (!forceRefresh && cachedData && cacheTime && parseInt(cacheTime) > fiveMinutesAgo) {
+        const parsedData = JSON.parse(cachedData)
+        setStats(parsedData.stats)
+        setChartData(parsedData.chartData)
+        setSparklineData(parsedData.sparklineData)
+        setLastUpdated(new Date(parseInt(cacheTime)))
+        setLoading(false)
+        return
+      }
 
       // 并行加载多种数据
       const [statsResult, chartResult, sparklineResults] = await Promise.all([
@@ -116,7 +132,22 @@ const Dashboard: React.FC = () => {
         pageviews: sparklineResults[3].data || []
       })
 
-      setLastUpdated(new Date())
+      const currentTime = Date.now()
+      setLastUpdated(new Date(currentTime))
+      
+      // 缓存数据
+      const cacheData = {
+        stats: statsResult.data,
+        chartData: chartResult.data,
+        sparklineData: {
+          users: sparklineResults[0].data || [],
+          activity: sparklineResults[1].data || [],
+          revenue: sparklineResults[2].data || [],
+          pageviews: sparklineResults[3].data || []
+        }
+      }
+      localStorage.setItem(cacheKey, JSON.stringify(cacheData))
+      localStorage.setItem(`${cacheKey}_time`, currentTime.toString())
     } catch (error) {
       console.error('加载Dashboard数据失败:', error)
       setError((error as Error)?.message || '加载数据失败')
@@ -125,9 +156,9 @@ const Dashboard: React.FC = () => {
     }
   }
 
-  // 设置15分钟自动刷新
+  // 设置30分钟自动刷新，减少加载频率
   const { refresh } = useAutoRefresh(loadDashboardData, {
-    interval: 15 * 60 * 1000, // 15分钟
+    interval: 30 * 60 * 1000, // 30分钟
     enabled: true,
     immediate: true
   })
@@ -248,7 +279,7 @@ const Dashboard: React.FC = () => {
 
           {/* 手动刷新按钮 */}
           <button
-            onClick={() => refresh()}
+            onClick={() => loadDashboardData(true)}
             disabled={loading}
             className="btn-secondary flex items-center space-x-2 min-w-[80px] sm:min-w-[100px] text-sm px-3 py-2"
           >
@@ -282,14 +313,14 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* 数据分析图表 */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 responsive-grid-gap animate-fade-in" style={{ animationDelay: '400ms' }}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 responsive-grid-gap animate-fade-in section-gap" style={{ animationDelay: '400ms' }}>
           <UserGrowthChart data={userGrowthData} />
           <ActivityChart data={activityData} />
           <RevenueChart data={revenueData} />
         </div>
 
         {/* 快速统计 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 responsive-grid-gap">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 responsive-grid-gap section-gap">
           {quickStats.map((section, index) => {
             const Icon = section.icon;
             return (
@@ -330,7 +361,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* 实时活动和今日目标 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 responsive-grid-gap">
+        <div className="grid grid-cols-1 lg:grid-cols-2 responsive-grid-gap section-gap">
           <Card variant="elevated" className="animate-slide-up" style={{ animationDelay: '700ms' }}>
             <CardHeader>
               <div className="flex items-center gap-3">
