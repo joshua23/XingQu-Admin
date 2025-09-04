@@ -68,3 +68,10 @@ database_backup_*
 
 # Spec workflow
 .spec-workflow/approvals/
+
+# Test files (not configured)
+**/__tests__/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx

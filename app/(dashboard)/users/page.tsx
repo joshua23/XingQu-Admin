@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react'
 import { Users, Search, Filter, UserPlus, Ban, CheckCircle, XCircle, FileText, Upload, Download, Eye, Edit, Calendar, Clock } from 'lucide-react'
 import { AddUserModal } from '@/components/modals/AddUserModal'
-import { adminUserService, AdminUser } from '@/lib/services/adminUserService'
+import { adminUserService } from '@/lib/services/adminUserService'
+import { AdminUser } from '@/lib/types'
 
 interface User {
   id: string

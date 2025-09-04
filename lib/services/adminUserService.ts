@@ -1,29 +1,5 @@
 import { supabase } from './supabase'
-
-export interface AdminUser {
-  id: string
-  email: string
-  nickname: string
-  avatar_url?: string
-  phone?: string
-  role: 'admin' | 'super_admin' | 'moderator'
-  account_status: 'active' | 'inactive' | 'banned'
-  permissions: string[]
-  last_login?: string
-  created_at: string
-  updated_at: string
-  created_by?: string
-  agreement_accepted: boolean
-  agreement_version?: string
-}
-
-export interface CreateAdminUserData {
-  email: string
-  nickname: string
-  phone?: string
-  role: 'admin' | 'super_admin' | 'moderator'
-  permissions: string[]
-}
+import { AdminUser, CreateAdminUserData } from '../types'
 
 export const adminUserService = {
   // 获取所有管理员用户

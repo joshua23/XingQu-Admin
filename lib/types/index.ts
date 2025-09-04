@@ -15,12 +15,26 @@ export interface User {
 export interface AdminUser {
   id: string
   email: string
-  name: string
-  role: 'super_admin' | 'operator' | 'moderator' | 'technical'
-  permissions: Record<string, any>
-  is_active: boolean
-  last_login_at?: string
+  nickname: string
+  avatar_url?: string
+  phone?: string
+  role: 'admin' | 'super_admin' | 'moderator'
+  account_status: 'active' | 'inactive' | 'banned'
+  permissions: string[]
+  last_login?: string
   created_at: string
+  updated_at: string
+  created_by?: string
+  agreement_accepted: boolean
+  agreement_version?: string
+}
+
+export interface CreateAdminUserData {
+  email: string
+  nickname: string
+  phone?: string
+  role: 'admin' | 'super_admin' | 'moderator'
+  permissions: string[]
 }
 
 // 数据统计类型

@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react'
 import { X, User, Mail, Phone, Shield, Save } from 'lucide-react'
-import { adminUserService, CreateAdminUserData } from '@/lib/services/adminUserService'
+import { adminUserService } from '@/lib/services/adminUserService'
+import { CreateAdminUserData } from '@/lib/types'
 
 interface AddUserModalProps {
   isOpen: boolean
