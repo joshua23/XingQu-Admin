@@ -174,8 +174,8 @@ const Dashboard: React.FC = () => {
     },
     { 
       title: "页面浏览", 
-      value: stats.pageViews || 0, 
-      change: stats.pageViews > 0 ? 6.2 : 0, 
+      value: stats.pageViews ?? 0, 
+      change: (stats.pageViews ?? 0) > 0 ? 6.2 : 0, 
       changeLabel: "转化率提升", 
       icon: <Eye size={20} />,
       color: 'default' as const,

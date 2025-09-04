@@ -600,7 +600,7 @@ export default function UsersPage() {
                     </div>
                   </td>
                   <td className="py-4 px-6">{getStatusBadge(user.account_status)}</td>
-                  <td className="py-4 px-6">{getMembershipBadge(user.role === 'premium' || user.role === 'admin')}</td>
+                  <td className="py-4 px-6">{getMembershipBadge(user.role === 'admin' || user.role === 'super_admin')}</td>
                   <td className="py-4 px-6">{getAgreementBadge(user.agreement_accepted || false, user.agreement_version)}</td>
                   <td className="py-4 px-6">
                     <div className="text-sm text-muted-foreground">
@@ -673,7 +673,7 @@ export default function UsersPage() {
         </div>
         <div className="bg-card border border-border rounded-lg p-6">
           <div className="text-2xl font-bold text-primary">
-            {users.filter(u => u.role === 'premium' || u.role === 'admin').length}
+            {users.filter(u => u.role === 'admin' || u.role === 'super_admin').length}
           </div>
           <div className="text-sm text-muted-foreground">会员用户</div>
         </div>
