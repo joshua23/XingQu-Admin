@@ -72,6 +72,8 @@ const Dashboard: React.FC = () => {
     memberUsers: 0,
     pageViews: 0
   })
+  const [chartData, setChartData] = useState<any>(null)
+  const [sparklineData, setSparklineData] = useState<any>({})
   const [loading, setLoading] = useState(true)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -82,16 +84,39 @@ const Dashboard: React.FC = () => {
       setLoading(true)
       setError(null)
 
-      const { data, error: apiError } = await dataService.getDashboardStats()
+      // 并行加载多种数据
+      const [statsResult, chartResult, sparklineResults] = await Promise.all([
+        dataService.getDashboardStats(),
+        dataService.getChartData(),
+        Promise.all([
+          dataService.getSparklineData('users'),
+          dataService.getSparklineData('activity'),
+          dataService.getSparklineData('revenue'),
+          dataService.getSparklineData('pageviews')
+        ])
+      ])
 
-      if (apiError) {
-        throw new Error((apiError as Error)?.message || '加载数据失败')
+      if (statsResult.error) {
+        throw new Error((statsResult.error as Error)?.message || '加载统计数据失败')
       }
 
-      if (data) {
-        setStats(data)
-        setLastUpdated(new Date())
+      if (statsResult.data) {
+        setStats(statsResult.data)
       }
+
+      if (chartResult.data) {
+        setChartData(chartResult.data)
+      }
+
+      // 设置sparkline数据
+      setSparklineData({
+        users: sparklineResults[0].data || [],
+        activity: sparklineResults[1].data || [],
+        revenue: sparklineResults[2].data || [],
+        pageviews: sparklineResults[3].data || []
+      })
+
+      setLastUpdated(new Date())
     } catch (error) {
       console.error('加载Dashboard数据失败:', error)
       setError((error as Error)?.message || '加载数据失败')
@@ -107,40 +132,10 @@ const Dashboard: React.FC = () => {
     immediate: true
   })
 
-  // 生成模拟历史数据用于sparkline
-  const generateSparklineData = (base: number, variance: number = 0.3) => {
-    return Array.from({ length: 7 }, (_, i) => {
-      const factor = 1 + (Math.random() - 0.5) * variance;
-      return Math.round(base * factor * (0.7 + i * 0.05)); // 模拟增长趋势
-    });
-  };
-
-  // 生成分析图表数据
-  const generateChartData = () => {
-    const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
-    
-    const userGrowthData = days.map((day, index) => ({
-      label: day,
-      value: Math.round(10 + Math.random() * 20 + index * 3), // 模拟增长趋势
-      trend: Math.random() > 0.3 ? 'up' : (Math.random() > 0.5 ? 'down' : 'neutral') as 'up' | 'down' | 'neutral'
-    }));
-
-    const activityData = days.map((day, index) => ({
-      label: day,
-      value: Math.round(stats.activeUsers * 0.8 + Math.random() * stats.activeUsers * 0.4 + index * 2),
-      trend: Math.random() > 0.4 ? 'up' : 'neutral' as 'up' | 'down' | 'neutral'
-    }));
-
-    const revenueData = days.map((day, index) => ({
-      label: day,
-      value: Math.round(50 + Math.random() * 200 + index * 15), // 模拟收入增长
-      trend: Math.random() > 0.6 ? 'up' : 'neutral' as 'up' | 'down' | 'neutral'
-    }));
-
-    return { userGrowthData, activityData, revenueData };
-  };
-
-  const { userGrowthData, activityData, revenueData } = generateChartData();
+  // 使用真实数据或备用数据
+  const userGrowthData = chartData?.userGrowthData || []
+  const activityData = chartData?.activityData || []
+  const revenueData = chartData?.revenueData || []
 
   // 主要指标数据（使用真实数据和增强可视化）
   const overviewMetrics = [
@@ -151,7 +146,7 @@ const Dashboard: React.FC = () => {
       changeLabel: "较上周", 
       icon: <Users size={20} />,
       color: 'primary' as const,
-      sparklineData: generateSparklineData(stats.totalUsers || 100),
+      sparklineData: sparklineData.users || [],
       target: 1000,
       description: "系统注册用户总数"
     },
@@ -162,7 +157,7 @@ const Dashboard: React.FC = () => {
       changeLabel: "24小时内", 
       icon: <UserCheck size={20} />,
       color: 'success' as const,
-      sparklineData: generateSparklineData(stats.activeUsers || 50),
+      sparklineData: sparklineData.activity || [],
       target: 200,
       description: "过去24小时活跃用户"
     },
@@ -173,7 +168,7 @@ const Dashboard: React.FC = () => {
       changeLabel: "较昨日", 
       icon: <CreditCard size={20} />,
       color: 'warning' as const,
-      sparklineData: generateSparklineData(stats.totalRevenue || 500, 0.2),
+      sparklineData: sparklineData.revenue || [],
       target: 5000,
       description: "今日总收入金额"
     },
@@ -184,7 +179,7 @@ const Dashboard: React.FC = () => {
       changeLabel: "转化率提升", 
       icon: <Eye size={20} />,
       color: 'default' as const,
-      sparklineData: generateSparklineData(stats.pageViews || 500),
+      sparklineData: sparklineData.pageviews || [],
       target: 10000,
       description: "今日页面浏览量"
     },

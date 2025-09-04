@@ -256,6 +256,234 @@ export const dataService = {
       .order('created_at', { ascending: false })
       .limit(100)
     return { data, error }
+  },
+
+  // 获取图表数据
+  async getChartData() {
+    try {
+      const now = new Date()
+      const daysAgo = (days: number) => new Date(now.getTime() - days * 24 * 60 * 60 * 1000)
+      
+      // 获取过去7天的用户增长数据
+      const userGrowthData = []
+      for (let i = 6; i >= 0; i--) {
+        const startDate = daysAgo(i + 1)
+        const endDate = daysAgo(i)
+        
+        const { count } = await supabase
+          .from('xq_user_profiles')
+          .select('*', { count: 'exact', head: true })
+          .gte('created_at', startDate.toISOString())
+          .lt('created_at', endDate.toISOString())
+          
+        const dayNames = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+        const dayName = dayNames[endDate.getDay()]
+        
+        userGrowthData.push({
+          label: dayName,
+          value: count || 0,
+          trend: 'up' as const
+        })
+      }
+
+      // 获取过去7天的活跃用户数据
+      const activityData = []
+      for (let i = 6; i >= 0; i--) {
+        const startDate = daysAgo(i + 1)
+        const endDate = daysAgo(i)
+        
+        const { data: events } = await supabase
+          .from('xq_tracking_events')
+          .select('user_id')
+          .gte('created_at', startDate.toISOString())
+          .lt('created_at', endDate.toISOString())
+          .not('user_id', 'is', null)
+        
+        const activeUsers = new Set(events?.map(e => e.user_id) || []).size
+        const dayNames = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+        const dayName = dayNames[endDate.getDay()]
+        
+        activityData.push({
+          label: dayName,
+          value: activeUsers,
+          trend: 'up' as const
+        })
+      }
+
+      // 获取过去7天的收入数据（目前使用页面浏览量作为替代指标）
+      const revenueData = []
+      for (let i = 6; i >= 0; i--) {
+        const startDate = daysAgo(i + 1)
+        const endDate = daysAgo(i)
+        
+        const { count } = await supabase
+          .from('xq_tracking_events')
+          .select('*', { count: 'exact', head: true })
+          .eq('event_type', 'page_view')
+          .gte('created_at', startDate.toISOString())
+          .lt('created_at', endDate.toISOString())
+        
+        const dayNames = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+        const dayName = dayNames[endDate.getDay()]
+        
+        revenueData.push({
+          label: dayName,
+          value: (count || 0) * 10, // 模拟收入：每个页面浏览按10元计算
+          trend: 'up' as const
+        })
+      }
+
+      return {
+        data: {
+          userGrowthData,
+          activityData, 
+          revenueData
+        },
+        error: null
+      }
+    } catch (error) {
+      console.error('Chart data error:', error)
+      return { data: null, error }
+    }
+  },
+
+  // 获取热门智能体数据 - 只使用真实的xq_agents表数据
+  async getTopAgents() {
+    try {
+      // 获取智能体基础信息
+      const { data: agents, error: agentsError } = await supabase
+        .from('xq_agents')
+        .select(`
+          id,
+          name,
+          description,
+          avatar_url,
+          creator_id,
+          created_at,
+          is_active,
+          category,
+          tags
+        `)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(20)
+
+      if (agentsError) {
+        console.error('获取智能体数据失败:', agentsError)
+        return { data: [], error: agentsError }
+      }
+
+      if (!agents || agents.length === 0) {
+        return { data: [], error: null }
+      }
+
+      // 获取智能体使用统计
+      const agentIds = agents.map(agent => agent.id)
+      const { data: usageStats } = await supabase
+        .from('xq_agent_usage')
+        .select('agent_id, user_id, created_at')
+        .in('agent_id', agentIds)
+        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+
+      // 统计每个智能体的使用次数和用户数
+      const agentStats = new Map()
+      usageStats?.forEach(usage => {
+        const current = agentStats.get(usage.agent_id) || { usageCount: 0, users: new Set() }
+        current.usageCount += 1
+        current.users.add(usage.user_id)
+        agentStats.set(usage.agent_id, current)
+      })
+
+      // 组合数据并按使用量排序
+      const topAgents = agents
+        .map(agent => {
+          const stats = agentStats.get(agent.id) || { usageCount: 0, users: new Set() }
+          return {
+            id: agent.id,
+            name: agent.name,
+            description: agent.description,
+            avatar_url: agent.avatar_url,
+            category: agent.category,
+            tags: agent.tags || [],
+            usageCount: stats.usageCount,
+            userCount: stats.users.size,
+            created_at: agent.created_at
+          }
+        })
+        .sort((a, b) => b.usageCount - a.usageCount)
+        .slice(0, 6)
+
+      return { data: topAgents, error: null }
+    } catch (error) {
+      console.error('Top agents error:', error)
+      return { data: [], error }
+    }
+  },
+
+  // 获取Sparkline小图数据（用于指标卡片）
+  async getSparklineData(metric: 'users' | 'activity' | 'revenue' | 'pageviews') {
+    try {
+      const now = new Date()
+      const daysAgo = (days: number) => new Date(now.getTime() - days * 24 * 60 * 60 * 1000)
+      
+      const sparklineData = []
+      
+      for (let i = 6; i >= 0; i--) {
+        const startDate = daysAgo(i + 1)
+        const endDate = daysAgo(i)
+        
+        let value = 0
+        
+        switch (metric) {
+          case 'users':
+            const { count: userCount } = await supabase
+              .from('xq_user_profiles')
+              .select('*', { count: 'exact', head: true })
+              .gte('created_at', startDate.toISOString())
+              .lt('created_at', endDate.toISOString())
+            value = userCount || 0
+            break
+            
+          case 'activity':
+            const { data: events } = await supabase
+              .from('xq_tracking_events')
+              .select('user_id')
+              .gte('created_at', startDate.toISOString())
+              .lt('created_at', endDate.toISOString())
+              .not('user_id', 'is', null)
+            value = new Set(events?.map(e => e.user_id) || []).size
+            break
+            
+          case 'pageviews':
+            const { count: pageCount } = await supabase
+              .from('xq_tracking_events')
+              .select('*', { count: 'exact', head: true })
+              .eq('event_type', 'page_view')
+              .gte('created_at', startDate.toISOString())
+              .lt('created_at', endDate.toISOString())
+            value = pageCount || 0
+            break
+            
+          case 'revenue':
+            // 暂无真实收入数据，使用页面浏览量模拟
+            const { count: revenueCount } = await supabase
+              .from('xq_tracking_events')
+              .select('*', { count: 'exact', head: true })
+              .eq('event_type', 'page_view')
+              .gte('created_at', startDate.toISOString())
+              .lt('created_at', endDate.toISOString())
+            value = (revenueCount || 0) * 10
+            break
+        }
+        
+        sparklineData.push(value)
+      }
+      
+      return { data: sparklineData, error: null }
+    } catch (error) {
+      console.error('Sparkline data error:', error)
+      return { data: null, error }
+    }
   }
 }
 
