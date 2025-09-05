@@ -106,7 +106,15 @@ export function useUserManagement(): UseUserManagementResult {
       currentFiltersRef.current = filters
       currentPageSizeRef.current = pageSize
 
-      const result = await userService.getUsers(filters, page, pageSize)
+      // 添加超时处理
+      const timeout = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('用户数据加载超时')), 10000)
+      )
+
+      const result = await Promise.race([
+        userService.getUsers(filters, page, pageSize),
+        timeout
+      ]) as Awaited<ReturnType<typeof userService.getUsers>>
       
       setUsers(result.users)
       setTotalUsers(result.total)
@@ -114,6 +122,10 @@ export function useUserManagement(): UseUserManagementResult {
       setCurrentPage(page)
     } catch (err) {
       handleError(err, '加载用户列表失败')
+      // 确保即使出错也显示空状态而不是一直loading
+      setUsers([])
+      setTotalUsers(0)
+      setTotalPages(0)
     } finally {
       setLoading(false)
     }

@@ -96,46 +96,62 @@ const Dashboard: React.FC = () => {
         setChartData(parsedData.chartData)
         setSparklineData(parsedData.sparklineData)
         setLastUpdated(new Date(parseInt(cacheTime)))
+        setLoading(false) // 确保缓存加载后也设置loading为false
         return
       }
 
       // 设置初始加载状态
       setLoading(true)
 
+      // 添加超时处理
+      const timeout = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('数据加载超时')), 10000)
+      )
+
       // 第一步：优先加载基本统计数据（最重要的数据）
-      const statsResult = await dataService.getDashboardStats()
-      
-      if (statsResult.error) {
-        console.warn('统计数据加载失败，使用默认数据:', statsResult.error)
-        // 即使失败也要停止loading，显示默认数据
+      try {
+        const statsResult = await Promise.race([
+          dataService.getDashboardStats(),
+          timeout
+        ])
+        
+        if (statsResult.error) {
+          console.warn('统计数据加载失败，使用默认数据:', statsResult.error)
+          // 即使失败也要停止loading，显示默认数据
+          setLoading(false)
+          setStats({
+            totalUsers: 0,
+            activeUsers: 0,
+            totalSessions: 0,
+            averageSessionTime: 0,
+            totalRevenue: 0,
+            conversionRate: 0,
+            memberUsers: 0,
+            pageViews: 0
+          })
+        } else if (statsResult.data) {
+          setStats(statsResult.data)
+          // 基础数据加载完成，可以显示基本界面
+          setLoading(false)
+        } else {
+          // 数据为空的情况
+          setLoading(false)
+          setStats({
+            totalUsers: 0,
+            activeUsers: 0,
+            totalSessions: 0,
+            averageSessionTime: 0,
+            totalRevenue: 0,
+            conversionRate: 0,
+            memberUsers: 0,
+            pageViews: 0
+          })
+        }
+      } catch (timeoutError) {
+        console.error('数据加载超时:', timeoutError)
         setLoading(false)
-        setStats({
-          totalUsers: 0,
-          activeUsers: 0,
-          totalSessions: 0,
-          averageSessionTime: 0,
-          totalRevenue: 0,
-          conversionRate: 0,
-          memberUsers: 0,
-          pageViews: 0
-        })
-      } else if (statsResult.data) {
-        setStats(statsResult.data)
-        // 基础数据加载完成，可以显示基本界面
-        setLoading(false)
-      } else {
-        // 数据为空的情况
-        setLoading(false)
-        setStats({
-          totalUsers: 0,
-          activeUsers: 0,
-          totalSessions: 0,
-          averageSessionTime: 0,
-          totalRevenue: 0,
-          conversionRate: 0,
-          memberUsers: 0,
-          pageViews: 0
-        })
+        setError('数据加载超时，请检查网络连接')
+        return
       }
 
       // 第二步：异步加载图表数据（不阻塞界面显示）

@@ -116,7 +116,15 @@ export function useMaterialManagement(): UseMaterialManagementResult {
       currentFiltersRef.current = filters
       currentPageSizeRef.current = pageSize
 
-      const result = await materialService.getMaterials(filters, page, pageSize)
+      // 添加超时处理
+      const timeout = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('素材数据加载超时')), 10000)
+      )
+
+      const result = await Promise.race([
+        materialService.getMaterials(filters, page, pageSize),
+        timeout
+      ]) as Awaited<ReturnType<typeof materialService.getMaterials>>
       
       setMaterials(result.materials)
       setTotalMaterials(result.total)
@@ -124,6 +132,10 @@ export function useMaterialManagement(): UseMaterialManagementResult {
       setCurrentPage(page)
     } catch (err) {
       handleError(err, '加载素材失败')
+      // 确保即使出错也显示空状态而不是一直loading
+      setMaterials([])
+      setTotalMaterials(0)
+      setTotalPages(0)
     } finally {
       setLoading(false)
     }
