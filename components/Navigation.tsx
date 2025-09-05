@@ -20,7 +20,10 @@ import {
   PanelLeftClose,
   PanelLeft,
   Music,
-  Brain
+  Brain,
+  Monitor,
+  CreditCard,
+  DollarSign
 } from 'lucide-react'
 
 interface NavigationProps {
@@ -55,6 +58,18 @@ const Navigation = ({ children }: NavigationProps) => {
       current: pathname === '/users'
     },
     {
+      name: '订阅管理',
+      href: '/subscriptions',
+      icon: CreditCard,
+      current: pathname === '/subscriptions'
+    },
+    {
+      name: '支付订单',
+      href: '/payments',
+      icon: DollarSign,
+      current: pathname === '/payments'
+    },
+    {
       name: '素材管理',
       href: '/materials',
       icon: Music,
@@ -71,6 +86,12 @@ const Navigation = ({ children }: NavigationProps) => {
       href: '/moderation',
       icon: Shield,
       current: pathname === '/moderation'
+    },
+    {
+      name: '实时监控',
+      href: '/monitoring',
+      icon: Monitor,
+      current: pathname.startsWith('/monitoring')
     },
     {
       name: '系统设置',

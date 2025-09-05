@@ -35,6 +35,8 @@ export const adminAuth = {
 
 // 数据查询服务
 export const dataService = {
+  supabase: supabase, // 暴露supabase客户端供其他服务使用
+  
   // Dashboard 统计数据（优化：减少数据库查询复杂度）
   async getDashboardStats() {
     try {
@@ -483,6 +485,695 @@ export const dataService = {
       console.error('Sparkline data error:', error)
       return { data: null, error }
     }
+  },
+
+  // ==============================================
+  // 实时监控数据服务扩展
+  // ==============================================
+
+  // 获取实时监控指标
+  async getRealtimeMetrics() {
+    try {
+      const { data, error } = await supabase
+        .from('admin_metrics')
+        .select('*')
+        .order('timestamp', { ascending: false })
+        .limit(100)
+      
+      return { data, error }
+    } catch (error) {
+      console.error('Realtime metrics error:', error)
+      return { data: null, error }
+    }
+  },
+
+  // 插入监控指标数据
+  async insertMetric(metricName: string, value: number, unit?: string, tags?: any) {
+    try {
+      const { data, error } = await supabase
+        .from('admin_metrics')
+        .insert({
+          metric_name: metricName,
+          metric_value: value,
+          metric_unit: unit,
+          tags: tags || {}
+        })
+        .select()
+      
+      return { data, error }
+    } catch (error) {
+      console.error('Insert metric error:', error)
+      return { data: null, error }
+    }
+  },
+
+  // 获取系统告警
+  async getSystemAlerts(status?: 'active' | 'acknowledged' | 'resolved') {
+    try {
+      let query = supabase
+        .from('admin_alerts')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (status) {
+        query = query.eq('status', status)
+      }
+
+      const { data, error } = await query.limit(50)
+      return { data, error }
+    } catch (error) {
+      console.error('System alerts error:', error)
+      return { data: null, error }
+    }
+  },
+
+  // 创建系统告警
+  async createAlert(alert: {
+    type: string;
+    title: string;
+    message: string;
+    metricName?: string;
+    thresholdValue?: number;
+    currentValue?: number;
+  }) {
+    try {
+      const { data, error } = await supabase
+        .from('admin_alerts')
+        .insert({
+          alert_type: alert.type,
+          title: alert.title,
+          message: alert.message,
+          metric_name: alert.metricName,
+          threshold_value: alert.thresholdValue,
+          current_value: alert.currentValue
+        })
+        .select()
+      
+      return { data, error }
+    } catch (error) {
+      console.error('Create alert error:', error)
+      return { data: null, error }
+    }
+  },
+
+  // 确认告警
+  async acknowledgeAlert(alertId: string, adminId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('admin_alerts')
+        .update({
+          status: 'acknowledged',
+          acknowledged_by: adminId,
+          acknowledged_at: new Date().toISOString()
+        })
+        .eq('id', alertId)
+        .select()
+      
+      return { data, error }
+    } catch (error) {
+      console.error('Acknowledge alert error:', error)
+      return { data: null, error }
+    }
+  },
+
+  // ==============================================
+  // 用户批量操作服务
+  // ==============================================
+
+  // 获取用户列表（支持筛选和分页）
+  async getUsersWithFilters(filters: {
+    search?: string;
+    status?: string;
+    membershipStatus?: string;
+    dateRange?: { start: string; end: string };
+    page?: number;
+    pageSize?: number;
+  }) {
+    try {
+      let query = supabase
+        .from('xq_user_profiles')
+        .select(`
+          id,
+          user_id,
+          nickname,
+          avatar_url,
+          account_status,
+          is_member,
+          membership_expires_at,
+          created_at,
+          updated_at
+        `, { count: 'exact' })
+
+      // 应用筛选条件
+      if (filters.search) {
+        query = query.or(`nickname.ilike.%${filters.search}%,user_id.ilike.%${filters.search}%`)
+      }
+
+      if (filters.status) {
+        query = query.eq('account_status', filters.status)
+      }
+
+      if (filters.membershipStatus === 'member') {
+        query = query.eq('is_member', true)
+      } else if (filters.membershipStatus === 'non_member') {
+        query = query.eq('is_member', false)
+      }
+
+      if (filters.dateRange) {
+        query = query
+          .gte('created_at', filters.dateRange.start)
+          .lte('created_at', filters.dateRange.end)
+      }
+
+      // 分页
+      const page = filters.page || 1
+      const pageSize = filters.pageSize || 50
+      const from = (page - 1) * pageSize
+      const to = from + pageSize - 1
+
+      const { data, error, count } = await query
+        .range(from, to)
+        .order('created_at', { ascending: false })
+
+      return {
+        data,
+        error,
+        pagination: {
+          page,
+          pageSize,
+          total: count || 0,
+          totalPages: Math.ceil((count || 0) / pageSize)
+        }
+      }
+    } catch (error) {
+      console.error('Get users with filters error:', error)
+      return { data: null, error, pagination: null }
+    }
+  },
+
+  // 批量更新用户状态
+  async batchUpdateUsers(userIds: string[], updates: {
+    accountStatus?: string;
+    isMember?: boolean;
+    tags?: string[];
+  }) {
+    try {
+      const updateData: any = {}
+      
+      if (updates.accountStatus) {
+        updateData.account_status = updates.accountStatus
+      }
+      
+      if (updates.isMember !== undefined) {
+        updateData.is_member = updates.isMember
+      }
+
+      updateData.updated_at = new Date().toISOString()
+
+      const { data, error } = await supabase
+        .from('xq_user_profiles')
+        .update(updateData)
+        .in('user_id', userIds)
+        .select()
+      
+      return { data, error }
+    } catch (error) {
+      console.error('Batch update users error:', error)
+      return { data: null, error }
+    }
+  },
+
+  // 导出用户数据
+  async exportUsers(filters?: {
+    search?: string;
+    status?: string;
+    membershipStatus?: string;
+    dateRange?: { start: string; end: string };
+  }) {
+    try {
+      let query = supabase
+        .from('xq_user_profiles')
+        .select(`
+          user_id,
+          nickname,
+          account_status,
+          is_member,
+          membership_expires_at,
+          created_at
+        `)
+
+      // 应用筛选条件（与getUsersWithFilters类似）
+      if (filters?.search) {
+        query = query.or(`nickname.ilike.%${filters.search}%,user_id.ilike.%${filters.search}%`)
+      }
+
+      if (filters?.status) {
+        query = query.eq('account_status', filters.status)
+      }
+
+      if (filters?.membershipStatus === 'member') {
+        query = query.eq('is_member', true)
+      } else if (filters?.membershipStatus === 'non_member') {
+        query = query.eq('is_member', false)
+      }
+
+      if (filters?.dateRange) {
+        query = query
+          .gte('created_at', filters.dateRange.start)
+          .lte('created_at', filters.dateRange.end)
+      }
+
+      const { data, error } = await query
+        .order('created_at', { ascending: false })
+        .limit(10000) // 限制导出数量
+
+      return { data, error }
+    } catch (error) {
+      console.error('Export users error:', error)
+      return { data: null, error }
+    }
+  },
+
+  // ==============================================
+  // 内容审核服务
+  // ==============================================
+
+  // 获取审核记录
+  async getModerationRecords(filters?: {
+    status?: string;
+    contentType?: string;
+    reviewerId?: string;
+    dateRange?: { start: string; end: string };
+    page?: number;
+    pageSize?: number;
+  }) {
+    try {
+      let query = supabase
+        .from('content_moderation_records')
+        .select(`
+          *,
+          human_reviewer:human_reviewer_id(name),
+          appeal_handler:appeal_handled_by(name)
+        `, { count: 'exact' })
+
+      // 应用筛选条件
+      if (filters?.status) {
+        query = query.eq('moderation_result', filters.status)
+      }
+
+      if (filters?.contentType) {
+        query = query.eq('content_type', filters.contentType)
+      }
+
+      if (filters?.reviewerId) {
+        query = query.eq('human_reviewer_id', filters.reviewerId)
+      }
+
+      if (filters?.dateRange) {
+        query = query
+          .gte('created_at', filters.dateRange.start)
+          .lte('created_at', filters.dateRange.end)
+      }
+
+      // 分页
+      const page = filters?.page || 1
+      const pageSize = filters?.pageSize || 50
+      const from = (page - 1) * pageSize
+      const to = from + pageSize - 1
+
+      const { data, error, count } = await query
+        .range(from, to)
+        .order('created_at', { ascending: false })
+
+      return {
+        data,
+        error,
+        pagination: {
+          page,
+          pageSize,
+          total: count || 0,
+          totalPages: Math.ceil((count || 0) / pageSize)
+        }
+      }
+    } catch (error) {
+      console.error('Get moderation records error:', error)
+      return { data: null, error, pagination: null }
+    }
+  },
+
+  // 创建审核记录
+  async createModerationRecord(record: {
+    contentId: string;
+    contentType: string;
+    contentSource?: string;
+    originalContent?: string;
+    moderationResult: string;
+    aiConfidence?: number;
+    aiReasons?: string[];
+    violationTypes?: string[];
+    severityLevel?: number;
+    autoAction?: string;
+  }) {
+    try {
+      const { data, error } = await supabase
+        .from('content_moderation_records')
+        .insert({
+          content_id: record.contentId,
+          content_type: record.contentType,
+          content_source: record.contentSource,
+          original_content: record.originalContent,
+          moderation_result: record.moderationResult,
+          ai_confidence: record.aiConfidence,
+          ai_reasons: record.aiReasons || [],
+          violation_types: record.violationTypes || [],
+          severity_level: record.severityLevel || 1,
+          auto_action: record.autoAction
+        })
+        .select()
+      
+      return { data, error }
+    } catch (error) {
+      console.error('Create moderation record error:', error)
+      return { data: null, error }
+    }
+  },
+
+  // 人工审核处理
+  async handleModerationReview(recordId: string, reviewerId: string, result: {
+    humanReviewResult: string;
+    humanReviewReason?: string;
+    violationTypes?: string[];
+    severityLevel?: number;
+  }) {
+    try {
+      const { data, error } = await supabase
+        .from('content_moderation_records')
+        .update({
+          human_reviewer_id: reviewerId,
+          human_review_result: result.humanReviewResult,
+          human_review_reason: result.humanReviewReason,
+          violation_types: result.violationTypes,
+          severity_level: result.severityLevel,
+          reviewed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', recordId)
+        .select()
+      
+      return { data, error }
+    } catch (error) {
+      console.error('Handle moderation review error:', error)
+      return { data: null, error }
+    }
+  },
+
+  // 获取用户举报
+  async getUserReports(filters?: {
+    status?: string;
+    reportType?: string;
+    assignedTo?: string;
+    priority?: number;
+    page?: number;
+    pageSize?: number;
+  }) {
+    try {
+      let query = supabase
+        .from('user_reports')
+        .select(`
+          *,
+          assigned_admin:assigned_to(name),
+          handler_admin:handled_by(name)
+        `, { count: 'exact' })
+
+      // 应用筛选条件
+      if (filters?.status) {
+        query = query.eq('status', filters.status)
+      }
+
+      if (filters?.reportType) {
+        query = query.eq('report_type', filters.reportType)
+      }
+
+      if (filters?.assignedTo) {
+        query = query.eq('assigned_to', filters.assignedTo)
+      }
+
+      if (filters?.priority) {
+        query = query.eq('priority', filters.priority)
+      }
+
+      // 分页
+      const page = filters?.page || 1
+      const pageSize = filters?.pageSize || 50
+      const from = (page - 1) * pageSize
+      const to = from + pageSize - 1
+
+      const { data, error, count } = await query
+        .range(from, to)
+        .order('priority', { ascending: true })
+        .order('created_at', { ascending: false })
+
+      return {
+        data,
+        error,
+        pagination: {
+          page,
+          pageSize,
+          total: count || 0,
+          totalPages: Math.ceil((count || 0) / pageSize)
+        }
+      }
+    } catch (error) {
+      console.error('Get user reports error:', error)
+      return { data: null, error, pagination: null }
+    }
+  },
+
+  // 处理用户举报
+  async handleUserReport(reportId: string, handlerId: string, resolution: {
+    status: string;
+    handlerNotes?: string;
+    resolution?: string;
+  }) {
+    try {
+      const { data, error } = await supabase
+        .from('user_reports')
+        .update({
+          status: resolution.status,
+          handler_notes: resolution.handlerNotes,
+          resolution: resolution.resolution,
+          handled_by: handlerId,
+          handled_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', reportId)
+        .select()
+      
+      return { data, error }
+    } catch (error) {
+      console.error('Handle user report error:', error)
+      return { data: null, error }
+    }
+  },
+
+  // ==============================================
+  // 商业化数据服务
+  // ==============================================
+
+  // 获取订阅计划
+  async getSubscriptionPlans(activeOnly: boolean = true) {
+    try {
+      let query = supabase
+        .from('subscription_plans')
+        .select('*')
+        .order('sort_order', { ascending: true })
+
+      if (activeOnly) {
+        query = query.eq('is_active', true)
+      }
+
+      const { data, error } = await query
+      return { data, error }
+    } catch (error) {
+      console.error('Get subscription plans error:', error)
+      return { data: null, error }
+    }
+  },
+
+  // 获取用户订阅记录
+  async getUserSubscriptions(filters?: {
+    userId?: string;
+    planId?: string;
+    status?: string;
+    page?: number;
+    pageSize?: number;
+  }) {
+    try {
+      let query = supabase
+        .from('user_subscriptions')
+        .select(`
+          *,
+          plan:plan_id(name, display_name, price, duration_days)
+        `, { count: 'exact' })
+
+      // 应用筛选条件
+      if (filters?.userId) {
+        query = query.eq('user_id', filters.userId)
+      }
+
+      if (filters?.planId) {
+        query = query.eq('plan_id', filters.planId)
+      }
+
+      if (filters?.status) {
+        query = query.eq('status', filters.status)
+      }
+
+      // 分页
+      const page = filters?.page || 1
+      const pageSize = filters?.pageSize || 50
+      const from = (page - 1) * pageSize
+      const to = from + pageSize - 1
+
+      const { data, error, count } = await query
+        .range(from, to)
+        .order('created_at', { ascending: false })
+
+      return {
+        data,
+        error,
+        pagination: {
+          page,
+          pageSize,
+          total: count || 0,
+          totalPages: Math.ceil((count || 0) / pageSize)
+        }
+      }
+    } catch (error) {
+      console.error('Get user subscriptions error:', error)
+      return { data: null, error, pagination: null }
+    }
+  },
+
+  // 获取支付订单
+  async getPaymentOrders(filters?: {
+    userId?: string;
+    status?: string;
+    paymentMethod?: string;
+    dateRange?: { start: string; end: string };
+    page?: number;
+    pageSize?: number;
+  }) {
+    try {
+      let query = supabase
+        .from('payment_orders')
+        .select(`
+          *,
+          plan:plan_id(name, display_name),
+          subscription:subscription_id(status)
+        `, { count: 'exact' })
+
+      // 应用筛选条件
+      if (filters?.userId) {
+        query = query.eq('user_id', filters.userId)
+      }
+
+      if (filters?.status) {
+        query = query.eq('status', filters.status)
+      }
+
+      if (filters?.paymentMethod) {
+        query = query.eq('payment_method', filters.paymentMethod)
+      }
+
+      if (filters?.dateRange) {
+        query = query
+          .gte('created_at', filters.dateRange.start)
+          .lte('created_at', filters.dateRange.end)
+      }
+
+      // 分页
+      const page = filters?.page || 1
+      const pageSize = filters?.pageSize || 50
+      const from = (page - 1) * pageSize
+      const to = from + pageSize - 1
+
+      const { data, error, count } = await query
+        .range(from, to)
+        .order('created_at', { ascending: false })
+
+      return {
+        data,
+        error,
+        pagination: {
+          page,
+          pageSize,
+          total: count || 0,
+          totalPages: Math.ceil((count || 0) / pageSize)
+        }
+      }
+    } catch (error) {
+      console.error('Get payment orders error:', error)
+      return { data: null, error, pagination: null }
+    }
+  },
+
+  // 获取收入统计
+  async getRevenueStats(dateRange?: { start: string; end: string }) {
+    try {
+      let query = supabase
+        .from('payment_orders')
+        .select('amount, currency, status, paid_at, created_at')
+        .eq('status', 'completed')
+
+      if (dateRange) {
+        query = query
+          .gte('paid_at', dateRange.start)
+          .lte('paid_at', dateRange.end)
+      }
+
+      const { data, error } = await query
+      
+      if (error || !data) {
+        return { data: null, error }
+      }
+
+      // 计算统计数据
+      const totalRevenue = data.reduce((sum, order) => sum + (order.amount || 0), 0)
+      const orderCount = data.length
+      const averageOrderValue = orderCount > 0 ? totalRevenue / orderCount : 0
+
+      // 按日期分组收入
+      const dailyRevenue = new Map()
+      data.forEach(order => {
+        const date = order.paid_at?.split('T')[0]
+        if (date) {
+          dailyRevenue.set(date, (dailyRevenue.get(date) || 0) + order.amount)
+        }
+      })
+
+      return {
+        data: {
+          totalRevenue,
+          orderCount,
+          averageOrderValue,
+          dailyRevenue: Array.from(dailyRevenue.entries()).map(([date, amount]) => ({
+            date,
+            amount
+          })).sort((a, b) => a.date.localeCompare(b.date))
+        },
+        error: null
+      }
+    } catch (error) {
+      console.error('Get revenue stats error:', error)
+      return { data: null, error }
+    }
+  },
+
+  // 获取当前用户
+  async getCurrentUser() {
+    const { data: { user } } = await supabase.auth.getUser()
+    return user
   }
 }
 

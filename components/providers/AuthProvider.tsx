@@ -29,7 +29,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // 检查开发模式
     const isDevelopment = process.env.NODE_ENV === 'development'
     
-    if (isDevelopment) {
+    if (isDevelopment && typeof window !== 'undefined') {
       // 开发模式下检查本地存储的开发用户
       const devUser = localStorage.getItem('dev_admin_user')
       if (devUser) {
@@ -90,19 +90,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
-      // 开发模式支持空账密登录 - 使用多种方式检测开发模式
-      const isDevelopment = process.env.NODE_ENV === 'development' || 
-                           window.location.hostname === 'localhost' ||
-                           window.location.hostname === '127.0.0.1'
-      console.log('🚀 开发模式检查:', { 
-        nodeEnv: process.env.NODE_ENV, 
-        hostname: window.location.hostname,
-        isDevelopment, 
-        email, 
-        password 
-      })
+      // 严格的开发模式检测 - 仅基于NODE_ENV环境变量，移除hostname检查以防止生产环境绕过
+      const isDevelopment = process.env.NODE_ENV === 'development'
       
-      if (isDevelopment && (!email || !password)) {
+      if (isDevelopment && (!email || !password) && typeof window !== 'undefined') {
         console.log('✅ 触发开发模式快速登录')
         const devUser = {
           id: 'dev-admin-001',
@@ -136,14 +127,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
-      // 清除开发模式用户数据
-      const isDevelopment = process.env.NODE_ENV === 'development' || 
-                           (typeof window !== 'undefined' && (
-                             window.location.hostname === 'localhost' ||
-                             window.location.hostname === '127.0.0.1'
-                           ))
+      // 严格的开发模式检测 - 仅基于NODE_ENV环境变量
+      const isDevelopment = process.env.NODE_ENV === 'development'
       
-      if (isDevelopment) {
+      if (isDevelopment && typeof window !== 'undefined') {
         localStorage.removeItem('dev_admin_user')
         // 清除开发模式cookie
         document.cookie = 'dev_admin_user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
