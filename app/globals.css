@@ -205,3 +205,8 @@
     --ring: 172 100% 50%;
   }
 }
+
+/* MetricCard 卡片样式 */
+.card-interactive {
+  @apply rounded-lg shadow-sm hover:shadow-md;
+}

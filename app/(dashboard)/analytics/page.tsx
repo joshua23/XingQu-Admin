@@ -252,7 +252,7 @@ const Analytics: React.FC = () => {
 
         {/* 关键指标 */}
         {data && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 responsive-grid-gap animate-fade-in section-gap">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 responsive-grid-gap animate-fade-in section-gap">
             <MetricCard
               title="总会话数"
               value={data.behaviorStats.totalSessions}

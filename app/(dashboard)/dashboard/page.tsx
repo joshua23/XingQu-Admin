@@ -106,13 +106,36 @@ const Dashboard: React.FC = () => {
       const statsResult = await dataService.getDashboardStats()
       
       if (statsResult.error) {
-        throw new Error((statsResult.error as Error)?.message || '加载统计数据失败')
-      }
-
-      if (statsResult.data) {
+        console.warn('统计数据加载失败，使用默认数据:', statsResult.error)
+        // 即使失败也要停止loading，显示默认数据
+        setLoading(false)
+        setStats({
+          totalUsers: 0,
+          activeUsers: 0,
+          totalSessions: 0,
+          averageSessionTime: 0,
+          totalRevenue: 0,
+          conversionRate: 0,
+          memberUsers: 0,
+          pageViews: 0
+        })
+      } else if (statsResult.data) {
         setStats(statsResult.data)
         // 基础数据加载完成，可以显示基本界面
         setLoading(false)
+      } else {
+        // 数据为空的情况
+        setLoading(false)
+        setStats({
+          totalUsers: 0,
+          activeUsers: 0,
+          totalSessions: 0,
+          averageSessionTime: 0,
+          totalRevenue: 0,
+          conversionRate: 0,
+          memberUsers: 0,
+          pageViews: 0
+        })
       }
 
       // 第二步：异步加载图表数据（不阻塞界面显示）
@@ -345,7 +368,7 @@ const Dashboard: React.FC = () => {
         )}
 
         {/* 主要指标卡片 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 responsive-grid-gap animate-fade-in">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 responsive-grid-gap animate-fade-in items-stretch">
           {overviewMetrics.map((metric, index) => (
             <div key={index} className="animate-scale-in" style={{ animationDelay: `${index * 100}ms` }}>
               <MetricCard {...metric} />

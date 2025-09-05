@@ -730,25 +730,25 @@ export default function UsersPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mt-3">
-        <div className="bg-card border border-border rounded-lg p-6">
-          <div className="text-2xl font-bold text-foreground">{users.length}</div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 responsive-grid-gap mt-3 items-stretch">
+        <div className="bg-card border border-border rounded-lg p-6 flex flex-col justify-center min-h-[6rem]">
+          <div className="text-2xl font-bold text-foreground mb-1">{users.length}</div>
           <div className="text-sm text-muted-foreground">总用户数</div>
         </div>
-        <div className="bg-card border border-border rounded-lg p-6">
-          <div className="text-2xl font-bold text-success">
+        <div className="bg-card border border-border rounded-lg p-6 flex flex-col justify-center min-h-[6rem]">
+          <div className="text-2xl font-bold text-success mb-1">
             {users.filter(u => u.account_status === 'active').length}
           </div>
           <div className="text-sm text-muted-foreground">活跃用户</div>
         </div>
-        <div className="bg-card border border-border rounded-lg p-6">
-          <div className="text-2xl font-bold text-primary">
+        <div className="bg-card border border-border rounded-lg p-6 flex flex-col justify-center min-h-[6rem]">
+          <div className="text-2xl font-bold text-primary mb-1">
             {users.filter(u => u.role === 'admin' || u.role === 'super_admin').length}
           </div>
           <div className="text-sm text-muted-foreground">会员用户</div>
         </div>
-        <div className="bg-card border border-border rounded-lg p-6">
-          <div className="text-2xl font-bold text-warning">
+        <div className="bg-card border border-border rounded-lg p-6 flex flex-col justify-center min-h-[6rem]">
+          <div className="text-2xl font-bold text-warning mb-1">
             {users.filter(u => u.account_status === 'inactive').length}
           </div>
           <div className="text-sm text-muted-foreground">非活跃用户</div>
