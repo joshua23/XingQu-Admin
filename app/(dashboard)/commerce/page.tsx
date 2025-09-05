@@ -28,7 +28,7 @@ import {
   LineChart,
   Activity
 } from 'lucide-react'
-import SubscriptionManager from '@/components/SubscriptionManager'
+import SubscriptionManager from '@/components/subscription/SubscriptionManager'
 import OrderPaymentManager from '@/components/OrderPaymentManager'
 
 interface CommerceMetrics {

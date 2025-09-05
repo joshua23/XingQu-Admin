@@ -5,10 +5,10 @@ import { dataService } from '@/lib/services/supabase'
 import { useAutoRefresh } from '@/hooks/useAutoRefresh'
 import { MetricCard } from '@/components/MetricCard'
 import { AnalyticsChart } from '@/components/AnalyticsChart'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
-import { Badge } from '@/components/ui/Badge'
-import { MetricCardSkeleton, ChartSkeleton, QuickStatsSkeleton } from '@/components/ui/SkeletonLoader'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { MetricCardSkeleton, ChartSkeleton, QuickStatsSkeleton } from '@/components/ui/skeletonloader'
 import {
   BarChart3,
   TrendingUp,

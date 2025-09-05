@@ -109,12 +109,7 @@ class UserService {
       let query = dataService.supabase
         .from('xq_user_profiles')
         .select(`
-          *,
-          xq_user_subscriptions!inner (
-            status,
-            expires_at,
-            plan:xq_subscription_plans(name, display_name)
-          )
+          *
         `)
 
       // 应用筛选条件
@@ -203,15 +198,7 @@ class UserService {
       const { data, error } = await dataService.supabase
         .from('xq_user_profiles')
         .select(`
-          *,
-          xq_user_subscriptions (
-            *,
-            plan:xq_subscription_plans(*)
-          ),
-          xq_payment_orders (
-            *,
-            plan:xq_subscription_plans(name, display_name)
-          )
+          *
         `)
         .eq('id', userId)
         .single()

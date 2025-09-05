@@ -2,10 +2,10 @@
 
 import { useState, useRef, useCallback } from 'react'
 import { Upload, X, Music, AlertCircle, CheckCircle, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { backgroundMusicService, BackgroundMusic, BackgroundMusicUpload } from '@/lib/services/backgroundMusicService'
 
 interface AudioUploadProps {
