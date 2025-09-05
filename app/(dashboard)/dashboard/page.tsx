@@ -2,7 +2,9 @@
 
 import { useState } from 'react'
 import { MetricCard } from '@/components/MetricCard'
+import { MetricCardEnhanced } from '@/components/MetricCardEnhanced'
 import { UserGrowthChart, ActivityChart, RevenueChart } from '@/components/AnalyticsChart'
+import { AnalyticsChartEnhanced } from '@/components/AnalyticsChartEnhanced'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { MetricCardSkeleton, ChartSkeleton, QuickStatsSkeleton } from '@/components/ui/SkeletonLoader'
@@ -300,18 +302,24 @@ const Dashboard: React.FC = () => {
     <div className="responsive-container">
       <div className="section-spacing">
         {/* 页面标题和状态 */}
-        <div className="flex items-start justify-between animate-slide-up mb-6">
+        <div className="dashboard-header animate-slide-up mb-6">
           <div className="max-w-2xl">
-            <h1 className="text-display-2 text-foreground">数据总览</h1>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-2">
-              <p className="text-sm sm:text-base text-muted-foreground">
-                系统关键指标和实时数据监控
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="dashboard-title">星趣APP数据看板</h1>
+              <div className="live-indicator">
+                <div className="live-dot" />
+                <span>实时更新</span>
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <p className="dashboard-subtitle">
+                基于设计规范的专业数据可视化看板
               </p>
               {lastUpdated && (
-                <div className="flex items-center text-xs sm:text-sm text-muted-foreground bg-muted/50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md border border-border/50">
-                  <Clock size={14} className="mr-2 text-primary" />
+                <div className="flex items-center text-xs sm:text-sm text-gray-7 bg-white px-3 py-2 rounded-lg border border-gray-4 shadow-sm">
+                  <Clock size={14} className="mr-2 text-chart-1" />
                   <span className="font-mono">
-                    最后更新: {lastUpdated.toLocaleTimeString()}
+                    {lastUpdated.toLocaleTimeString('zh-CN')}
                   </span>
                 </div>
               )}
@@ -344,24 +352,94 @@ const Dashboard: React.FC = () => {
           </div>
         )}
 
-        {/* 主要指标卡片 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 responsive-grid-gap animate-fade-in">
+        {/* 主要指标卡片 - 使用增强版 */}
+        <div className="metrics-grid animate-fade-in">
           {overviewMetrics.map((metric, index) => (
             <div key={index} className="animate-scale-in" style={{ animationDelay: `${index * 100}ms` }}>
-              <MetricCard {...metric} />
+              <MetricCardEnhanced 
+                title={metric.title}
+                value={metric.value}
+                change={metric.change}
+                changeLabel={metric.changeLabel}
+                description={metric.description}
+                sparklineData={metric.sparklineData}
+                target={metric.target}
+                icon={metric.icon}
+                color={metric.color}
+                format={metric.title.includes('收入') || metric.title.includes('Revenue') ? 'currency' : 'number'}
+                showProgress={!!metric.target}
+                tooltipContent={`${metric.description} - 目标: ${metric.target?.toLocaleString()}`}
+              />
             </div>
           ))}
         </div>
 
-        {/* 数据分析图表 */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 responsive-grid-gap animate-fade-in section-gap" style={{ animationDelay: '400ms' }}>
-          <UserGrowthChart data={userGrowthData} />
-          <ActivityChart data={activityData} />
-          <RevenueChart data={revenueData} />
+        {/* 数据分析图表 - 使用增强版 */}
+        <div className="charts-grid animate-fade-in section-gap" style={{ animationDelay: '400ms' }}>
+          <AnalyticsChartEnhanced
+            title="用户增长趋势"
+            description="新注册用户数量变化"
+            data={userGrowthData.map((item: any) => ({
+              label: item.label || item.date || '未知',
+              value: item.value || 0,
+              trend: item.trend || 'neutral'
+            }))}
+            type="area"
+            color="primary"
+            showTrend={true}
+            onExport={() => console.log('导出用户增长数据')}
+          />
+          <AnalyticsChartEnhanced
+            title="用户活跃度"
+            description="每日活跃用户统计"
+            data={activityData.map((item: any) => ({
+              label: item.label || item.date || '未知',
+              value: item.value || 0,
+              trend: item.trend || 'neutral'
+            }))}
+            type="bar"
+            color="success"
+            showTrend={true}
+            onExport={() => console.log('导出活跃度数据')}
+          />
+          <AnalyticsChartEnhanced
+            title="收入统计"
+            description="每日收入变化趋势"
+            data={revenueData.map((item: any) => ({
+              label: item.label || item.date || '未知',
+              value: item.value || 0,
+              trend: item.trend || 'neutral'
+            }))}
+            type="line"
+            color="warning"
+            showTrend={true}
+            onExport={() => console.log('导出收入数据')}
+          />
+        </div>
+
+        {/* AARRR海盗模型漏斗分析 */}
+        <div className="section-gap animate-fade-in" style={{ animationDelay: '600ms' }}>
+          <AnalyticsChartEnhanced
+            title="AARRR海盗模型分析"
+            description="用户生命周期转化漏斗"
+            data={[
+              { label: 'Acquisition', value: 10000, percentage: 100 },
+              { label: 'Activation', value: 7500, percentage: 75 },
+              { label: 'Retention', value: 4500, percentage: 60 },
+              { label: 'Revenue', value: 2250, percentage: 50 },
+              { label: 'Referral', value: 675, percentage: 30 }
+            ]}
+            type="bar"
+            color="aarrr"
+            showTrend={false}
+            showLegend={true}
+            height={200}
+            onExport={() => console.log('导出AARRR数据')}
+          />
         </div>
 
         {/* 快速统计 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 responsive-grid-gap section-gap">
+        <div className="stats-grid section-gap">
           {quickStats.map((section, index) => {
             const Icon = section.icon;
             return (

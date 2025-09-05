@@ -1,0 +1,340 @@
+/* 数据看板专用样式 - 基于设计规范文档 */
+
+@layer components {
+  /* ===== 1. 指标卡片样式 ===== */
+  .metric-card-enhanced {
+    @apply bg-white rounded-lg p-6 transition-all duration-300 ease-out;
+    @apply border border-gray-4 shadow-sm;
+    @apply hover:shadow-lg hover:-translate-y-0.5;
+  }
+
+  .metric-card-icon {
+    @apply text-gray-7 text-xl mb-3;
+  }
+
+  .metric-card-label {
+    @apply text-sm text-gray-7 mb-2 font-medium;
+  }
+
+  .metric-card-value {
+    @apply text-3xl font-bold text-gray-10 mb-2;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .metric-card-change {
+    @apply text-sm flex items-center gap-1;
+  }
+
+  .metric-card-change.positive {
+    @apply text-metric-positive;
+  }
+
+  .metric-card-change.negative {
+    @apply text-metric-negative;
+  }
+
+  .metric-card-change.neutral {
+    @apply text-metric-neutral;
+  }
+
+  /* ===== 2. 图表容器样式 ===== */
+  .chart-container {
+    @apply bg-white rounded-lg p-6 mb-6;
+    @apply shadow-sm border border-gray-4;
+    @apply transition-all duration-200 hover:shadow-md;
+  }
+
+  .chart-header {
+    @apply flex justify-between items-center mb-4;
+  }
+
+  .chart-title {
+    @apply text-base font-medium text-gray-10;
+  }
+
+  .chart-content {
+    @apply min-h-[300px] relative;
+  }
+
+  .chart-content.loading {
+    @apply flex items-center justify-center;
+  }
+
+  .chart-content.empty {
+    @apply flex flex-col items-center justify-center text-gray-7;
+  }
+
+  /* ===== 3. 数据表格样式 ===== */
+  .data-table-container {
+    @apply bg-white rounded-lg overflow-hidden;
+    @apply shadow-sm border border-gray-4;
+  }
+
+  .data-table-header {
+    @apply bg-gray-2 border-b border-gray-4;
+  }
+
+  .data-table-row:nth-child(even) {
+    @apply bg-gray-1;
+  }
+
+  .data-table-row:nth-child(odd) {
+    @apply bg-white;
+  }
+
+  .data-table-row:hover {
+    @apply bg-gray-2 transition-colors duration-150;
+  }
+
+  /* ===== 4. 筛选面板样式 ===== */
+  .filter-panel {
+    @apply flex items-center gap-3 p-4 bg-white rounded-lg;
+    @apply border border-gray-4 shadow-sm;
+  }
+
+  .filter-select {
+    @apply px-3 py-2 text-sm border border-gray-5 rounded-md;
+    @apply bg-white focus:ring-2 focus:ring-primary focus:border-primary;
+  }
+
+  .filter-button {
+    @apply px-4 py-2 text-sm font-medium rounded-md;
+    @apply bg-primary text-white hover:bg-primary/90;
+    @apply transition-colors duration-150;
+  }
+
+  /* ===== 5. Dashboard 布局样式 ===== */
+  .dashboard-layout {
+    @apply p-6 bg-gray-2 min-h-screen;
+  }
+
+  .dashboard-header {
+    @apply mb-6 flex justify-between items-start;
+  }
+
+  .dashboard-title {
+    @apply text-2xl font-bold text-gray-10 mb-2;
+  }
+
+  .dashboard-subtitle {
+    @apply text-sm text-gray-7;
+  }
+
+  .metrics-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6;
+  }
+
+  .charts-grid {
+    @apply grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6;
+  }
+
+  .stats-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+  }
+
+  /* ===== 6. 实时指示器 ===== */
+  .live-indicator {
+    @apply flex items-center gap-2 text-xs text-metric-positive;
+  }
+
+  .live-dot {
+    @apply w-1.5 h-1.5 bg-metric-positive rounded-full;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.2); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  /* ===== 7. 进度条样式 ===== */
+  .progress-bar {
+    @apply w-full bg-gray-4 rounded-full h-2 overflow-hidden;
+  }
+
+  .progress-bar-fill {
+    @apply h-full rounded-full transition-all duration-1000 ease-out;
+  }
+
+  .progress-bar-fill.success {
+    @apply bg-metric-positive;
+  }
+
+  .progress-bar-fill.warning {
+    @apply bg-warning;
+  }
+
+  .progress-bar-fill.danger {
+    @apply bg-metric-negative;
+  }
+
+  /* ===== 8. 状态标签样式 ===== */
+  .status-badge {
+    @apply px-2 py-1 text-xs font-medium rounded-full;
+  }
+
+  .status-badge.positive {
+    @apply bg-metric-positive/10 text-metric-positive border border-metric-positive/20;
+  }
+
+  .status-badge.negative {
+    @apply bg-metric-negative/10 text-metric-negative border border-metric-negative/20;
+  }
+
+  .status-badge.neutral {
+    @apply bg-gray-5/30 text-gray-7 border border-gray-5;
+  }
+
+  /* ===== 9. 数据高亮样式 ===== */
+  .data-highlight {
+    @apply font-mono font-semibold;
+  }
+
+  .data-highlight.large {
+    @apply text-4xl text-gray-11;
+  }
+
+  .data-highlight.medium {
+    @apply text-2xl text-gray-10;
+  }
+
+  .data-highlight.small {
+    @apply text-base text-gray-9;
+  }
+
+  /* ===== 10. 趋势图标样式 ===== */
+  .trend-icon {
+    @apply inline-flex items-center justify-center w-4 h-4;
+  }
+
+  .trend-icon.up {
+    @apply text-metric-positive;
+  }
+
+  .trend-icon.down {
+    @apply text-metric-negative;
+  }
+
+  .trend-icon.neutral {
+    @apply text-metric-neutral;
+  }
+
+  /* ===== 11. 数据卡片分组 ===== */
+  .data-card-group {
+    @apply bg-white rounded-lg p-4 space-y-3;
+    @apply border border-gray-4 shadow-sm;
+  }
+
+  .data-card-item {
+    @apply flex justify-between items-center p-3;
+    @apply bg-gray-2/50 rounded-md border border-gray-4/30;
+  }
+
+  .data-card-label {
+    @apply text-sm font-medium text-gray-7;
+  }
+
+  .data-card-value {
+    @apply font-mono text-base font-bold text-gray-10;
+  }
+
+  /* ===== 12. 活动时间线样式 ===== */
+  .activity-timeline {
+    @apply space-y-4;
+  }
+
+  .activity-item {
+    @apply flex gap-4 p-4 bg-gray-2/20 rounded-lg;
+    @apply border border-gray-4/30 hover:bg-gray-2/40;
+    @apply transition-colors duration-150;
+  }
+
+  .activity-time {
+    @apply text-xs text-gray-7 font-mono min-w-[48px];
+    @apply bg-white px-2 py-1 rounded border border-gray-4/50;
+  }
+
+  .activity-content {
+    @apply flex-1;
+  }
+
+  .activity-title {
+    @apply text-sm font-semibold text-gray-10 mb-1;
+  }
+
+  .activity-description {
+    @apply text-sm text-gray-7 leading-relaxed;
+  }
+}
+
+/* ===== 响应式设计优化 ===== */
+@media (max-width: 640px) {
+  .metric-card-enhanced {
+    @apply p-4;
+  }
+
+  .metric-card-value {
+    @apply text-2xl;
+  }
+
+  .chart-container {
+    @apply p-4;
+  }
+
+  .dashboard-layout {
+    @apply p-4;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .metric-card-enhanced {
+    @apply p-5;
+  }
+
+  .metric-card-value {
+    @apply text-2xl;
+  }
+}
+
+/* ===== 深色模式适配 ===== */
+@media (prefers-color-scheme: dark) {
+  .metric-card-enhanced,
+  .chart-container,
+  .data-table-container,
+  .filter-panel,
+  .data-card-group {
+    @apply bg-gray-900 border-gray-700;
+  }
+
+  .metric-card-label,
+  .chart-title,
+  .data-card-label {
+    @apply text-gray-300;
+  }
+
+  .metric-card-value,
+  .data-card-value {
+    @apply text-gray-100;
+  }
+
+  .dashboard-layout {
+    @apply bg-gray-950;
+  }
+
+  .data-table-header {
+    @apply bg-gray-800 border-gray-700;
+  }
+
+  .data-table-row:nth-child(even) {
+    @apply bg-gray-900;
+  }
+
+  .data-table-row:nth-child(odd) {
+    @apply bg-gray-950;
+  }
+
+  .data-table-row:hover {
+    @apply bg-gray-800;
+  }
+}
