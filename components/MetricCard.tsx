@@ -134,10 +134,10 @@ export function MetricCard({
 
   return (
     <div className={cn(
-      "card-interactive bg-gradient-to-br border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg",
+      "h-full flex flex-col card-interactive bg-gradient-to-br border transition-all duration-200 hover:scale-[1.02] hover:shadow-lg",
       colorClasses.card
     )}>
-      <div className="p-5">
+      <div className="p-5 flex-1 flex flex-col">
         {/* Header with icon and trend indicator */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center space-x-3">
@@ -182,8 +182,8 @@ export function MetricCard({
           </div>
         </div>
 
-        {/* Description and labels */}
-        <div className="space-y-1">
+        {/* Description and labels - Push to bottom */}
+        <div className="mt-auto space-y-1">
           {description && (
             <p className="text-sm text-muted-foreground font-medium">{description}</p>
           )}
