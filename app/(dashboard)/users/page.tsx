@@ -15,6 +15,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
 import EnhancedUserManager from '@/components/users/EnhancedUserManager'
 import UserTagSystem from '@/components/UserTagSystem'
+import UserAgreement from '@/components/UserAgreement'
 import { 
   Users, 
   Tag, 
@@ -27,7 +28,8 @@ import {
   CheckCircle,
   Download,
   Upload,
-  RefreshCw
+  RefreshCw,
+  FileText
 } from 'lucide-react'
 import type { UserTag, TaggedUser } from '@/components/UserTagSystem'
 
@@ -351,7 +353,7 @@ export default function UsersPage() {
 
         {/* 主要内容区域 */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               用户管理
@@ -363,6 +365,10 @@ export default function UsersPage() {
             <TabsTrigger value="analytics" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               数据分析
+            </TabsTrigger>
+            <TabsTrigger value="agreement" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              用户协议
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
@@ -468,6 +474,11 @@ export default function UsersPage() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* 用户协议标签页 */}
+          <TabsContent value="agreement" className="space-y-4">
+            <UserAgreement />
           </TabsContent>
 
           {/* 系统设置标签页 */}
