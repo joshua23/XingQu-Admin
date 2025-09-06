@@ -1,40 +1,49 @@
 import { supabase } from './supabase'
 
-// 基于xq_background_music表结构的接口定义
+// 基于xq_materials表的背景音乐接口定义（统一素材管理）
 export interface BackgroundMusic {
   id: string
-  admin_id: string | null
-  name: string
-  audio_url: string
+  title: string
   description: string | null
-  cover_image_url: string | null
-  is_public: boolean
+  file_url: string
+  file_name: string
+  file_size: number
+  file_type: string
+  duration: number | null
+  category: string
+  tags: string[]
+  creator_id: string | null
+  thumbnail_url: string | null
+  is_active: boolean
+  usage_count: number
+  rating_average: number | null
   created_at: string
   updated_at: string
-  is_deleted: boolean
 }
 
 export interface BackgroundMusicUpload {
-  name: string
+  title: string
   description?: string
-  is_public?: boolean
   file: File
+  tags?: string[]
 }
 
 export interface BackgroundMusicUpdate {
-  name?: string
+  title?: string
   description?: string
-  is_public?: boolean
+  is_active?: boolean
+  tags?: string[]
 }
 
 export const backgroundMusicService = {
-  // 获取所有背景音乐
+  // 获取所有背景音乐（从统一素材表）
   async getMaterials(): Promise<{ data: BackgroundMusic[] | null; error: any }> {
     try {
       const { data, error } = await supabase
-        .from('xq_background_music')
+        .from('xq_materials')
         .select('*')
-        .eq('is_deleted', false)
+        .eq('category', '背景音乐')
+        .eq('is_active', true)
         .order('created_at', { ascending: false })
 
       return { data, error }
@@ -48,10 +57,10 @@ export const backgroundMusicService = {
   async getPublicMaterials(): Promise<{ data: BackgroundMusic[] | null; error: any }> {
     try {
       const { data, error } = await supabase
-        .from('xq_background_music')
+        .from('xq_materials')
         .select('*')
-        .eq('is_deleted', false)
-        .eq('is_public', true)
+        .eq('category', '背景音乐')
+        .eq('is_active', true)
         .order('created_at', { ascending: false })
 
       return { data, error }
@@ -65,10 +74,11 @@ export const backgroundMusicService = {
   async getMaterial(id: string): Promise<{ data: BackgroundMusic | null; error: any }> {
     try {
       const { data, error } = await supabase
-        .from('xq_background_music')
+        .from('xq_materials')
         .select('*')
         .eq('id', id)
-        .eq('is_deleted', false)
+        .eq('category', '背景音乐')
+        .eq('is_active', true)
         .single()
 
       return { data, error }
@@ -78,16 +88,16 @@ export const backgroundMusicService = {
     }
   },
 
-  // 上传背景音乐
+  // 上传背景音乐（统一到素材表）
   async uploadMaterial(material: BackgroundMusicUpload): Promise<{ data: BackgroundMusic | null; error: any }> {
     try {
-      // 1. 上传文件到bgm bucket (使用现有的bgm bucket)
+      // 1. 上传文件到materials bucket
       const fileExt = material.file.name.split('.').pop()
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
-      const filePath = `${fileName}`
+      const filePath = `background-music/${fileName}`
 
       const { error: uploadError } = await supabase.storage
-        .from('bgm')
+        .from('materials')
         .upload(filePath, material.file)
 
       if (uploadError) {
@@ -96,22 +106,27 @@ export const backgroundMusicService = {
 
       // 2. 获取文件的公开URL
       const { data: { publicUrl } } = supabase.storage
-        .from('bgm')
+        .from('materials')
         .getPublicUrl(filePath)
 
-      // 3. 获取当前用户信息 (admin_id)
+      // 3. 获取当前用户信息
       const { data: { user } } = await supabase.auth.getUser()
-      const adminId = user?.id || null
+      const creatorId = user?.id || null
 
-      // 4. 保存背景音乐信息到数据库
+      // 4. 保存背景音乐信息到统一素材表
       const { data, error } = await supabase
-        .from('xq_background_music')
+        .from('xq_materials')
         .insert([{
-          admin_id: adminId,
-          name: material.name,
-          audio_url: publicUrl,
+          title: material.title,
           description: material.description || '',
-          is_public: material.is_public ?? true,
+          file_url: publicUrl,
+          file_name: fileName,
+          file_size: material.file.size,
+          file_type: material.file.type,
+          category: '背景音乐',
+          tags: material.tags || ['背景音乐', '音频'],
+          creator_id: creatorId,
+          is_active: true,
         }])
         .select()
         .single()
@@ -132,10 +147,10 @@ export const backgroundMusicService = {
       }
 
       const { data, error } = await supabase
-        .from('xq_background_music')
+        .from('xq_materials')
         .update(updateData)
         .eq('id', id)
-        .eq('is_deleted', false)
+        .eq('category', '背景音乐')
         .select()
         .single()
 
@@ -150,12 +165,13 @@ export const backgroundMusicService = {
   async deleteMaterial(id: string): Promise<{ error: any }> {
     try {
       const { error } = await supabase
-        .from('xq_background_music')
+        .from('xq_materials')
         .update({ 
-          is_deleted: true,
+          is_active: false,
           updated_at: new Date().toISOString()
         })
         .eq('id', id)
+        .eq('category', '背景音乐')
 
       return { error }
     } catch (error) {
@@ -164,23 +180,23 @@ export const backgroundMusicService = {
     }
   },
 
-  // 切换公开状态
-  async togglePublic(id: string, isPublic: boolean): Promise<{ data: BackgroundMusic | null; error: any }> {
+  // 切换活跃状态（原public状态改为active状态）
+  async toggleActive(id: string, isActive: boolean): Promise<{ data: BackgroundMusic | null; error: any }> {
     try {
       const { data, error } = await supabase
-        .from('xq_background_music')
+        .from('xq_materials')
         .update({ 
-          is_public: isPublic,
+          is_active: isActive,
           updated_at: new Date().toISOString()
         })
         .eq('id', id)
-        .eq('is_deleted', false)
+        .eq('category', '背景音乐')
         .select()
         .single()
 
       return { data, error }
     } catch (error) {
-      console.error('切换公开状态失败:', error)
+      console.error('切换活跃状态失败:', error)
       return { data: null, error }
     }
   },
@@ -189,10 +205,11 @@ export const backgroundMusicService = {
   async searchMaterials(query: string): Promise<{ data: BackgroundMusic[] | null; error: any }> {
     try {
       const { data, error } = await supabase
-        .from('xq_background_music')
+        .from('xq_materials')
         .select('*')
-        .eq('is_deleted', false)
-        .ilike('name', `%${query}%`)
+        .eq('category', '背景音乐')
+        .eq('is_active', true)
+        .ilike('title', `%${query}%`)
         .order('created_at', { ascending: false })
 
       return { data, error }
