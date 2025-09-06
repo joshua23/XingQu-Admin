@@ -15,8 +15,14 @@ import {
   Copy,
   CheckCircle,
   AlertCircle,
-  ExternalLink
+  ExternalLink,
+  UserCheck,
+  FileText,
+  Eye,
+  Lock
 } from 'lucide-react'
+import PermissionManager from '@/components/PermissionManager'
+import AdminAuditLog from '@/components/AdminAuditLog'
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState({
@@ -42,7 +48,15 @@ export default function SettingsPage() {
     // 用户设置
     allowUserRegistration: true,
     requireEmailVerification: true,
-    defaultUserRole: 'member'
+    defaultUserRole: 'member',
+    
+    // 安全策略设置
+    maxLoginAttempts: 5,
+    lockoutDuration: 30,
+    ipWhitelistEnabled: false,
+    apiRateLimit: 100,
+    auditLogRetention: 365,
+    sensitiveActionLogging: true
   })
 
   const [activeTab, setActiveTab] = useState('general')
@@ -151,6 +165,8 @@ FROM xq_admin_users;`
     { id: 'general', label: '常规设置', icon: Settings },
     { id: 'notifications', label: '通知设置', icon: Bell },
     { id: 'security', label: '安全设置', icon: Shield },
+    { id: 'permissions', label: '权限管理', icon: UserCheck },
+    { id: 'audit', label: '操作审计', icon: FileText },
     { id: 'database', label: '数据库设置', icon: Database },
     { id: 'users', label: '用户设置', icon: Users }
   ]
@@ -352,6 +368,176 @@ FROM xq_admin_users;`
                       onChange={(e) => updateSetting('sessionTimeout', parseInt(e.target.value))}
                       className="w-full px-4 py-3 bg-background border border-input rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
                     />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      最大登录尝试次数
+                    </label>
+                    <input
+                      type="number"
+                      min="3"
+                      max="10"
+                      value={settings.maxLoginAttempts}
+                      onChange={(e) => updateSetting('maxLoginAttempts', parseInt(e.target.value))}
+                      className="w-full px-4 py-3 bg-background border border-input rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      账户锁定时长 (分钟)
+                    </label>
+                    <input
+                      type="number"
+                      min="5"
+                      max="1440"
+                      value={settings.lockoutDuration}
+                      onChange={(e) => updateSetting('lockoutDuration', parseInt(e.target.value))}
+                      className="w-full px-4 py-3 bg-background border border-input rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium text-foreground">IP白名单</div>
+                      <div className="text-sm text-muted-foreground">启用IP地址白名单限制</div>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={settings.ipWhitelistEnabled}
+                        onChange={(e) => updateSetting('ipWhitelistEnabled', e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                    </label>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium text-foreground">敏感操作日志</div>
+                      <div className="text-sm text-muted-foreground">记录所有敏感操作的详细日志</div>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={settings.sensitiveActionLogging}
+                        onChange={(e) => updateSetting('sensitiveActionLogging', e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/25 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Permission Management */}
+            {activeTab === 'permissions' && (
+              <div className="p-6 space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-lg font-semibold text-foreground">权限管理</h2>
+                    <p className="text-sm text-muted-foreground mt-1">管理系统角色和用户权限</p>
+                  </div>
+                  <div className="flex items-center space-x-2 text-green-600">
+                    <CheckCircle size={16} />
+                    <span className="text-sm font-medium">权限系统已激活</span>
+                  </div>
+                </div>
+                
+                <div className="bg-muted/50 border border-muted rounded-lg p-6">
+                  <div className="grid gap-4 md:grid-cols-3 mb-6">
+                    <div className="text-center p-4 bg-background border rounded-lg">
+                      <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg mb-3 mx-auto">
+                        <UserCheck className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <div className="text-2xl font-bold text-foreground mb-1">5</div>
+                      <div className="text-sm text-muted-foreground">系统角色</div>
+                    </div>
+                    
+                    <div className="text-center p-4 bg-background border rounded-lg">
+                      <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-lg mb-3 mx-auto">
+                        <Key className="w-6 h-6 text-green-600" />
+                      </div>
+                      <div className="text-2xl font-bold text-foreground mb-1">23</div>
+                      <div className="text-sm text-muted-foreground">权限节点</div>
+                    </div>
+                    
+                    <div className="text-center p-4 bg-background border rounded-lg">
+                      <div className="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-lg mb-3 mx-auto">
+                        <Users className="w-6 h-6 text-purple-600" />
+                      </div>
+                      <div className="text-2xl font-bold text-foreground mb-1">30</div>
+                      <div className="text-sm text-muted-foreground">管理员用户</div>
+                    </div>
+                  </div>
+                  
+                  <PermissionManager />
+                </div>
+              </div>
+            )}
+
+            {/* Audit Log */}
+            {activeTab === 'audit' && (
+              <div className="p-6 space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-lg font-semibold text-foreground">操作审计</h2>
+                    <p className="text-sm text-muted-foreground mt-1">系统操作日志和安全审计</p>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2 text-blue-600">
+                      <Eye size={16} />
+                      <span className="text-sm font-medium">实时监控中</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-green-600">
+                      <Lock size={16} />
+                      <span className="text-sm font-medium">安全审计启用</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        审计日志保留天数
+                      </label>
+                      <input
+                        type="number"
+                        min="30"
+                        max="3650"
+                        value={settings.auditLogRetention}
+                        onChange={(e) => updateSetting('auditLogRetention', parseInt(e.target.value))}
+                        className="w-full px-4 py-3 bg-background border border-input rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        超过此天数的日志将被自动清理
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        API速率限制 (次/分钟)
+                      </label>
+                      <input
+                        type="number"
+                        min="10"
+                        max="1000"
+                        value={settings.apiRateLimit}
+                        onChange={(e) => updateSetting('apiRateLimit', parseInt(e.target.value))}
+                        className="w-full px-4 py-3 bg-background border border-input rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        防止API滥用的速率限制
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-muted/50 border border-muted rounded-lg p-6">
+                    <AdminAuditLog />
                   </div>
                 </div>
               </div>

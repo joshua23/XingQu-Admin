@@ -3,9 +3,9 @@
 import { useState } from 'react'
 import { MetricCard } from '@/components/MetricCard'
 import { UserGrowthChart, ActivityChart, RevenueChart } from '@/components/AnalyticsChart'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/Badge'
-import { MetricCardSkeleton, ChartSkeleton, QuickStatsSkeleton } from '@/components/ui/SkeletonLoader'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { MetricCardSkeleton, ChartSkeleton, QuickStatsSkeleton } from '@/components/ui/skeletonloader'
 import { dataService } from '@/lib/services/supabase'
 import { useAutoRefresh } from '@/hooks/useAutoRefresh'
 import {
