@@ -7,11 +7,11 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Separator } from '@/components/ui/separator'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { Alert, AlertDescription } from '@/components/ui/Alert'
+import { Separator } from '@/components/ui/Separator'
 import { useRealtimeMonitoring } from '@/lib/hooks/useRealtimeMonitoring'
 import { 
   Activity, 
@@ -240,29 +240,32 @@ export default function RealtimeMonitoringDashboard() {
         <CardContent>
           <div className="space-y-3">
             <h4 className="text-sm font-medium">服务状态</h4>
-            {Object.entries(systemStatus.services).map(([serviceName, service]) => (
-              <div key={serviceName} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                <div className="flex items-center gap-2">
-                  {serviceName === 'database' && <Database className="h-4 w-4" />}
-                  {serviceName === 'api' && <Server className="h-4 w-4" />}
-                  {serviceName === 'cache' && <Activity className="h-4 w-4" />}
-                  <span className="text-sm font-medium">{serviceName}</span>
+            {Object.entries(systemStatus.services).map(([serviceName, service]) => {
+              const serviceData = service as { status: 'online' | 'offline' | 'degraded'; responseTime?: number; lastCheck: Date }
+              return (
+                <div key={serviceName} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                  <div className="flex items-center gap-2">
+                    {serviceName === 'database' && <Database className="h-4 w-4" />}
+                    {serviceName === 'api' && <Server className="h-4 w-4" />}
+                    {serviceName === 'cache' && <Activity className="h-4 w-4" />}
+                    <span className="text-sm font-medium">{serviceName}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      variant={serviceData.status === 'online' ? 'default' : 'destructive'}
+                      className="text-xs"
+                    >
+                      {serviceData.status}
+                    </Badge>
+                    {serviceData.responseTime && (
+                      <span className="text-xs text-muted-foreground">
+                        {serviceData.responseTime}ms
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge 
-                    variant={service.status === 'online' ? 'default' : 'destructive'}
-                    className="text-xs"
-                  >
-                    {service.status}
-                  </Badge>
-                  {service.responseTime && (
-                    <span className="text-xs text-muted-foreground">
-                      {service.responseTime}ms
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </CardContent>
       </Card>

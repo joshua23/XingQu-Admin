@@ -190,13 +190,20 @@ export function useRealtimeMonitoring(
     setError(null)
 
     try {
-      // 获取系统状态
-      const status = await monitoringService.getSystemStatus()
-      setSystemStatus(status)
+      // 添加超时处理
+      const timeout = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('监控数据加载超时')), 10000)
+      )
 
-      // 获取活跃告警
-      const alerts = await monitoringService.getActiveAlerts(20)
-      setActiveAlerts(alerts)
+      await Promise.race([
+        Promise.all([
+          // 获取系统状态
+          monitoringService.getSystemStatus().then(status => setSystemStatus(status)),
+          // 获取活跃告警
+          monitoringService.getActiveAlerts(20).then(alerts => setActiveAlerts(alerts))
+        ]),
+        timeout
+      ])
 
       setLastUpdated(new Date())
       setError(null)

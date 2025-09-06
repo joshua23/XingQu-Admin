@@ -188,7 +188,39 @@ NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
-### 📚 项目文档
+### 📋 代码规范
+
+### 文件命名规范
+- **React组件文件**: 使用 PascalCase 命名，如 `Button.tsx`、`UserCard.tsx`
+- **工具函数文件**: 使用 camelCase 命名，如 `utils.ts`、`apiService.ts`
+- **类型定义文件**: 使用 camelCase + `.types.ts` 后缀，如 `user.types.ts`
+
+### React组件规范
+- **组件导入**: 统一使用大驼峰路径，如 `@/components/ui/Button`
+- **Props类型**: 所有组件必须定义TypeScript接口
+- **默认导出**: 组件使用默认导出，类型使用命名导出
+
+### TypeScript规范
+- **类型定义**: 接口使用 PascalCase，如 `interface UserProfile`
+- **枚举类型**: 使用 PascalCase，如 `enum UserStatus`
+- **泛型约束**: 优先使用具体类型，避免 `any`
+
+### UI组件库规范
+- **shadcn/ui组件**: 统一使用大驼峰命名的组件文件
+- **组件导入**: 从 `@/components/ui/ComponentName` 导入
+- **样式定制**: 通过 Tailwind CSS 类名进行样式定制
+
+### 登录系统规范
+- **双登录模式**: 支持邮箱密码登录和开发模式快速登录
+- **开发模式**: 仅在开发环境显示快速登录按钮
+- **认证状态**: 统一通过 AuthProvider 管理
+
+### 代码质量规范
+- **ESLint**: 遵循项目 ESLint 配置
+- **TypeScript**: 启用严格模式，无 TypeScript 错误
+- **导入顺序**: 第三方库 → 内部模块 → 相对路径导入
+
+## 📚 项目文档
 - [安装配置指南](./docs/setup/) - 数据库和系统配置
 - [设计系统文档](./docs/design/) - UI设计规范
 - [用户协议文档](./docs/用户协议.md) - 用户协议内容

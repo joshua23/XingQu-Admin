@@ -49,4 +49,23 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
 Button.displayName = "Button"
 
+// 为兼容性添加buttonVariants
+export const buttonVariants = ({ variant = 'primary', size = 'md' }: { variant?: string, size?: string } = {}) => {
+  const variants = {
+    primary: "bg-primary hover:bg-primary-hover text-primary-foreground shadow-sm hover:shadow-md focus:ring-ring",
+    secondary: "bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border hover:border-border/60 focus:ring-ring",
+    ghost: "bg-transparent hover:bg-muted text-foreground focus:ring-ring",
+    destructive: "bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-sm hover:shadow-md focus:ring-destructive",
+    outline: "bg-transparent border border-border hover:bg-muted text-foreground focus:ring-ring"
+  }
+
+  const sizes = {
+    sm: "px-4 py-2 text-sm font-medium",
+    md: "px-6 py-3 text-base font-semibold", 
+    lg: "px-8 py-4 text-lg font-bold"
+  }
+
+  return `inline-flex items-center justify-center rounded-lg transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background disabled:opacity-50 disabled:cursor-not-allowed ${variants[variant as keyof typeof variants]} ${sizes[size as keyof typeof sizes]}`
+}
+
 export { Button }
