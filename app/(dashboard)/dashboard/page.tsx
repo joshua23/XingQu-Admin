@@ -20,7 +20,17 @@ import {
   TrendingUp,
   UserCheck,
   CreditCard,
-  Eye
+  Eye,
+  ShoppingCart,
+  Brain,
+  Monitor,
+  TestTube,
+  Cog,
+  Shield,
+  Zap,
+  Server,
+  MessageSquare,
+  Music
 } from 'lucide-react'
 
 interface DashboardStats {
@@ -32,32 +42,53 @@ interface DashboardStats {
   conversionRate: number
   memberUsers?: number
   pageViews?: number
+  // 新增业务指标
+  abTestsRunning?: number
+  aiServiceCalls?: number
+  systemHealth?: number
+  contentModerated?: number
+  orderVolume?: number
+  materialUploads?: number
+  apiResponseTime?: number
+  errorRate?: number
 }
 
 // 实时活动数据
 const recentActivities = [
   {
+    time: "11:15",
+    action: "A/B测试自动停止",
+    description: "首页按钮颜色测试达到统计显著性，自动停止并应用获胜变体",
+    type: "success"
+  },
+  {
     time: "10:30",
-    action: "用户注册异常增长",
-    description: "过去1小时新增用户较平时增长156%",
+    action: "AI服务调用激增",
+    description: "智能推荐服务调用量较平时增长203%，系统自动扩容",
     type: "warning"
   },
   {
     time: "09:45",
-    action: "系统性能报告",
-    description: "API响应时间平均95ms，系统运行正常",
+    action: "内容审核完成",
+    description: "今日已审核856条用户内容，其中12条需要人工复核",
+    type: "info"
+  },
+  {
+    time: "09:30",
+    action: "系统配置变更",
+    description: "管理员启用了新的缓存策略，API响应时间提升32%",
     type: "success"
   },
   {
     time: "09:15",
-    action: "广告投放更新",
-    description: "今日广告预算已使用68%，预计下午16:00耗尽",
-    type: "info"
+    action: "电商订单异常",
+    description: "订单处理队列积压145个订单，正在调度更多资源处理",
+    type: "warning"
   },
   {
     time: "08:30",
     action: "数据同步完成",
-    description: "昨日用户行为数据已完成统计和分析",
+    description: "昨日用户行为数据已完成统计和分析，新增洞察报告3份",
     type: "success"
   },
 ]
@@ -71,7 +102,16 @@ const Dashboard: React.FC = () => {
     totalRevenue: 0,
     conversionRate: 0,
     memberUsers: 0,
-    pageViews: 0
+    pageViews: 0,
+    // 新增指标默认值
+    abTestsRunning: 0,
+    aiServiceCalls: 0,
+    systemHealth: 95,
+    contentModerated: 0,
+    orderVolume: 0,
+    materialUploads: 0,
+    apiResponseTime: 120,
+    errorRate: 0.5
   })
   const [chartData, setChartData] = useState<any>(null)
   const [sparklineData, setSparklineData] = useState<any>({})
@@ -242,26 +282,72 @@ const Dashboard: React.FC = () => {
       description: "过去24小时活跃用户"
     },
     { 
+      title: "AI服务调用", 
+      value: stats.aiServiceCalls ?? 0, 
+      change: (stats.aiServiceCalls ?? 0) > 0 ? 23.4 : 0, 
+      changeLabel: "较昨日", 
+      icon: <Brain size={20} />,
+      color: 'warning' as const,
+      sparklineData: sparklineData.ai || [],
+      target: 1000,
+      description: "今日AI服务总调用次数"
+    },
+    { 
+      title: "系统健康度", 
+      value: stats.systemHealth ?? 95, 
+      change: (stats.systemHealth ?? 95) > 90 ? 2.1 : -1.5, 
+      changeLabel: "系统状态", 
+      icon: <Monitor size={20} />,
+      color: 'default' as const,
+      sparklineData: sparklineData.health || [],
+      target: 100,
+      description: "系统整体健康评分",
+      suffix: "%"
+    },
+  ]
+
+  // 辅助业务指标
+  const businessMetrics = [
+    { 
+      title: "运行中测试", 
+      value: stats.abTestsRunning ?? 0, 
+      change: (stats.abTestsRunning ?? 0) > 0 ? 25.0 : 0, 
+      changeLabel: "测试效果", 
+      icon: <TestTube size={20} />,
+      color: 'primary' as const,
+      target: 10,
+      description: "当前运行的A/B测试数量"
+    },
+    { 
       title: "今日收入", 
       value: stats.totalRevenue, 
       change: stats.totalRevenue > 0 ? 12.7 : 0, 
       changeLabel: "较昨日", 
-      icon: <CreditCard size={20} />,
-      color: 'warning' as const,
-      sparklineData: sparklineData.revenue || [],
+      icon: <DollarSign size={20} />,
+      color: 'success' as const,
       target: 5000,
-      description: "今日总收入金额"
+      description: "今日总收入金额",
+      prefix: "¥"
     },
     { 
-      title: "页面浏览", 
-      value: stats.pageViews ?? 0, 
-      change: (stats.pageViews ?? 0) > 0 ? 6.2 : 0, 
-      changeLabel: "转化率提升", 
-      icon: <Eye size={20} />,
+      title: "订单量", 
+      value: stats.orderVolume ?? 0, 
+      change: (stats.orderVolume ?? 0) > 0 ? 18.5 : 0, 
+      changeLabel: "成交转化", 
+      icon: <ShoppingCart size={20} />,
+      color: 'warning' as const,
+      target: 500,
+      description: "今日成交订单数量"
+    },
+    { 
+      title: "内容审核", 
+      value: stats.contentModerated ?? 0, 
+      change: (stats.contentModerated ?? 0) > 0 ? 9.2 : 0, 
+      changeLabel: "审核效率", 
+      icon: <Shield size={20} />,
       color: 'default' as const,
-      sparklineData: sparklineData.pageviews || [],
-      target: 10000,
-      description: "今日页面浏览量"
+      target: 1000,
+      description: "今日审核内容数量"
     },
   ]
 
@@ -271,27 +357,54 @@ const Dashboard: React.FC = () => {
       icon: Users,
       title: "用户概况",
       stats: [
-        { label: "新用户注册", value: stats.totalUsers.toString(), trend: stats.totalUsers > 0 ? "+100%" : "0%" },
-        { label: "活跃用户", value: stats.activeUsers.toString(), trend: stats.activeUsers > 0 ? "+100%" : "0%" },
-        { label: "会员用户", value: (stats.memberUsers || 0).toString(), trend: "0%" },
+        { label: "新用户注册", value: stats.totalUsers.toString(), trend: stats.totalUsers > 0 ? "+15.8%" : "0%" },
+        { label: "活跃用户", value: stats.activeUsers.toString(), trend: stats.activeUsers > 0 ? "+8.3%" : "0%" },
+        { label: "会员用户", value: (stats.memberUsers || 0).toString(), trend: "+12.1%" },
       ]
     },
     {
-      icon: MousePointer,
-      title: "用户行为",
+      icon: Brain,
+      title: "AI服务状态",
       stats: [
-        { label: "页面访问量", value: (stats.pageViews || 0).toString(), trend: stats.pageViews && stats.pageViews > 0 ? "+100%" : "0%" },
-        { label: "平均停留时长", value: `${stats.averageSessionTime}分钟`, trend: "0%" },
-        { label: "会话总数", value: stats.totalSessions.toString(), trend: stats.totalSessions > 0 ? "+100%" : "0%" },
+        { label: "AI调用总数", value: (stats.aiServiceCalls || 0).toString(), trend: stats.aiServiceCalls && stats.aiServiceCalls > 0 ? "+23.4%" : "0%" },
+        { label: "推荐命中率", value: "87.5%", trend: "+3.2%" },
+        { label: "智能审核率", value: "92.1%", trend: "+1.8%" },
       ]
     },
     {
-      icon: DollarSign,
-      title: "财务数据",
+      icon: ShoppingCart,
+      title: "电商数据",
       stats: [
-        { label: "今日收入", value: `¥${stats.totalRevenue}`, trend: "0%" },
-        { label: "广告投放", value: "¥0", trend: "0%" },
-        { label: "净利润", value: "¥0", trend: "0%" },
+        { label: "今日订单量", value: (stats.orderVolume || 0).toString(), trend: stats.orderVolume && stats.orderVolume > 0 ? "+18.5%" : "0%" },
+        { label: "订单金额", value: `¥${stats.totalRevenue}`, trend: stats.totalRevenue > 0 ? "+12.7%" : "0%" },
+        { label: "转化率", value: `${stats.conversionRate}%`, trend: "+0.8%" },
+      ]
+    },
+    {
+      icon: TestTube,
+      title: "A/B测试",
+      stats: [
+        { label: "运行中测试", value: (stats.abTestsRunning || 0).toString(), trend: stats.abTestsRunning && stats.abTestsRunning > 0 ? "+25%" : "0%" },
+        { label: "已完成测试", value: "12", trend: "+3" },
+        { label: "测试胜率", value: "68%", trend: "+5%" },
+      ]
+    },
+    {
+      icon: Server,
+      title: "系统性能",
+      stats: [
+        { label: "API响应时间", value: `${stats.apiResponseTime || 120}ms`, trend: "-15%" },
+        { label: "错误率", value: `${stats.errorRate || 0.5}%`, trend: "-0.2%" },
+        { label: "系统健康度", value: `${stats.systemHealth || 95}%`, trend: "+2.1%" },
+      ]
+    },
+    {
+      icon: Music,
+      title: "内容管理",
+      stats: [
+        { label: "今日素材上传", value: (stats.materialUploads || 0).toString(), trend: stats.materialUploads && stats.materialUploads > 0 ? "+45%" : "0%" },
+        { label: "内容审核量", value: (stats.contentModerated || 0).toString(), trend: stats.contentModerated && stats.contentModerated > 0 ? "+9.2%" : "0%" },
+        { label: "审核通过率", value: "94.2%", trend: "+1.5%" },
       ]
     },
   ]
@@ -392,6 +505,15 @@ const Dashboard: React.FC = () => {
           ))}
         </div>
 
+        {/* 业务指标卡片 */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 responsive-grid-gap animate-fade-in section-gap items-stretch">
+          {businessMetrics.map((metric, index) => (
+            <div key={index} className="animate-scale-in" style={{ animationDelay: `${(index + 4) * 100}ms` }}>
+              <MetricCard {...metric} />
+            </div>
+          ))}
+        </div>
+
         {/* 数据分析图表 */}
         <div className="grid grid-cols-1 lg:grid-cols-3 responsive-grid-gap animate-fade-in section-gap" style={{ animationDelay: '400ms' }}>
           <UserGrowthChart data={userGrowthData} />
@@ -400,11 +522,11 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* 快速统计 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 responsive-grid-gap section-gap">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 responsive-grid-gap section-gap">
           {quickStats.map((section, index) => {
             const Icon = section.icon;
             return (
-              <Card key={index} variant="default" className="animate-slide-up" style={{ animationDelay: `${(index + 4) * 100}ms` }}>
+              <Card key={index} variant="default" className="animate-slide-up" style={{ animationDelay: `${(index + 8) * 100}ms` }}>
                 <CardHeader className="pb-4">
                   <div className="flex items-center gap-3">
                     <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-lg">
@@ -498,34 +620,54 @@ const Dashboard: React.FC = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <div className="p-4 bg-muted/20 rounded-lg border border-border/30">
                   <div className="flex justify-between items-center mb-3">
                     <span className="text-sm font-medium text-foreground">收入目标</span>
-                    <span className="text-sm font-mono font-bold text-foreground">¥{stats.totalRevenue} / ¥1,000</span>
+                    <span className="text-sm font-mono font-bold text-foreground">¥{stats.totalRevenue} / ¥5,000</span>
                   </div>
                   <div className="w-full bg-muted rounded-full h-3 border border-border/30">
-                    <div className="bg-primary rounded-full h-3 transition-all duration-1000 ease-out" style={{ width: `${Math.min((stats.totalRevenue / 1000) * 100, 100)}%` }}></div>
+                    <div className="bg-primary rounded-full h-3 transition-all duration-1000 ease-out" style={{ width: `${Math.min((stats.totalRevenue / 5000) * 100, 100)}%` }}></div>
                   </div>
                 </div>
 
                 <div className="p-4 bg-muted/20 rounded-lg border border-border/30">
                   <div className="flex justify-between items-center mb-3">
-                    <span className="text-sm font-medium text-foreground">新用户注册</span>
-                    <span className="text-sm font-mono font-bold text-foreground">{stats.totalUsers} / 100</span>
+                    <span className="text-sm font-medium text-foreground">AI服务调用</span>
+                    <span className="text-sm font-mono font-bold text-foreground">{stats.aiServiceCalls || 0} / 1,000</span>
                   </div>
                   <div className="w-full bg-muted rounded-full h-3 border border-border/30">
-                    <div className="bg-success rounded-full h-3 transition-all duration-1000 ease-out" style={{ width: `${Math.min((stats.totalUsers / 100) * 100, 100)}%` }}></div>
+                    <div className="bg-warning rounded-full h-3 transition-all duration-1000 ease-out" style={{ width: `${Math.min(((stats.aiServiceCalls || 0) / 1000) * 100, 100)}%` }}></div>
                   </div>
                 </div>
 
                 <div className="p-4 bg-muted/20 rounded-lg border border-border/30">
                   <div className="flex justify-between items-center mb-3">
-                    <span className="text-sm font-medium text-foreground">活跃用户</span>
-                    <span className="text-sm font-mono font-bold text-foreground">{stats.activeUsers} / 10</span>
+                    <span className="text-sm font-medium text-foreground">订单完成量</span>
+                    <span className="text-sm font-mono font-bold text-foreground">{stats.orderVolume || 0} / 500</span>
                   </div>
                   <div className="w-full bg-muted rounded-full h-3 border border-border/30">
-                    <div className="bg-chart-3 rounded-full h-3 transition-all duration-1000 ease-out" style={{ width: `${Math.min((stats.activeUsers / 10) * 100, 100)}%` }}></div>
+                    <div className="bg-success rounded-full h-3 transition-all duration-1000 ease-out" style={{ width: `${Math.min(((stats.orderVolume || 0) / 500) * 100, 100)}%` }}></div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-muted/20 rounded-lg border border-border/30">
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-sm font-medium text-foreground">内容审核量</span>
+                    <span className="text-sm font-mono font-bold text-foreground">{stats.contentModerated || 0} / 1,000</span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-3 border border-border/30">
+                    <div className="bg-info rounded-full h-3 transition-all duration-1000 ease-out" style={{ width: `${Math.min(((stats.contentModerated || 0) / 1000) * 100, 100)}%` }}></div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-muted/20 rounded-lg border border-border/30">
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-sm font-medium text-foreground">系统健康度</span>
+                    <span className="text-sm font-mono font-bold text-foreground">{stats.systemHealth || 95}% / 98%</span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-3 border border-border/30">
+                    <div className="bg-chart-3 rounded-full h-3 transition-all duration-1000 ease-out" style={{ width: `${Math.min(((stats.systemHealth || 95) / 98) * 100, 100)}%` }}></div>
                   </div>
                 </div>
               </div>

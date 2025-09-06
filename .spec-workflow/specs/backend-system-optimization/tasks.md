@@ -261,7 +261,7 @@
   - _Leverage: Card、Input、Table组件_
   - _Requirements: 8.1, 8.2, 8.3, 8.4_
 
-- [ ] 28. 创建A/B测试管理组件 components/ABTestManager.tsx
+- [x] 28. 创建A/B测试管理组件 components/ABTestManager.tsx
   - File: components/ABTestManager.tsx
   - 实现测试创建和配置
   - 实现流量分配管理
@@ -270,7 +270,7 @@
   - _Leverage: Card、AnalyticsChart组件_
   - _Requirements: 8.3, 8.4, 8.5_
 
-- [ ] 29. 创建系统配置页面 app/(dashboard)/system-config/page.tsx
+- [x] 29. 创建系统配置页面 app/(dashboard)/system-config/page.tsx
   - File: app/(dashboard)/system-config/page.tsx
   - 集成配置管理和A/B测试组件
   - 添加功能开关管理
@@ -281,7 +281,7 @@
 
 ## Phase 10: 导航和集成优化
 
-- [ ] 30. 更新导航菜单 components/Navigation.tsx
+- [x] 30. 更新导航菜单 components/Navigation.tsx
   - File: components/Navigation.tsx (修改现有文件)
   - 添加新功能模块的菜单项
   - 实现基于权限的菜单显示
@@ -290,7 +290,7 @@
   - _Leverage: 现有导航结构和权限系统_
   - _Requirements: 全部需求_
 
-- [ ] 31. 优化Dashboard总览页面 app/(dashboard)/dashboard/page.tsx
+- [x] 31. 优化Dashboard总览页面 app/(dashboard)/dashboard/page.tsx
   - File: app/(dashboard)/dashboard/page.tsx (修改现有文件)
   - 集成新的监控指标
   - 添加关键业务数据展示
@@ -301,7 +301,7 @@
 
 ## Phase 11: 自定义Hooks和工具
 
-- [ ] 32. 创建监控数据Hook hooks/useRealtimeMonitoring.ts
+- [x] 32. 创建监控数据Hook hooks/useRealtimeMonitoring.ts
   - File: hooks/useRealtimeMonitoring.ts
   - 实现实时数据订阅管理
   - 实现数据缓存和优化

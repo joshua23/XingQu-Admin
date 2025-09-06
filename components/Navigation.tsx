@@ -23,8 +23,19 @@ import {
   Brain,
   Monitor,
   CreditCard,
-  DollarSign
+  DollarSign,
+  Cog,
+  TestTube,
+  FileText,
+  Database,
+  Globe,
+  MessageSquare,
+  ShoppingCart,
+  UserCheck,
+  AlertTriangle,
+  Zap
 } from 'lucide-react'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
 
 interface NavigationProps {
   children?: React.ReactNode
@@ -39,65 +50,136 @@ const Navigation = ({ children }: NavigationProps) => {
   const router = useRouter()
 
   const navigation = [
+    // 核心仪表板
     {
       name: '数据总览',
       href: '/dashboard',
       icon: LayoutDashboard,
-      current: pathname === '/dashboard'
+      current: pathname === '/dashboard',
+      category: 'dashboard'
     },
     {
       name: '数据分析',
       href: '/analytics',
       icon: BarChart3,
-      current: pathname === '/analytics'
+      current: pathname === '/analytics',
+      category: 'dashboard'
     },
+    
+    // 用户与内容管理
     {
       name: '用户管理',
       href: '/users',
       icon: Users,
-      current: pathname === '/users'
+      current: pathname === '/users',
+      category: 'management'
     },
     {
-      name: '订阅管理',
-      href: '/subscriptions',
-      icon: CreditCard,
-      current: pathname === '/subscriptions'
-    },
-    {
-      name: '支付订单',
-      href: '/payments',
-      icon: DollarSign,
-      current: pathname === '/payments'
-    },
-    {
-      name: '素材管理',
-      href: '/materials',
-      icon: Music,
-      current: pathname === '/materials'
-    },
-    {
-      name: '智能推荐',
-      href: '/recommendations',
-      icon: Brain,
-      current: pathname === '/recommendations'
+      name: '内容管理',
+      href: '/content',
+      icon: FileText,
+      current: pathname === '/content',
+      category: 'management'
     },
     {
       name: '内容审核',
       href: '/moderation',
       icon: Shield,
-      current: pathname === '/moderation'
+      current: pathname === '/moderation',
+      category: 'management'
     },
+    
+    // 商业功能
+    {
+      name: '订阅管理',
+      href: '/subscriptions',
+      icon: CreditCard,
+      current: pathname === '/subscriptions',
+      category: 'business'
+    },
+    {
+      name: '支付订单',
+      href: '/payments',
+      icon: DollarSign,
+      current: pathname === '/payments',
+      category: 'business'
+    },
+    {
+      name: '电商管理',
+      href: '/commerce',
+      icon: ShoppingCart,
+      current: pathname === '/commerce',
+      category: 'business'
+    },
+    
+    // AI与技术服务
+    {
+      name: 'AI服务',
+      href: '/ai-services',
+      icon: Brain,
+      current: pathname === '/ai-services',
+      category: 'services'
+    },
+    {
+      name: '智能推荐',
+      href: '/recommendations',
+      icon: Zap,
+      current: pathname === '/recommendations',
+      category: 'services'
+    },
+    {
+      name: '素材管理',
+      href: '/materials',
+      icon: Music,
+      current: pathname === '/materials',
+      category: 'services'
+    },
+    
+    // 系统监控与运维
     {
       name: '实时监控',
       href: '/monitoring',
       icon: Monitor,
-      current: pathname.startsWith('/monitoring')
+      current: pathname.startsWith('/monitoring'),
+      category: 'system'
+    },
+    {
+      name: '系统日志',
+      href: '/logs',
+      icon: FileText,
+      current: pathname === '/logs',
+      category: 'system'
+    },
+    {
+      name: '数据报告',
+      href: '/reports',
+      icon: BarChart3,
+      current: pathname === '/reports',
+      category: 'system'
+    },
+    
+    // 配置与管理
+    {
+      name: '系统配置',
+      href: '/system-config',
+      icon: Cog,
+      current: pathname === '/system-config',
+      category: 'config',
+      badge: 'New'
+    },
+    {
+      name: '权限管理',
+      href: '/permissions',
+      icon: UserCheck,
+      current: pathname === '/permissions',
+      category: 'config'
     },
     {
       name: '系统设置',
       href: '/settings',
       icon: Settings,
-      current: pathname === '/settings'
+      current: pathname === '/settings',
+      category: 'config'
     }
   ]
 
@@ -174,43 +256,366 @@ const Navigation = ({ children }: NavigationProps) => {
 
           {/* Navigation */}
           <nav className={cn(
-            "flex-1 py-6 space-y-2 transition-all duration-300",
+            "flex-1 py-4 overflow-y-auto transition-all duration-300",
             isCollapsed ? "px-2" : "px-4"
           )}>
-            {navigation.map((item) => {
-              const Icon = item.icon
-              return (
-                <div key={item.name} className="relative group">
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      "flex items-center rounded-lg text-sm font-medium transition-all duration-200",
-                      "relative overflow-hidden",
-                      isCollapsed ? "justify-center p-3" : "space-x-3 px-3 py-3",
-                      item.current
-                        ? "bg-primary/10 text-primary border border-primary/20"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            {/* Dashboard Section */}
+            {!isCollapsed && (
+              <div className="mb-4">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-3">
+                  仪表板
+                </h3>
+              </div>
+            )}
+            <div className={cn("space-y-1", !isCollapsed && "mb-6")}>
+              {navigation.filter(item => item.category === 'dashboard').map((item) => {
+                const Icon = item.icon
+                return (
+                  <div key={item.name} className="relative group">
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        "flex items-center rounded-lg text-sm font-medium transition-all duration-200",
+                        "relative overflow-hidden",
+                        isCollapsed ? "justify-center p-3" : "space-x-3 px-3 py-2.5",
+                        item.current
+                          ? "bg-primary/10 text-primary border border-primary/20"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      )}
+                      onClick={() => setIsMobileOpen(false)}
+                      title={isCollapsed ? item.name : undefined}
+                    >
+                      <Icon size={18} className="flex-shrink-0" />
+                      {!isCollapsed && (
+                        <div className="flex items-center justify-between flex-1">
+                          <span className="transition-all duration-300 whitespace-nowrap">
+                            {item.name}
+                          </span>
+                          {item.badge && (
+                            <span className="px-2 py-0.5 text-xs bg-primary/20 text-primary rounded-full font-medium">
+                              {item.badge}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </Link>
+                    {/* Tooltip for collapsed state */}
+                    {isCollapsed && (
+                      <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-popover border border-border rounded-md shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                        <span className="text-sm text-foreground">{item.name}</span>
+                        {item.badge && (
+                          <span className="ml-2 px-1.5 py-0.5 text-xs bg-primary/20 text-primary rounded-full">
+                            {item.badge}
+                          </span>
+                        )}
+                      </div>
                     )}
-                    onClick={() => setIsMobileOpen(false)}
-                    title={isCollapsed ? item.name : undefined}
-                  >
-                    <Icon size={20} className="flex-shrink-0" />
-                    {!isCollapsed && (
-                      <span className="transition-all duration-300 whitespace-nowrap">
-                        {item.name}
-                      </span>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Management Section */}
+            {!isCollapsed && (
+              <div className="mb-4">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-3">
+                  内容管理
+                </h3>
+              </div>
+            )}
+            <div className={cn("space-y-1", !isCollapsed && "mb-6")}>
+              {navigation.filter(item => item.category === 'management').map((item) => {
+                const Icon = item.icon
+                return (
+                  <div key={item.name} className="relative group">
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        "flex items-center rounded-lg text-sm font-medium transition-all duration-200",
+                        "relative overflow-hidden",
+                        isCollapsed ? "justify-center p-3" : "space-x-3 px-3 py-2.5",
+                        item.current
+                          ? "bg-primary/10 text-primary border border-primary/20"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      )}
+                      onClick={() => setIsMobileOpen(false)}
+                      title={isCollapsed ? item.name : undefined}
+                    >
+                      <Icon size={18} className="flex-shrink-0" />
+                      {!isCollapsed && (
+                        <div className="flex items-center justify-between flex-1">
+                          <span className="transition-all duration-300 whitespace-nowrap">
+                            {item.name}
+                          </span>
+                          {item.badge && (
+                            <span className="px-2 py-0.5 text-xs bg-primary/20 text-primary rounded-full font-medium">
+                              {item.badge}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </Link>
+                    {/* Tooltip for collapsed state */}
+                    {isCollapsed && (
+                      <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-popover border border-border rounded-md shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                        <span className="text-sm text-foreground">{item.name}</span>
+                        {item.badge && (
+                          <span className="ml-2 px-1.5 py-0.5 text-xs bg-primary/20 text-primary rounded-full">
+                            {item.badge}
+                          </span>
+                        )}
+                      </div>
                     )}
-                  </Link>
-                  {/* Tooltip for collapsed state */}
-                  {isCollapsed && (
-                    <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-popover border border-border rounded-md shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
-                      <span className="text-sm text-foreground">{item.name}</span>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Business Section */}
+            {!isCollapsed && (
+              <div className="mb-4">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-3">
+                  商业管理
+                </h3>
+              </div>
+            )}
+            <div className={cn("space-y-1", !isCollapsed && "mb-6")}>
+              {navigation.filter(item => item.category === 'business').map((item) => {
+                const Icon = item.icon
+                return (
+                  <div key={item.name} className="relative group">
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        "flex items-center rounded-lg text-sm font-medium transition-all duration-200",
+                        "relative overflow-hidden",
+                        isCollapsed ? "justify-center p-3" : "space-x-3 px-3 py-2.5",
+                        item.current
+                          ? "bg-primary/10 text-primary border border-primary/20"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      )}
+                      onClick={() => setIsMobileOpen(false)}
+                      title={isCollapsed ? item.name : undefined}
+                    >
+                      <Icon size={18} className="flex-shrink-0" />
+                      {!isCollapsed && (
+                        <div className="flex items-center justify-between flex-1">
+                          <span className="transition-all duration-300 whitespace-nowrap">
+                            {item.name}
+                          </span>
+                          {item.badge && (
+                            <span className="px-2 py-0.5 text-xs bg-primary/20 text-primary rounded-full font-medium">
+                              {item.badge}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </Link>
+                    {/* Tooltip for collapsed state */}
+                    {isCollapsed && (
+                      <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-popover border border-border rounded-md shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                        <span className="text-sm text-foreground">{item.name}</span>
+                        {item.badge && (
+                          <span className="ml-2 px-1.5 py-0.5 text-xs bg-primary/20 text-primary rounded-full">
+                            {item.badge}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Services Section */}
+            {!isCollapsed && (
+              <div className="mb-4">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-3">
+                  AI服务
+                </h3>
+              </div>
+            )}
+            <div className={cn("space-y-1", !isCollapsed && "mb-6")}>
+              {navigation.filter(item => item.category === 'services').map((item) => {
+                const Icon = item.icon
+                return (
+                  <div key={item.name} className="relative group">
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        "flex items-center rounded-lg text-sm font-medium transition-all duration-200",
+                        "relative overflow-hidden",
+                        isCollapsed ? "justify-center p-3" : "space-x-3 px-3 py-2.5",
+                        item.current
+                          ? "bg-primary/10 text-primary border border-primary/20"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      )}
+                      onClick={() => setIsMobileOpen(false)}
+                      title={isCollapsed ? item.name : undefined}
+                    >
+                      <Icon size={18} className="flex-shrink-0" />
+                      {!isCollapsed && (
+                        <div className="flex items-center justify-between flex-1">
+                          <span className="transition-all duration-300 whitespace-nowrap">
+                            {item.name}
+                          </span>
+                          {item.badge && (
+                            <span className="px-2 py-0.5 text-xs bg-primary/20 text-primary rounded-full font-medium">
+                              {item.badge}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </Link>
+                    {/* Tooltip for collapsed state */}
+                    {isCollapsed && (
+                      <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-popover border border-border rounded-md shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                        <span className="text-sm text-foreground">{item.name}</span>
+                        {item.badge && (
+                          <span className="ml-2 px-1.5 py-0.5 text-xs bg-primary/20 text-primary rounded-full">
+                            {item.badge}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* System Section */}
+            {!isCollapsed && (
+              <div className="mb-4">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-3">
+                  系统运维
+                </h3>
+              </div>
+            )}
+            <div className={cn("space-y-1", !isCollapsed && "mb-6")}>
+              {navigation.filter(item => item.category === 'system').map((item) => {
+                const Icon = item.icon
+                return (
+                  <div key={item.name} className="relative group">
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        "flex items-center rounded-lg text-sm font-medium transition-all duration-200",
+                        "relative overflow-hidden",
+                        isCollapsed ? "justify-center p-3" : "space-x-3 px-3 py-2.5",
+                        item.current
+                          ? "bg-primary/10 text-primary border border-primary/20"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      )}
+                      onClick={() => setIsMobileOpen(false)}
+                      title={isCollapsed ? item.name : undefined}
+                    >
+                      <Icon size={18} className="flex-shrink-0" />
+                      {!isCollapsed && (
+                        <div className="flex items-center justify-between flex-1">
+                          <span className="transition-all duration-300 whitespace-nowrap">
+                            {item.name}
+                          </span>
+                          {item.badge && (
+                            <span className="px-2 py-0.5 text-xs bg-primary/20 text-primary rounded-full font-medium">
+                              {item.badge}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </Link>
+                    {/* Tooltip for collapsed state */}
+                    {isCollapsed && (
+                      <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-popover border border-border rounded-md shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                        <span className="text-sm text-foreground">{item.name}</span>
+                        {item.badge && (
+                          <span className="ml-2 px-1.5 py-0.5 text-xs bg-primary/20 text-primary rounded-full">
+                            {item.badge}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Config Section */}
+            {!isCollapsed && (
+              <div className="mb-4">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-3">
+                  系统配置
+                </h3>
+              </div>
+            )}
+            <div className={cn("space-y-1", !isCollapsed && "mb-6")}>
+              {navigation.filter(item => item.category === 'config').map((item) => {
+                const Icon = item.icon
+                return (
+                  <div key={item.name} className="relative group">
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        "flex items-center rounded-lg text-sm font-medium transition-all duration-200",
+                        "relative overflow-hidden",
+                        isCollapsed ? "justify-center p-3" : "space-x-3 px-3 py-2.5",
+                        item.current
+                          ? "bg-primary/10 text-primary border border-primary/20"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      )}
+                      onClick={() => setIsMobileOpen(false)}
+                      title={isCollapsed ? item.name : undefined}
+                    >
+                      <Icon size={18} className="flex-shrink-0" />
+                      {!isCollapsed && (
+                        <div className="flex items-center justify-between flex-1">
+                          <span className="transition-all duration-300 whitespace-nowrap">
+                            {item.name}
+                          </span>
+                          {item.badge && (
+                            <span className="px-2 py-0.5 text-xs bg-green-500/20 text-green-700 dark:text-green-400 rounded-full font-medium">
+                              {item.badge}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </Link>
+                    {/* Tooltip for collapsed state */}
+                    {isCollapsed && (
+                      <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-popover border border-border rounded-md shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                        <span className="text-sm text-foreground">{item.name}</span>
+                        {item.badge && (
+                          <span className="ml-2 px-1.5 py-0.5 text-xs bg-green-500/20 text-green-700 dark:text-green-400 rounded-full">
+                            {item.badge}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
           </nav>
+
+          {/* Theme Toggle */}
+          <div className={cn(
+            "py-3 border-t border-border transition-all duration-300",
+            isCollapsed ? "px-2" : "px-4"
+          )}>
+            <div className={cn(
+              "flex items-center",
+              isCollapsed ? "justify-center" : "justify-start"
+            )}>
+              <ThemeToggle 
+                size="sm"
+                className={cn(
+                  isCollapsed ? "" : "mr-auto"
+                )}
+              />
+              {!isCollapsed && (
+                <span className="ml-3 text-sm text-muted-foreground">主题切换</span>
+              )}
+            </div>
+          </div>
 
           {/* User Menu */}
           <div className={cn(
