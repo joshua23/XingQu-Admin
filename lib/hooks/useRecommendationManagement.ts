@@ -157,9 +157,17 @@ export function useRecommendationManagement(): UseRecommendationManagementResult
     clearError()
 
     try {
-      await Promise.all([
-        loadStats(),
-        loadTrendingRecommendations()
+      // 添加超时处理
+      const timeout = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('推荐数据加载超时')), 10000)
+      )
+
+      await Promise.race([
+        Promise.all([
+          loadStats(),
+          loadTrendingRecommendations()
+        ]),
+        timeout
       ])
     } catch (err) {
       handleError(err, '刷新推荐数据失败')

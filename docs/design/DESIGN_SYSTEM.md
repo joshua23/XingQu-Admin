@@ -587,7 +587,7 @@ xl: '1280px',     /* 桌面 */
 // app/(dashboard)/example/page.tsx
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card"
 import { Button } from "@/components/ui/button"
 
 export default function ExamplePage() {

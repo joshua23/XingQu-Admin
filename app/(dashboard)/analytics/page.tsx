@@ -75,23 +75,42 @@ const Analytics: React.FC = () => {
         setTopAgents(parsedData.topAgents || [])
         setAgentsError(null)
         setLastUpdated(new Date(parseInt(cacheTime)))
+        setLoading(false) // 确保缓存加载后也设置loading为false
         return
       }
       
       // 设置初始加载状态
       setLoading(true)
       
-      // 第一步：优先加载核心分析数据
-      const analyticsResult = await dataService.getAnalyticsData()
+      // 添加超时处理
+      const timeout = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('数据加载超时')), 10000)
+      )
       
-      if (analyticsResult.error) {
-        throw new Error((analyticsResult.error as Error)?.message || '加载分析数据失败')
-      }
-      
-      if (analyticsResult.data) {
-        setData(analyticsResult.data)
-        // 基础数据加载完成，显示界面
+      try {
+        // 第一步：优先加载核心分析数据
+        const analyticsResult = await Promise.race([
+          dataService.getAnalyticsData(),
+          timeout
+        ])
+        
+        if (analyticsResult.error) {
+          console.warn('分析数据加载失败:', analyticsResult.error)
+          setLoading(false)
+          setError('加载分析数据失败')
+          return
+        }
+        
+        if (analyticsResult.data) {
+          setData(analyticsResult.data)
+          // 基础数据加载完成，显示界面
+          setLoading(false)
+        }
+      } catch (timeoutError) {
+        console.error('数据加载超时:', timeoutError)
         setLoading(false)
+        setError('数据加载超时，请检查网络连接')
+        return
       }
       
       // 第二步：异步加载图表和智能体数据

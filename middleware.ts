@@ -15,8 +15,8 @@ export async function middleware(req: NextRequest) {
   // 检查是否已认证 (Supabase session 或开发模式用户)
   const isAuthenticated = session || hasDevUser
 
-  // 保护路由
-  if (!isAuthenticated && !req.nextUrl.pathname.startsWith('/login')) {
+  // 保护路由，但排除登录页面和根路径
+  if (!isAuthenticated && !req.nextUrl.pathname.startsWith('/login') && req.nextUrl.pathname !== '/') {
     return NextResponse.redirect(new URL('/login', req.url))
   }
 
