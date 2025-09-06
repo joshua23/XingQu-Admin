@@ -99,6 +99,34 @@ const MaterialManager: React.FC = () => {
 
   // 文件上传引用
   const fileInputRef = useRef<HTMLInputElement>(null)
+  // 音频播放引用
+  const audioRef = useRef<HTMLAudioElement>(null)
+
+  // 音频播放处理
+  const handleAudioPlay = async (material: Material) => {
+    if (!audioRef.current) return
+
+    if (playingMaterial === material.id) {
+      // 停止播放
+      audioRef.current.pause()
+      setPlayingMaterial(null)
+    } else {
+      // 开始播放
+      audioRef.current.src = material.file_url
+      try {
+        await audioRef.current.play()
+        setPlayingMaterial(material.id)
+      } catch (error) {
+        console.error('播放音频失败:', error)
+        alert('播放失败，请检查音频文件')
+      }
+    }
+  }
+
+  // 音频结束事件处理
+  const handleAudioEnded = () => {
+    setPlayingMaterial(null)
+  }
 
   // 搜索和过滤处理
   const handleSearch = async () => {
@@ -240,6 +268,13 @@ const MaterialManager: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* 隐藏的音频播放器 */}
+      <audio
+        ref={audioRef}
+        onEnded={handleAudioEnded}
+        style={{ display: 'none' }}
+      />
+      
       {/* 错误提示 */}
       {error && (
         <div className="flex items-center justify-between p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -564,9 +599,7 @@ const MaterialManager: React.FC = () => {
                         <Button 
                           size="sm" 
                           variant="ghost"
-                          onClick={() => setPlayingMaterial(
-                            playingMaterial === material.id ? null : material.id
-                          )}
+                          onClick={() => handleAudioPlay(material)}
                         >
                           {playingMaterial === material.id ? (
                             <Pause className="h-3 w-3" />
